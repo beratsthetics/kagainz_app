@@ -1,12 +1,15 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { BodyMap } from '@/components/BodyMap';
+import { ExerciseMediaView } from '@/components/ExerciseMediaView';
 import { LineChart } from '@/components/Charts';
 import { MovementAnim } from '@/components/MovementAnim';
 import { Body, Button, Card, EmptyState, Label, LockedCard, Mono, Reveal, Row, Screen, Stat, Tag, Title } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { deleteExerciseMedia, pickExerciseMedia, saveExerciseMedia, useExerciseMedia, type ExerciseMedia as ExerciseMediaRow } from '@/lib/exerciseMedia';
 import { exerciseById, isUnlocked, MUSCLES } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
@@ -16,9 +19,11 @@ export default function ExerciseScreen() {
   const colors = useColors();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { tier } = useAuth();
+  const { tier, isCoach } = useAuth();
   const { records, history, active, addExercise } = useWorkouts();
   const ex = exerciseById(id ?? '');
+  // Koçun animasyonu ücretli üyelere ve koça gösterilir; diğerleri çizim animasyonunu görür.
+  const { media, url } = useExerciseMedia(ex?.id, isCoach || tier !== 'free');
 
   if (!ex) {
     return (
@@ -61,8 +66,12 @@ export default function ExerciseScreen() {
         <>
           <Reveal index={1}>
             <View style={styles.anim}>
-              <MovementAnim pattern={ex.pattern} size={300} />
+              {media && url ? <ExerciseMediaView url={url} kind={media.kind} size={300} /> : <MovementAnim pattern={ex.pattern} size={300} />}
             </View>
+            {media && !url && tier === 'free' && !isCoach && (
+              <PressLink onPress={() => router.push('/plans')}>Koçun hazırladığı gerçek hareket videosu Pro üyelerde açılır →</PressLink>
+            )}
+            {isCoach && <CoachMediaControls exerciseId={ex.id} media={media} />}
           </Reveal>
 
           <Reveal index={2}>
@@ -145,7 +154,64 @@ export default function ExerciseScreen() {
   );
 }
 
+function PressLink({ children, onPress }: { children: string; onPress: () => void }) {
+  const styles = useStyles();
+  return (
+    <Text onPress={onPress} style={styles.link}>
+      {children}
+    </Text>
+  );
+}
+
+// Sadece koçta görünür: bu harekete animasyon yükle, değiştir ya da kaldır.
+function CoachMediaControls({ exerciseId, media }: { exerciseId: string; media: ExerciseMediaRow | null }) {
+  const styles = useStyles();
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function upload() {
+    const asset = await pickExerciseMedia();
+    if (!asset) return;
+    setBusy(true);
+    setNotice(null);
+    const err = await saveExerciseMedia(exerciseId, asset, media);
+    setBusy(false);
+    setNotice(err ?? 'Animasyon kaydedildi. Üyeler bu hareketi açınca otomatik görecek.');
+  }
+
+  async function remove() {
+    if (!media) return;
+    setBusy(true);
+    const err = await deleteExerciseMedia(media);
+    setBusy(false);
+    setNotice(err ?? 'Animasyon kaldırıldı, çizim animasyonu gösterilecek.');
+  }
+
+  return (
+    <View style={styles.coach}>
+      <Text style={styles.coachLabel}>KOÇ · HAREKET ANİMASYONU</Text>
+      <Row gap={spacing.sm}>
+        <View style={{ flex: 1 }}>
+          <Button
+            title={media ? 'Değiştir' : 'Video / GIF yükle'}
+            variant="outline"
+            icon={{ ios: 'square.and.arrow.up', android: 'upload', web: 'upload' }}
+            loading={busy}
+            onPress={upload}
+          />
+        </View>
+        {media && !busy && <Button title="Kaldır" variant="ghost" onPress={remove} />}
+      </Row>
+      {notice && <Text style={styles.notice}>{notice}</Text>}
+    </View>
+  );
+}
+
 const useStyles = makeStyles((colors) => ({
+  link: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright, marginTop: spacing.sm, textAlign: 'center' },
+  coach: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.fat, gap: spacing.sm },
+  coachLabel: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.fat },
+  notice: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
   en: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted, alignSelf: 'center' },
   anim: {
     alignItems: 'center',

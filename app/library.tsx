@@ -6,6 +6,7 @@ import { MovementAnim } from '@/components/MovementAnim';
 import { Body, Chip, Icon, Input, PressScale, Row, Screen, Tag, TierBadge } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { useExerciseMediaIds } from '@/lib/exerciseMedia';
 import { EXERCISES, GROUPS, isUnlocked, MUSCLES, type MuscleGroup } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature, LIMITS } from '@/lib/tiers';
@@ -15,6 +16,7 @@ const plain = (s: string) => s.toLocaleLowerCase('tr-TR');
 
 export default function LibraryScreen() {
   const colors = useColors();
+  const withMedia = useExerciseMediaIds();
   const styles = useStyles();
   const { tier } = useAuth();
   const { addExercise } = useWorkouts();
@@ -82,6 +84,11 @@ export default function LibraryScreen() {
                 <Tag color={colors.textMuted} bg={colors.surfaceAlt}>
                   {e.equipment}
                 </Tag>
+                {withMedia.has(e.id) && (
+                  <Tag color={colors.accentBright} bg={colors.accentSoft}>
+                    Video
+                  </Tag>
+                )}
                 {e.free && !full && (
                   <Tag color={colors.success} bg={colors.successSoft}>
                     Ücretsiz
