@@ -1,9 +1,25 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Body, Button, Input, Label, Mono } from '@/components/ui';
+import {
+  Avatar,
+  Body,
+  Button,
+  Chip,
+  GridBackground,
+  Heading,
+  Icon,
+  IconBox,
+  Input,
+  Label,
+  Mono,
+  PressScale,
+  Row,
+  Tag,
+  type IconName,
+} from '@/components/ui';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { parseMeal, sumMacros, type Macros } from '@/lib/macros';
@@ -20,11 +36,31 @@ type Message = {
   profiles: { username: string | null } | null;
 };
 
-const KINDS: { kind: Kind; label: string }[] = [
-  { kind: 'text', label: 'Mesaj' },
-  { kind: 'meal', label: 'Öğün' },
-  { kind: 'workout', label: 'Antrenman' },
-  { kind: 'activity', label: 'Aktivite' },
+const KINDS: { kind: Kind; label: string; icon: IconName; placeholder: string }[] = [
+  {
+    kind: 'text',
+    label: 'Mesaj',
+    icon: { ios: 'text.bubble', android: 'chat', web: 'chat' },
+    placeholder: 'Bir şey paylaş...',
+  },
+  {
+    kind: 'meal',
+    label: 'Öğün',
+    icon: { ios: 'fork.knife', android: 'restaurant', web: 'restaurant' },
+    placeholder: 'ör. 3 yumurta, 100g yulaf',
+  },
+  {
+    kind: 'workout',
+    label: 'Antrenman',
+    icon: { ios: 'dumbbell.fill', android: 'fitness_center', web: 'fitness_center' },
+    placeholder: 'ör. Göğüs günü, bench 4x8 80kg',
+  },
+  {
+    kind: 'activity',
+    label: 'Aktivite',
+    icon: { ios: 'figure.walk', android: 'directions_walk', web: 'directions_walk' },
+    placeholder: 'ör. 12.000 adım, 30 dk koşu',
+  },
 ];
 
 const ROOM_NAMES: Record<string, string> = { genel: 'GENEL', pro: 'PRO KULÜP', plus: 'PLUS KULÜP' };
@@ -38,6 +74,7 @@ export default function ChatRoomScreen() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const list = useRef<FlatList<Message>>(null);
+  const preview = useMemo(() => sumMacros(parseMeal(text)), [text]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !room) return;
@@ -53,10 +90,14 @@ export default function ChatRoomScreen() {
 
     const channel = supabase
       .channel(`room:${room}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${room}` }, async (payload) => {
-        const { data } = await supabase.from('messages').select(select).eq('id', payload.new.id).single();
-        if (data) setMessages((m) => [...m, data as unknown as Message]);
-      })
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${room}` },
+        async (payload) => {
+          const { data } = await supabase.from('messages').select(select).eq('id', payload.new.id).single();
+          if (data) setMessages((m) => [...m, data as unknown as Message]);
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -79,97 +120,179 @@ export default function ChatRoomScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
-      <Stack.Screen options={{ title: ROOM_NAMES[room ?? ''] ?? 'CHAT' }} />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
-        <FlatList
-          ref={list}
-          data={messages}
-          keyExtractor={(m) => String(m.id)}
-          contentContainerStyle={{ padding: spacing.md, gap: spacing.sm }}
-          onContentSizeChange={() => list.current?.scrollToEnd({ animated: false })}
-          ListEmptyComponent={
-            <Body muted style={{ textAlign: 'center', marginTop: spacing.xl }}>
-              {isSupabaseConfigured ? 'Henüz mesaj yok. İlk paylaşımı sen yap!' : 'Sunucu bağlantısı henüz ayarlanmadı.'}
-            </Body>
-          }
-          renderItem={({ item }) => <MessageBubble message={item} mine={item.user_id === session?.user.id} />}
-        />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <GridBackground glow={false} />
+      <Stack.Screen options={{ title: ROOM_NAMES[room ?? ''] ?? 'CHAT', headerTransparent: false }} />
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={90}>
+          <FlatList
+            ref={list}
+            data={messages}
+            keyExtractor={(m) => String(m.id)}
+            contentContainerStyle={{ padding: spacing.md, gap: spacing.md, flexGrow: 1 }}
+            onContentSizeChange={() => list.current?.scrollToEnd({ animated: false })}
+            ListEmptyComponent={
+              <View style={styles.empty}>
+                <IconBox
+                  name={{ ios: 'bubble.left.and.bubble.right.fill', android: 'forum', web: 'forum' }}
+                  color={colors.accentBright}
+                  bg={colors.accentSoft}
+                  size={64}
+                />
+                <Heading style={{ textAlign: 'center' }}>
+                  {isSupabaseConfigured ? 'İlk paylaşımı sen yap' : 'Bağlantı bekleniyor'}
+                </Heading>
+                <Body muted style={{ textAlign: 'center', maxWidth: 280 }}>
+                  {isSupabaseConfigured
+                    ? 'Bugün ne yedin, nasıl antrenman yaptın? Topluluğa anlat.'
+                    : 'Sunucu bağlantısı henüz ayarlanmadı.'}
+                </Body>
+              </View>
+            }
+            renderItem={({ item }) => <MessageBubble message={item} mine={item.user_id === session?.user.id} />}
+          />
 
-        {canPost ? (
-          <View style={styles.composer}>
-            <View style={{ flexDirection: 'row', gap: spacing.xs }}>
-              {KINDS.map((k) => (
-                <Pressable key={k.kind} onPress={() => setKind(k.kind)} style={[styles.chip, kind === k.kind && styles.chipActive]}>
-                  <Text style={[styles.chipText, kind === k.kind && { color: colors.primaryText }]}>{k.label}</Text>
-                </Pressable>
-              ))}
+          {canPost ? (
+            <View style={styles.composer}>
+              <Row gap={spacing.xs}>
+                {KINDS.map((k) => (
+                  <Chip
+                    key={k.kind}
+                    label={k.label}
+                    icon={k.icon}
+                    active={kind === k.kind}
+                    onPress={() => setKind(k.kind)}
+                  />
+                ))}
+              </Row>
+              {kind === 'meal' && preview.kcal > 0 && (
+                <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
+                  ≈ {preview.kcal} kcal · <Text style={{ color: colors.protein }}>P {preview.protein}</Text> ·{' '}
+                  <Text style={{ color: colors.carb }}>K {preview.carb}</Text> ·{' '}
+                  <Text style={{ color: colors.fat }}>Y {preview.fat}</Text>
+                </Mono>
+              )}
+              <Row gap={spacing.sm} style={{ alignItems: 'flex-end' }}>
+                <View style={{ flex: 1 }}>
+                  <Input
+                    value={text}
+                    onChangeText={setText}
+                    placeholder={KINDS.find((k) => k.kind === kind)?.placeholder}
+                    multiline
+                    style={{ maxHeight: 120 }}
+                  />
+                </View>
+                <PressScale
+                  onPress={send}
+                  disabled={sending || !text.trim()}
+                  style={[styles.send, !text.trim() && { opacity: 0.4 }]}>
+                  <Icon
+                    name={{ ios: 'arrow.up', android: 'arrow_upward', web: 'arrow_upward' }}
+                    size={20}
+                    color={colors.primaryText}
+                  />
+                </PressScale>
+              </Row>
+              {error && <Label style={{ color: colors.danger }}>{error}</Label>}
             </View>
-            <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-end' }}>
-              <Input
-                value={text}
-                onChangeText={setText}
-                placeholder={kind === 'meal' ? 'ör. 3 yumurta, 100g yulaf' : 'Bir şey paylaş...'}
-                multiline
-                style={{ flex: 1, maxHeight: 120 }}
+          ) : (
+            <View style={styles.composer}>
+              <Row gap={spacing.sm}>
+                <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={16} color={colors.textMuted} />
+                <Body muted style={{ flex: 1, fontSize: 13.5 }}>
+                  Yazmak için numaranı doğrula ve kullanıcı adı seç.
+                </Body>
+              </Row>
+              <Button
+                title={session ? 'Kullanıcı adı seç' : 'Numaramı doğrula'}
+                arrow
+                onPress={() => router.push(session ? '/auth/username' : '/auth')}
               />
-              <Button title="Gönder" onPress={send} loading={sending} />
             </View>
-            {error && <Label style={{ color: colors.danger }}>{error}</Label>}
-          </View>
-        ) : (
-          <View style={styles.composer}>
-            <Body muted>Yazmak için numaranı doğrula ve bir kullanıcı adı seç.</Body>
-            <Button title={session ? 'Kullanıcı adı seç' : 'Numaramı doğrula'} onPress={() => router.push(session ? '/auth/username' : '/auth/phone')} />
-          </View>
-        )}
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          )}
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 function MessageBubble({ message, mine }: { message: Message; mine: boolean }) {
-  const kindLabel = KINDS.find((k) => k.kind === message.kind)?.label;
+  const meta = KINDS.find((k) => k.kind === message.kind);
+  const time = new Date(message.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
   return (
-    <View style={[styles.bubble, mine && { borderColor: colors.textMuted }]}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={styles.username}>@{message.profiles?.username ?? 'anonim'}</Text>
-        {message.kind !== 'text' && <Label>{kindLabel}</Label>}
+    <Row gap={spacing.sm} style={{ alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
+      {!mine && <Avatar name={message.profiles?.username} size={32} />}
+      <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
+        <Row style={{ justifyContent: 'space-between', gap: spacing.md }}>
+          {!mine && <Text style={styles.username}>@{message.profiles?.username ?? 'anonim'}</Text>}
+          {message.kind !== 'text' && meta && (
+            <Tag
+              color={mine ? colors.primaryText : colors.accentBright}
+              bg={mine ? 'rgba(0,0,0,0.08)' : colors.accentSoft}>
+              {meta.label}
+            </Tag>
+          )}
+        </Row>
+        <Text style={[styles.text, mine && { color: colors.primaryText }]}>{message.body}</Text>
+        {message.macros && (
+          <Row gap={6} style={{ flexWrap: 'wrap', marginTop: 4 }}>
+            <MacroPill label="kcal" value={message.macros.kcal} color={mine ? colors.primaryText : colors.text} />
+            <MacroPill label="P" value={message.macros.protein} color={colors.protein} />
+            <MacroPill label="K" value={message.macros.carb} color={colors.carb} />
+            <MacroPill label="Y" value={message.macros.fat} color={colors.fat} />
+          </Row>
+        )}
+        <Text style={[styles.time, mine && { color: 'rgba(8,9,11,0.5)' }]}>{time}</Text>
       </View>
-      <Body>{message.body}</Body>
-      {message.macros && (
-        <Mono style={{ color: colors.textMuted }}>
-          {message.macros.kcal} kcal · P {message.macros.protein}g · K {message.macros.carb}g · Y {message.macros.fat}g
-        </Mono>
-      )}
+    </Row>
+  );
+}
+
+function MacroPill({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <View style={styles.pill}>
+      <Text style={[styles.pillText, { color }]}>{label === 'kcal' ? `${value} kcal` : `${label} ${value}g`}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, paddingVertical: spacing.xl * 2 },
   composer: {
     borderTopWidth: 1,
     borderTopColor: colors.border,
     padding: spacing.md,
-    gap: spacing.sm,
-    backgroundColor: colors.background,
+    gap: spacing.sm + 2,
+    backgroundColor: 'rgba(8,9,11,0.96)',
   },
-  chip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.border,
+  send: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.text },
   bubble: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    padding: spacing.sm + 4,
+    maxWidth: '80%',
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 4,
     gap: 4,
   },
-  username: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.text },
+  bubbleOther: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderBottomLeftRadius: 6,
+  },
+  bubbleMine: { backgroundColor: colors.primary, borderBottomRightRadius: 6 },
+  username: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
+  text: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.text },
+  time: { fontFamily: fonts.mono, fontSize: 10.5, color: colors.textDim, alignSelf: 'flex-end' },
+  pill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: 'rgba(127,127,140,0.16)' },
+  pillText: { fontFamily: fonts.mono, fontSize: 11 },
 });

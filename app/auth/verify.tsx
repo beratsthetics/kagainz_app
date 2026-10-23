@@ -1,10 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Body, Button, Input, Label, Screen, Title } from '@/components/ui';
-import { colors } from '@/constants/theme';
+import { AuthShell } from '@/components/AuthShell';
+import { Body, Button, Eyebrow, Hero, Reveal } from '@/components/ui';
+import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { normalizeTrPhone, useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+
+const LENGTH = 6;
+const RESEND_SECONDS = 60;
 
 export default function VerifyScreen() {
   const { phone } = useLocalSearchParams<{ phone: string }>();
@@ -12,38 +17,122 @@ export default function VerifyScreen() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [wait, setWait] = useState(RESEND_SECONDS);
+  const input = useRef<ComponentRef<typeof TextInput>>(null);
 
-  async function submit() {
+  useEffect(() => {
+    if (wait <= 0) return;
+    const t = setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => clearTimeout(t);
+  }, [wait]);
+
+  async function submit(value = code) {
     setLoading(true);
     setError(null);
-    const err = await verifyCode(phone, code);
+    const err = await verifyCode(phone, value);
     if (err) {
       setLoading(false);
-      return setError(err);
+      setCode('');
+      return setError('Kod hatalı ya da süresi dolmuş. Tekrar dene.');
     }
     const { data: user } = await supabase.auth.getUser();
-    const { data } = await supabase.from('profiles').select('username').eq('id', user.user?.id ?? '').maybeSingle();
+    const { data } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.user?.id ?? '')
+      .maybeSingle();
     setLoading(false);
-    router.dismissAll();
-    if (!data?.username) router.push('/auth/username');
+    if (data?.username) router.dismissAll();
+    else router.replace('/auth/username');
+  }
+
+  function onChange(t: string) {
+    const v = t.replace(/\D/g, '').slice(0, LENGTH);
+    setCode(v);
+    if (v.length === LENGTH) submit(v);
   }
 
   return (
-    <Screen>
-      <Title>Kodu Gir</Title>
-      <Body muted>{normalizeTrPhone(phone ?? '')} numarasına gönderilen 6 haneli kodu yaz.</Body>
-      <Input
-        value={code}
-        onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
-        placeholder="••••••"
-        keyboardType="number-pad"
-        autoComplete="sms-otp"
-        textContentType="oneTimeCode"
-        style={{ fontSize: 24, letterSpacing: 8, textAlign: 'center' }}
-      />
-      <Button title="Doğrula" onPress={submit} loading={loading} disabled={code.length !== 6} />
-      <Button title="Kodu tekrar gönder" variant="outline" onPress={() => sendCode(phone)} />
-      {error && <Label style={{ color: colors.danger }}>{error}</Label>}
-    </Screen>
+    <AuthShell
+      step={1}
+      footer={
+        <>
+          <Button title="Doğrula" arrow onPress={() => submit()} loading={loading} disabled={code.length !== LENGTH} />
+          <Button
+            title={wait > 0 ? `Tekrar gönder (${wait})` : 'Kodu tekrar gönder'}
+            variant="ghost"
+            disabled={wait > 0}
+            onPress={() => {
+              sendCode(phone);
+              setWait(RESEND_SECONDS);
+            }}
+          />
+        </>
+      }>
+      <Reveal index={0}>
+        <Eyebrow>Adım 2 / 3</Eyebrow>
+        <Hero lines={['Kodu', 'gir']} size={48} />
+      </Reveal>
+      <Reveal index={1}>
+        <Body muted>
+          <Text style={{ color: colors.text, fontFamily: fonts.mono }}>{normalizeTrPhone(phone ?? '')}</Text> numarasına
+          gelen 6 haneli kodu yaz.
+        </Body>
+      </Reveal>
+      <Reveal index={2}>
+        <View>
+          <Pressable onPress={() => input.current?.focus()} style={styles.boxes}>
+            {Array.from({ length: LENGTH }, (_, i) => {
+              const active = i === code.length;
+              return (
+                <View
+                  key={i}
+                  style={[
+                    styles.box,
+                    code[i] && styles.boxFilled,
+                    active && styles.boxActive,
+                    error && styles.boxError,
+                  ]}>
+                  <Text style={styles.digit}>{code[i] ?? ''}</Text>
+                </View>
+              );
+            })}
+          </Pressable>
+          <TextInput
+            ref={input}
+            value={code}
+            onChangeText={onChange}
+            keyboardType="number-pad"
+            autoComplete="sms-otp"
+            textContentType="oneTimeCode"
+            autoFocus
+            maxLength={LENGTH}
+            style={styles.hidden}
+          />
+        </View>
+      </Reveal>
+      {error && <Text style={styles.error}>{error}</Text>}
+    </AuthShell>
   );
 }
+
+const styles = StyleSheet.create({
+  boxes: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' },
+  box: {
+    flex: 1,
+    aspectRatio: 0.82,
+    maxWidth: 64,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boxFilled: { borderColor: colors.borderStrong, backgroundColor: colors.surfaceHigh },
+  boxActive: { borderColor: colors.accent, borderWidth: 2 },
+  boxError: { borderColor: colors.danger },
+  digit: { fontFamily: fonts.mono, fontSize: 26, color: colors.text },
+  hidden: { ...StyleSheet.absoluteFill, opacity: 0.01, color: 'transparent' },
+  error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
+});

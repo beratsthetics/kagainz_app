@@ -1,29 +1,98 @@
-import { Body, Button, Card, Heading, Label, Screen, Title } from '@/components/ui';
-import { colors } from '@/constants/theme';
+import { router } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
+
+import {
+  Body,
+  Button,
+  Card,
+  GradientCard,
+  Heading,
+  Hero,
+  Icon,
+  Label,
+  PressScale,
+  Reveal,
+  Row,
+  Screen,
+  TierBadge,
+} from '@/components/ui';
+import { colors, fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
 
 const PLANS: Tier[] = ['free', 'pro', 'plus', 'max'];
+const POPULAR: Tier = 'plus';
 
 export default function PlansScreen() {
   const { tier } = useAuth();
 
   return (
-    <Screen>
-      <Title>Paketler</Title>
-      <Body muted>Aylık abonelik. Ödeme altyapısı yakında eklenecek.</Body>
-      {PLANS.map((t) => (
-        <Card key={t} style={t === tier ? { borderColor: colors.text } : undefined}>
-          <Label>{t === tier ? 'Mevcut paketin' : t === 'free' ? 'Ücretsiz' : 'Aylık'}</Label>
-          <Heading>{TIER_INFO[t].name}</Heading>
-          {TIER_INFO[t].perks.map((p) => (
-            <Body key={p} muted>
-              • {p}
-            </Body>
-          ))}
-          {t !== 'free' && t !== tier && <Button title="Yakında" disabled />}
-        </Card>
-      ))}
+    <Screen edges={['top', 'bottom']}>
+      <Row style={{ justifyContent: 'flex-end' }}>
+        <PressScale onPress={() => router.back()} style={styles.close}>
+          <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={18} />
+        </PressScale>
+      </Row>
+      <Reveal index={0}>
+        <Hero lines={['Seviyeni', 'seç']} size={52} />
+      </Reveal>
+      <Reveal index={1}>
+        <Body muted>Aylık abonelik, istediğin zaman iptal et. Ödeme sistemi çok yakında aktif olacak.</Body>
+      </Reveal>
+
+      {PLANS.map((t, i) => {
+        const current = t === tier;
+        const body = (
+          <>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <TierBadge tier={t} />
+              {t === POPULAR && <Text style={styles.popular}>{'★ En popüler'.toLocaleUpperCase('tr-TR')}</Text>}
+              {current && <Label style={{ color: colors.success }}>Mevcut paketin</Label>}
+            </Row>
+            <Heading style={{ fontSize: 30 }}>{TIER_INFO[t].name}</Heading>
+            <View style={{ gap: spacing.sm }}>
+              {TIER_INFO[t].perks.map((p) => (
+                <Row key={p} gap={10}>
+                  <Icon
+                    name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
+                    size={16}
+                    color={t === 'free' ? colors.textMuted : tierColors[t][0]}
+                  />
+                  <Body style={{ flex: 1, fontSize: 14 }}>{p}</Body>
+                </Row>
+              ))}
+            </View>
+            {t !== 'free' && !current && (
+              <View style={{ marginTop: spacing.sm }}>
+                <Button
+                  title={t === 'max' ? 'Çok yakında' : `${TIER_INFO[t].name}'a geç`}
+                  disabled
+                  variant={t === POPULAR ? 'primary' : 'outline'}
+                />
+              </View>
+            )}
+          </>
+        );
+        return (
+          <Reveal key={t} index={2 + i}>
+            {t === 'free' ? <Card>{body}</Card> : <GradientCard colors={tierColors[t]}>{body}</GradientCard>}
+          </Reveal>
+        );
+      })}
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  close: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  popular: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: '#C4B5FD' },
+});

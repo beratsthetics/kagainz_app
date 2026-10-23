@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 
 import { colors, fonts } from '@/constants/theme';
 import { AuthProvider } from '@/lib/auth';
+import { DailyProvider } from '@/lib/daily';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -55,23 +56,23 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <ThemeProvider value={theme}>
-        <StatusBar style="light" />
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.background },
-            headerTitleStyle: { fontFamily: fonts.display, color: colors.text },
-            headerTintColor: colors.text,
-            contentStyle: { backgroundColor: colors.background },
-          }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/phone" options={{ title: 'GİRİŞ YAP', presentation: 'modal' }} />
-          <Stack.Screen name="auth/verify" options={{ title: 'KODU GİR' }} />
-          <Stack.Screen name="auth/username" options={{ title: 'KULLANICI ADI' }} />
-          <Stack.Screen name="chat/[room]" options={{ title: 'CHAT' }} />
-          <Stack.Screen name="plans" options={{ title: 'PAKETLER', presentation: 'modal' }} />
-        </Stack>
-      </ThemeProvider>
+      <DailyProvider>
+        <ThemeProvider value={theme}>
+          <StatusBar style="light" />
+          <Stack
+            screenOptions={{
+              headerStyle: { backgroundColor: colors.background },
+              headerTitleStyle: { fontFamily: fonts.display, color: colors.text },
+              headerTintColor: colors.text,
+              contentStyle: { backgroundColor: colors.background },
+            }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
+            <Stack.Screen name="chat/[room]" options={{ title: 'CHAT' }} />
+            <Stack.Screen name="plans" options={{ headerShown: false, presentation: 'modal' }} />
+          </Stack>
+        </ThemeProvider>
+      </DailyProvider>
     </AuthProvider>
   );
 }

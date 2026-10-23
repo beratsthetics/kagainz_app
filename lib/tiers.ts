@@ -41,11 +41,7 @@ export const TIER_INFO: Record<Tier, { name: string; perks: string[] }> = {
   },
   plus: {
     name: 'Plus',
-    perks: [
-      "Pro'daki her şey",
-      'Plus üyelere özel chat',
-      '2 haftada bir form check ve yorum',
-    ],
+    perks: ["Pro'daki her şey", 'Plus üyelere özel chat', '2 haftada bir form check ve yorum'],
   },
   max: {
     name: 'Max',
