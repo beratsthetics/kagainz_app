@@ -64,7 +64,7 @@ export function AppSplash({ ready }: { ready: boolean }) {
         </Animated.View>
         <Animated.View style={[styles.words, word]}>
           <Text style={styles.word}>KAGAINZ</Text>
-          <Animated.Text style={[styles.tagline, tagline]}>ONLINE FİTNESS · KİŞİYE ÖZEL KOÇLUK</Animated.Text>
+          <Animated.Text style={[styles.tagline, tagline]}>ONLINE FİTNESS</Animated.Text>
         </Animated.View>
       </Animated.View>
       <View style={styles.track}>
