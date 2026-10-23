@@ -506,7 +506,7 @@ export default function ChatRoomScreen() {
 function describeError(e: unknown) {
   const message = typeof e === 'object' && e && 'message' in e ? String((e as { message: unknown }).message) : 'Bir hata oldu';
   if (/column .* does not exist|could not find .* column|schema cache/i.test(message)) {
-    return "Sunucu güncel değil: Supabase SQL Editor'de 0002 dosyasını çalıştır.";
+    return "Sunucu güncel değil: supabase/migrations klasöründeki son SQL dosyasını Supabase'de çalıştır.";
   }
   if (/row-level security/i.test(message)) return 'Bu odaya yazma iznin yok. Kullanıcı adı seçtiğinden emin ol.';
   return message;
