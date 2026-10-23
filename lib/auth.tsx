@@ -22,7 +22,7 @@ type AuthState = {
   tier: Tier;
   isCoach: boolean;
   loading: boolean;
-  // Chat'e yazabilmek için: numara doğrulanmış ve kullanıcı adı seçilmiş olmalı.
+  // Chat'e yazabilmek için: kullanıcı adı seçilmiş (ve REQUIRE_PHONE açıksa numara doğrulanmış) olmalı.
   canPost: boolean;
   hasPhone: boolean;
   sendCode: (method: CodeMethod, target: string) => Promise<string | null>;
@@ -38,6 +38,9 @@ type AuthState = {
 const AuthContext = createContext<AuthState | null>(null);
 
 WebBrowser.maybeCompleteAuthSession();
+
+// SMS sağlayıcısı bağlanınca true yap; sunucuda da public.can_post() içindeki telefon şartını geri ekle.
+export const REQUIRE_PHONE = false;
 
 function passwordError(message: string) {
   const m = message.toLowerCase();
@@ -105,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isCoach: profile?.role === 'coach',
     loading,
     hasPhone,
-    canPost: Boolean(hasPhone && profile?.username),
+    canPost: Boolean((hasPhone || !REQUIRE_PHONE) && profile?.username),
     async sendCode(method, target) {
       const t = formatTarget(method, target);
       const { error } =
@@ -191,7 +194,7 @@ export async function nextAfterSignIn(): Promise<'/auth/username' | null> {
   return data?.username ? null : '/auth/username';
 }
 
-// Chat'e yazabilmek için eksik olan adım: giriş, numara doğrulama ya da kullanıcı adı.
+// Chat'e yazabilmek için eksik olan adım: giriş, (gerekirse) numara doğrulama ya da kullanıcı adı.
 export function useJoinStep(): {
   title: string;
   hint: string;
@@ -199,7 +202,7 @@ export function useJoinStep(): {
 } | null {
   const { session, hasPhone, profile } = useAuth();
   if (!session) return { title: 'Hesap oluştur', hint: 'Ücretsiz hesapla topluluğa katıl.', href: '/auth' };
-  if (!hasPhone)
+  if (REQUIRE_PHONE && !hasPhone)
     return {
       title: 'Numaramı doğrula',
       hint: "Chat'e yazmak için numaranı bir kez doğrula.",

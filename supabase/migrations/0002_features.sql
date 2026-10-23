@@ -22,7 +22,8 @@ language sql stable security definer set search_path = public as $$
     public.tier_rank(coalesce((select min_tier from public.chat_rooms where id = room), 'max'::public.tier))
 $$;
 
--- Yazabilmek için: kullanıcı adı, doğrulanmış telefon, susturulmamış olmak. Koçlar telefonsuz yazabilir.
+-- Yazabilmek için: kullanıcı adı seçmiş ve susturulmamış olmak.
+-- SMS açılınca telefon şartı için şu satırı ekle: and (p.role = 'coach' or coalesce(auth.jwt() ->> 'phone', '') <> '')
 create or replace function public.can_post() returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (
@@ -30,7 +31,6 @@ language sql stable security definer set search_path = public as $$
     where p.id = auth.uid()
       and p.username is not null
       and (p.muted_until is null or p.muted_until < now())
-      and (p.role = 'coach' or coalesce(auth.jwt() ->> 'phone', '') <> '')
   )
 $$;
 

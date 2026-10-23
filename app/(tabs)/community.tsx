@@ -74,7 +74,7 @@ export default function CommunityScreen() {
     <Screen>
       <Reveal index={0}>
         <ScreenHeader eyebrow="KAGAINZ" title="Topluluk" />
-        <Body muted>Gününü paylaş, başkalarından ilham al. Okumak serbest, yazmak için numaranı doğrula.</Body>
+        <Body muted>Gününü paylaş, başkalarından ilham al. Okumak serbest, yazmak için kullanıcı adı seçmen yeterli.</Body>
       </Reveal>
 
       {join && (
