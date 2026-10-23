@@ -28,6 +28,8 @@ type AuthState = {
   sendCode: (method: CodeMethod, target: string) => Promise<string | null>;
   verifyCode: (method: CodeMethod, target: string, code: string) => Promise<string | null>;
   signInWithGoogle: () => Promise<string | null>;
+  // E-posta + şifre. Kayıtta "Confirm email" açıksa oturum açılmaz, needsConfirm döner.
+  passwordAuth: (mode: 'signin' | 'signup', email: string, password: string) => Promise<{ error: string | null; needsConfirm?: boolean }>;
   setUsername: (username: string) => Promise<string | null>;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -36,6 +38,16 @@ type AuthState = {
 const AuthContext = createContext<AuthState | null>(null);
 
 WebBrowser.maybeCompleteAuthSession();
+
+function passwordError(message: string) {
+  const m = message.toLowerCase();
+  if (m.includes('invalid login credentials')) return 'E-posta ya da şifre yanlış.';
+  if (m.includes('email not confirmed')) return 'E-postanı henüz onaylamadın. Gelen kutundaki onay linkine tıkla.';
+  if (m.includes('already registered')) return 'Bu e-postayla zaten hesap var. "Giriş yap"ı seç.';
+  if (m.includes('password')) return 'Şifre en az 6 karakter olmalı.';
+  if (m.includes('rate limit')) return 'Çok fazla deneme yaptın, biraz sonra tekrar dene.';
+  return message;
+}
 
 // "0532 123 45 67" veya "532..." -> "+905321234567"
 export function normalizeTrPhone(input: string): string {
@@ -112,6 +124,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           : await supabase.auth.verifyOtp({ phone: t, token: code, type: method === 'phone' ? 'sms' : 'phone_change' });
       if (!error && method === 'link_phone') await supabase.auth.refreshSession();
       return error?.message ?? null;
+    },
+    async passwordAuth(mode, email, password) {
+      const e = email.trim().toLowerCase();
+      if (mode === 'signin') {
+        const { error } = await supabase.auth.signInWithPassword({ email: e, password });
+        return { error: error ? passwordError(error.message) : null };
+      }
+      const { data, error } = await supabase.auth.signUp({ email: e, password });
+      if (error) return { error: passwordError(error.message) };
+      // Supabase, var olan e-posta için hata vermek yerine kimliksiz kullanıcı döndürür.
+      if (data.user && !data.user.identities?.length) return { error: 'Bu e-postayla zaten hesap var. "Giriş yap"ı seç.' };
+      return { error: null, needsConfirm: !data.session };
     },
     async signInWithGoogle() {
       // Web'de sayfa Google'a gider ve /auth/callback'e döner; mobilde uygulama içi tarayıcı açılır.

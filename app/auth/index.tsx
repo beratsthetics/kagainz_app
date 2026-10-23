@@ -144,7 +144,7 @@ export default function WelcomeScreen() {
           disabled={busy || !isSupabaseConfigured}
         />
         <ProviderButton
-          label="E-posta ile devam et"
+          label="E-posta ve şifre ile devam et"
           icon={<Icon name={{ ios: 'envelope.fill', android: 'mail', web: 'mail' }} size={20} />}
           onPress={() => router.push('/auth/email')}
           disabled={!isSupabaseConfigured}
