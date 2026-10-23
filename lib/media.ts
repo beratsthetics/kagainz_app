@@ -1,6 +1,8 @@
 import { decode } from 'base64-arraybuffer';
+import { File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 
 import { isSupabaseConfigured, supabase } from './supabase';
 
@@ -25,9 +27,12 @@ export async function uploadBase64(bucket: Bucket, path: string, base64: string,
 }
 
 // Video gibi büyük dosyalar base64'e çevrilmeden, dosya yolundan yüklenir.
+// Telefonda dosya expo-file-system ile okunur: React Native'in fetch(file://) yolu bazı cihazlarda
+// boş veri döndürüp sunucuya 0 baytlık dosya yüklüyordu.
 export async function uploadFile(bucket: Bucket, path: string, uri: string, contentType: string) {
-  const blob = await (await fetch(uri)).arrayBuffer();
-  const { error } = await supabase.storage.from(bucket).upload(path, blob, { contentType, upsert: false });
+  const data = Platform.OS === 'web' ? await (await fetch(uri)).arrayBuffer() : await new File(uri).arrayBuffer();
+  if (!data.byteLength) throw new Error('Dosya okunamadı (0 bayt). Başka bir dosya dene.');
+  const { error } = await supabase.storage.from(bucket).upload(path, data, { contentType, upsert: false });
   if (error) throw error;
   return path;
 }
