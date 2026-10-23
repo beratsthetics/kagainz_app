@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -20,6 +21,7 @@ import {
   Stat,
 } from '@/components/ui';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { useAuth } from '@/lib/auth';
 import { useDaily } from '@/lib/daily';
 import { parseMeal, sumMacros } from '@/lib/macros';
 
@@ -34,7 +36,50 @@ const QUICK = [
   '10g zeytinyağı',
 ];
 
+// Makro hesaplama ücretsiz ama hesap gerektiriyor.
 export default function MacrosScreen() {
+  const { session, loading } = useAuth();
+  if (loading) return <Screen>{null}</Screen>;
+  return session ? <MacroCalculator /> : <MacrosLocked />;
+}
+
+function MacrosLocked() {
+  return (
+    <Screen>
+      <Reveal index={0}>
+        <ScreenHeader eyebrow="Ücretsiz" title="Makro hesapla" />
+      </Reveal>
+      <Reveal index={1}>
+        <Card glow>
+          <Row gap={spacing.lg}>
+            <Ring value={0.68} size={104} stroke={10}>
+              <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={26} />
+            </Ring>
+            <View style={{ flex: 1, gap: spacing.xs }}>
+              <Heading>Önce hesabını oluştur</Heading>
+              <Body muted style={{ fontSize: 13.5 }}>
+                30 saniyede ücretsiz kayıt ol, yediklerinin makrolarını anında gör.
+              </Body>
+            </View>
+          </Row>
+          <Row gap={spacing.sm}>
+            <Stat label="Protein" value="— g" color={colors.protein} />
+            <Stat label="Karb." value="— g" color={colors.carb} />
+            <Stat label="Yağ" value="— g" color={colors.fat} />
+          </Row>
+          <Button title="Ücretsiz kayıt ol" arrow onPress={() => router.push('/auth?reason=macros')} />
+        </Card>
+      </Reveal>
+      <Reveal index={2}>
+        <Body muted style={{ textAlign: 'center', fontSize: 13 }}>
+          Google, e-posta ya da telefonla. Şifre yok.
+        </Body>
+      </Reveal>
+    </Screen>
+  );
+}
+
+function MacroCalculator() {
   const [text, setText] = useState('');
   const { entries, totals: dayTotals, goals, add, remove } = useDaily();
   const lines = useMemo(() => parseMeal(text), [text]);

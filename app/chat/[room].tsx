@@ -21,7 +21,7 @@ import {
   type IconName,
 } from '@/components/ui';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
-import { useAuth } from '@/lib/auth';
+import { useAuth, useJoinStep } from '@/lib/auth';
 import { parseMeal, sumMacros, type Macros } from '@/lib/macros';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
@@ -68,6 +68,7 @@ const ROOM_NAMES: Record<string, string> = { genel: 'GENEL', pro: 'PRO KULÜP', 
 export default function ChatRoomScreen() {
   const { room } = useLocalSearchParams<{ room: string }>();
   const { session, canPost } = useAuth();
+  const join = useJoinStep();
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const [kind, setKind] = useState<Kind>('text');
@@ -203,14 +204,10 @@ export default function ChatRoomScreen() {
               <Row gap={spacing.sm}>
                 <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={16} color={colors.textMuted} />
                 <Body muted style={{ flex: 1, fontSize: 13.5 }}>
-                  Yazmak için numaranı doğrula ve kullanıcı adı seç.
+                  {join?.hint}
                 </Body>
               </Row>
-              <Button
-                title={session ? 'Kullanıcı adı seç' : 'Numaramı doğrula'}
-                arrow
-                onPress={() => router.push(session ? '/auth/username' : '/auth')}
-              />
+              <Button title={join?.title ?? ''} arrow onPress={() => join && router.push(join.href)} />
             </View>
           )}
         </KeyboardAvoidingView>

@@ -5,14 +5,13 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Button, Eyebrow, Hero, Reveal } from '@/components/ui';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
-import { normalizeTrPhone, useAuth } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { formatTarget, nextAfterSignIn, useAuth, type CodeMethod } from '@/lib/auth';
 
 const LENGTH = 6;
 const RESEND_SECONDS = 60;
 
 export default function VerifyScreen() {
-  const { phone } = useLocalSearchParams<{ phone: string }>();
+  const { method = 'phone', target = '' } = useLocalSearchParams<{ method?: CodeMethod; target?: string }>();
   const { verifyCode, sendCode } = useAuth();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,21 +28,16 @@ export default function VerifyScreen() {
   async function submit(value = code) {
     setLoading(true);
     setError(null);
-    const err = await verifyCode(phone, value);
+    const err = await verifyCode(method, target, value);
     if (err) {
       setLoading(false);
       setCode('');
       return setError('Kod hatalı ya da süresi dolmuş. Tekrar dene.');
     }
-    const { data: user } = await supabase.auth.getUser();
-    const { data } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('id', user.user?.id ?? '')
-      .maybeSingle();
+    const next = await nextAfterSignIn();
     setLoading(false);
-    if (data?.username) router.dismissAll();
-    else router.replace('/auth/username');
+    if (next) router.replace(next);
+    else router.dismissAll();
   }
 
   function onChange(t: string) {
@@ -54,7 +48,7 @@ export default function VerifyScreen() {
 
   return (
     <AuthShell
-      step={1}
+      step={method === 'link_phone' ? undefined : 1}
       footer={
         <>
           <Button title="Doğrula" arrow onPress={() => submit()} loading={loading} disabled={code.length !== LENGTH} />
@@ -63,19 +57,20 @@ export default function VerifyScreen() {
             variant="ghost"
             disabled={wait > 0}
             onPress={() => {
-              sendCode(phone);
+              sendCode(method, target);
               setWait(RESEND_SECONDS);
             }}
           />
         </>
       }>
       <Reveal index={0}>
-        <Eyebrow>Adım 2 / 3</Eyebrow>
+        <Eyebrow>{method === 'link_phone' ? 'Chat için doğrulama' : 'Adım 2 / 3'}</Eyebrow>
         <Hero lines={['Kodu', 'gir']} size={48} />
       </Reveal>
       <Reveal index={1}>
         <Body muted>
-          <Text style={{ color: colors.text, fontFamily: fonts.mono }}>{normalizeTrPhone(phone ?? '')}</Text> numarasına
+          <Text style={{ color: colors.text, fontFamily: fonts.mono }}>{formatTarget(method, target)}</Text>{' '}
+          {method === 'email' ? 'adresine' : 'numarasına'}
           gelen 6 haneli kodu yaz.
         </Body>
       </Reveal>

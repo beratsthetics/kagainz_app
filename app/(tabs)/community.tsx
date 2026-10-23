@@ -18,7 +18,7 @@ import {
   type IconName,
 } from '@/components/ui';
 import { colors, fonts, spacing, tierColors } from '@/constants/theme';
-import { useAuth } from '@/lib/auth';
+import { useAuth, useJoinStep } from '@/lib/auth';
 import { hasFeature, type Feature, type Tier } from '@/lib/tiers';
 
 const ROOMS: { id: string; name: string; description: string; feature: Feature; minTier: Tier; icon: IconName }[] = [
@@ -49,7 +49,8 @@ const ROOMS: { id: string; name: string; description: string; feature: Feature; 
 ];
 
 export default function CommunityScreen() {
-  const { tier, canPost, session } = useAuth();
+  const { tier } = useAuth();
+  const join = useJoinStep();
 
   return (
     <Screen>
@@ -58,7 +59,7 @@ export default function CommunityScreen() {
         <Body muted>Gününü paylaş, başkalarından ilham al. Okumak serbest, yazmak için numaranı doğrula.</Body>
       </Reveal>
 
-      {!canPost && (
+      {join && (
         <Reveal index={1}>
           <Card style={{ borderColor: colors.accent }}>
             <Row gap={spacing.md}>
@@ -70,15 +71,11 @@ export default function CommunityScreen() {
               <View style={{ flex: 1 }}>
                 <Heading style={{ fontSize: 17 }}>Sohbete katıl</Heading>
                 <Body muted style={{ fontSize: 13 }}>
-                  {session ? 'Bir kullanıcı adı seç, yazmaya başla.' : '30 saniyede numaranı doğrula.'}
+                  {join.hint}
                 </Body>
               </View>
             </Row>
-            <Button
-              title={session ? 'Kullanıcı adı seç' : 'Numaramı doğrula'}
-              arrow
-              onPress={() => router.push(session ? '/auth/username' : '/auth')}
-            />
+            <Button title={join.title} arrow onPress={() => router.push(join.href)} />
           </Card>
         </Reveal>
       )}

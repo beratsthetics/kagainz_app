@@ -69,7 +69,7 @@ export default function ProfileScreen() {
           <Text style={styles.username}>@{profile?.username ?? 'kullanıcı adı yok'}</Text>
           <TierBadge tier={tier} />
           <Mono style={{ color: colors.textMuted }}>
-            {session.user.phone ? `+${session.user.phone.replace(/^\+/, '')}` : ''}
+            {session.user.phone ? `+${session.user.phone.replace(/^\+/, '')}` : (session.user.email ?? '')}
           </Mono>
         </View>
       </Reveal>

@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -15,6 +15,9 @@ function formatPhone(digits: string) {
 }
 
 export default function PhoneScreen() {
+  // link=1: e-posta/Google ile girmiş kullanıcı chat'e yazmak için numarasını ekliyor.
+  const { link } = useLocalSearchParams<{ link?: string }>();
+  const method = link ? 'link_phone' : 'phone';
   const { sendCode } = useAuth();
   const [digits, setDigits] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,15 +27,15 @@ export default function PhoneScreen() {
   async function submit() {
     setLoading(true);
     setError(null);
-    const err = await sendCode(digits);
+    const err = await sendCode(method, digits);
     setLoading(false);
     if (err) return setError(err);
-    router.push({ pathname: '/auth/verify', params: { phone: digits } });
+    router.push({ pathname: '/auth/verify', params: { method, target: digits } });
   }
 
   return (
     <AuthShell
-      step={0}
+      step={link ? undefined : 0}
       footer={
         <>
           {!isSupabaseConfigured && <Text style={styles.note}>Sunucu bağlantısı henüz ayarlanmadı.</Text>}
@@ -46,11 +49,15 @@ export default function PhoneScreen() {
         </>
       }>
       <Reveal index={0}>
-        <Eyebrow>Adım 1 / 3</Eyebrow>
-        <Hero lines={['Numaranı', 'gir']} size={48} />
+        <Eyebrow>{link ? 'Chat için doğrulama' : 'Adım 1 / 3'}</Eyebrow>
+        <Hero lines={link ? ['Numaranı', 'doğrula'] : ['Numaranı', 'gir']} size={48} />
       </Reveal>
       <Reveal index={1}>
-        <Body muted>Giriş ve kayıt aynı: numarana 6 haneli bir kod göndereceğiz. Şifre hatırlamana gerek yok.</Body>
+        <Body muted>
+          {link
+            ? "Toplulukta spam olmasın diye chat'e yazan herkes numarasını bir kez doğruluyor. 6 haneli kod göndereceğiz."
+            : 'Giriş ve kayıt aynı: numarana 6 haneli bir kod göndereceğiz. Şifre hatırlamana gerek yok.'}
+        </Body>
       </Reveal>
       <Reveal index={2}>
         <Input
