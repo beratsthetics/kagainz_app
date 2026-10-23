@@ -5,11 +5,13 @@ import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GridBackground, Icon, PressScale, Row } from '@/components/ui';
-import { colors, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
+import { makeStyles, useColors } from '@/lib/theme';
 
 const STEPS = 3;
 
 function StepDot({ active, done }: { active: boolean; done: boolean }) {
+  const colors = useColors();
   const style = useAnimatedStyle(() => ({
     width: withTiming(active ? 28 : 8, { duration: 300 }),
     backgroundColor: withTiming(active || done ? colors.text : colors.borderStrong, { duration: 300 }),
@@ -19,6 +21,8 @@ function StepDot({ active, done }: { active: boolean; done: boolean }) {
 
 // Giriş/kayıt adımlarının ortak çerçevesi: geri butonu, adım göstergesi, alt butonlar.
 export function AuthShell({ step, children, footer }: { step?: number; children: ReactNode; footer?: ReactNode }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <GridBackground />
@@ -47,7 +51,7 @@ export function AuthShell({ step, children, footer }: { step?: number; children:
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   top: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -77,4 +81,4 @@ const styles = StyleSheet.create({
     maxWidth: 560,
     alignSelf: 'center',
   },
-});
+}));

@@ -1,69 +1,156 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
 
+import { waterGoalGlasses, type BodyProfile } from './goals';
 import type { Macros } from './macros';
+import { dayKey, daysAgo, readItem, useStored } from './store';
 
-export type LogEntry = { id: string; text: string; macros: Macros; at: string };
+export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type EntrySource = 'text' | 'search' | 'barcode' | 'photo' | 'plan' | 'favorite';
+
+export type LogEntry = {
+  id: string;
+  text: string;
+  macros: Macros;
+  at: string;
+  meal?: MealSlot;
+  source?: EntrySource;
+};
+
+export type SavedMeal = { id: string; text: string; macros: Macros };
+
+export const MEALS: Record<MealSlot, { label: string; icon: { ios: string; android: string; web: string } }> = {
+  breakfast: { label: 'Kahvaltı', icon: { ios: 'sunrise.fill', android: 'wb_twilight', web: 'wb_twilight' } },
+  lunch: { label: 'Öğle', icon: { ios: 'sun.max.fill', android: 'light_mode', web: 'light_mode' } },
+  dinner: { label: 'Akşam', icon: { ios: 'moon.stars.fill', android: 'bedtime', web: 'bedtime' } },
+  snack: { label: 'Ara öğün', icon: { ios: 'takeoutbag.and.cup.and.straw.fill', android: 'cookie', web: 'cookie' } },
+};
+export const MEAL_ORDER: MealSlot[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+export function mealForNow(date = new Date()): MealSlot {
+  const h = date.getHours();
+  if (h >= 5 && h < 11) return 'breakfast';
+  if (h >= 11 && h < 16) return 'lunch';
+  if (h >= 17 && h < 22) return 'dinner';
+  return 'snack';
+}
 
 export type Goals = Macros;
 
-// Varsayılan günlük hedef; profil ayarlarından değiştirilebilir hale getirilecek.
+// Kişisel hedef hesaplanana kadar kullanılan varsayılan.
 export const DEFAULT_GOALS: Goals = { kcal: 2200, protein: 150, carb: 240, fat: 70 };
 
+const ZERO: Macros = { kcal: 0, protein: 0, carb: 0, fat: 0 };
+const r1 = (n: number) => Math.round(n * 10) / 10;
+
+export function totalOf(entries: LogEntry[]): Macros {
+  return entries.reduce<Macros>(
+    (a, e) => ({
+      kcal: a.kcal + e.macros.kcal,
+      protein: r1(a.protein + e.macros.protein),
+      carb: r1(a.carb + e.macros.carb),
+      fat: r1(a.fat + e.macros.fat),
+    }),
+    ZERO,
+  );
+}
+
 type DailyState = {
+  day: string;
   entries: LogEntry[];
   totals: Macros;
   goals: Goals;
-  add: (text: string, macros: Macros) => void;
+  hasCustomGoals: boolean;
+  body: BodyProfile | null;
+  setBody: (b: BodyProfile, goals: Goals) => void;
+  add: (text: string, macros: Macros, opts?: { meal?: MealSlot; source?: EntrySource }) => void;
   remove: (id: string) => void;
+  water: number;
+  waterGoal: number;
+  setWater: (glasses: number) => void;
+  favorites: SavedMeal[];
+  isFavorite: (text: string) => boolean;
+  toggleFavorite: (text: string, macros: Macros) => void;
+  recent: SavedMeal[];
 };
 
 const DailyContext = createContext<DailyState | null>(null);
 
-const today = () => new Date().toISOString().slice(0, 10);
-const storageKey = () => `kagainz:log:${today()}`;
-
 export function DailyProvider({ children }: { children: ReactNode }) {
-  const [entries, setEntries] = useState<LogEntry[]>([]);
+  const day = dayKey();
+  const [entries, setEntries] = useStored<LogEntry[]>(`log:${day}`, []);
+  const [water, setWaterState] = useStored<number>(`water:${day}`, 0);
+  const [goals, setGoals] = useStored<Goals | null>('goals', null);
+  const [body, setBodyState] = useStored<BodyProfile | null>('body', null);
+  const [favorites, setFavorites] = useStored<SavedMeal[]>('favorites', []);
+  const [recent, setRecent] = useStored<SavedMeal[]>('recent', []);
 
-  useEffect(() => {
-    AsyncStorage.getItem(storageKey())
-      .then((raw) => raw && setEntries(JSON.parse(raw)))
-      .catch(() => {});
-  }, []);
+  const add = useCallback<DailyState['add']>(
+    (text, macros, opts) => {
+      const entry: LogEntry = {
+        id: `${Date.now()}`,
+        text,
+        macros,
+        at: new Date().toISOString(),
+        meal: opts?.meal ?? mealForNow(),
+        source: opts?.source ?? 'text',
+      };
+      setEntries((prev) => [...prev, entry]);
+      // Son yenenler: aynı metin bir kez, en yenisi başta, en fazla 20.
+      setRecent((prev) => [{ id: entry.id, text, macros }, ...prev.filter((r) => r.text !== text)].slice(0, 20));
+    },
+    [setEntries, setRecent],
+  );
 
-  function save(next: LogEntry[]) {
-    setEntries(next);
-    AsyncStorage.setItem(storageKey(), JSON.stringify(next)).catch(() => {});
-  }
-
-  const totals = entries.reduce<Macros>(
-    (a, e) => ({
-      kcal: a.kcal + e.macros.kcal,
-      protein: Math.round((a.protein + e.macros.protein) * 10) / 10,
-      carb: Math.round((a.carb + e.macros.carb) * 10) / 10,
-      fat: Math.round((a.fat + e.macros.fat) * 10) / 10,
+  const value = useMemo<DailyState>(
+    () => ({
+      day,
+      entries,
+      totals: totalOf(entries),
+      goals: goals ?? DEFAULT_GOALS,
+      hasCustomGoals: goals != null,
+      body,
+      setBody: (b, g) => {
+        setBodyState(b);
+        setGoals(g);
+      },
+      add,
+      remove: (id) => setEntries((prev) => prev.filter((e) => e.id !== id)),
+      water,
+      waterGoal: waterGoalGlasses(body?.weightKg),
+      setWater: (n) => setWaterState(Math.max(0, Math.min(30, n))),
+      favorites,
+      isFavorite: (text) => favorites.some((f) => f.text === text),
+      toggleFavorite: (text, macros) =>
+        setFavorites((prev) =>
+          prev.some((f) => f.text === text)
+            ? prev.filter((f) => f.text !== text)
+            : [{ id: `${Date.now()}`, text, macros }, ...prev],
+        ),
+      recent,
     }),
-    { kcal: 0, protein: 0, carb: 0, fat: 0 },
+    [day, entries, goals, body, add, water, favorites, recent, setBodyState, setGoals, setEntries, setWaterState, setFavorites],
   );
 
-  return (
-    <DailyContext.Provider
-      value={{
-        entries,
-        totals,
-        goals: DEFAULT_GOALS,
-        add: (text, macros) =>
-          save([...entries, { id: String(Date.now()), text, macros, at: new Date().toISOString() }]),
-        remove: (id) => save(entries.filter((e) => e.id !== id)),
-      }}>
-      {children}
-    </DailyContext.Provider>
-  );
+  return <DailyContext.Provider value={value}>{children}</DailyContext.Provider>;
 }
 
 export function useDaily() {
   const ctx = useContext(DailyContext);
   if (!ctx) throw new Error('useDaily, DailyProvider içinde kullanılmalı');
   return ctx;
+}
+
+export type DaySummary = { day: string; date: Date; totals: Macros; water: number; count: number };
+
+// Grafikler için son N günün özeti (bugün dahil, eskiden yeniye).
+export async function loadHistory(days: number): Promise<DaySummary[]> {
+  const out: DaySummary[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = daysAgo(i);
+    const key = dayKey(date);
+    const entries = await readItem<LogEntry[]>(`log:${key}`, []);
+    const water = await readItem<number>(`water:${key}`, 0);
+    out.push({ day: key, date, totals: totalOf(entries), water, count: entries.length });
+  }
+  return out;
 }

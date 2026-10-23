@@ -4,8 +4,9 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Avatar, Body, Button, Eyebrow, Hero, Icon, Input, Label, Reveal, Row } from '@/components/ui';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { makeStyles, useColors } from '@/lib/theme';
 
 const RULES = [
   { text: '3-20 karakter', test: (s: string) => s.length >= 3 && s.length <= 20 },
@@ -13,6 +14,8 @@ const RULES = [
 ];
 
 export default function UsernameScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { setUsername } = useAuth();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -84,7 +87,7 @@ export default function UsernameScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   at: { fontFamily: fonts.mono, fontSize: 18, color: colors.textMuted },
   preview: {
     flexDirection: 'row',
@@ -97,4 +100,4 @@ const styles = StyleSheet.create({
   },
   previewName: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textMuted, marginBottom: 2 },
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
-});
+}));

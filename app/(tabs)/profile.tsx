@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { router, type Href } from 'expo-router';
+import { Platform, Switch, Text, View } from 'react-native';
 
 import {
   Avatar,
@@ -16,19 +16,30 @@ import {
   Reveal,
   Row,
   Screen,
+  Segmented,
   TierBadge,
   type IconName,
 } from '@/components/ui';
-import { colors, fonts, spacing, tierColors } from '@/constants/theme';
+import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useDaily } from '@/lib/daily';
-import { TIER_INFO } from '@/lib/tiers';
+import { setDailyReminder } from '@/lib/notifications';
+import { BADGES, useProgress } from '@/lib/progress';
+import { useStored } from '@/lib/store';
+import { hasFeature, TIER_INFO } from '@/lib/tiers';
+import { makeStyles, useColors, useTheme } from '@/lib/theme';
 
 const CHECK: IconName = { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' };
 
 export default function ProfileScreen() {
-  const { session, profile, tier, signOut } = useAuth();
+  const colors = useColors();
+  const styles = useStyles();
+  const { session, profile, tier, signOut, isCoach } = useAuth();
   const { goals } = useDaily();
+  const { stats, unlocked } = useProgress();
+  const recent = BADGES.filter((b) => unlocked[b.id])
+    .sort((a, b) => unlocked[b.id].localeCompare(unlocked[a.id]))
+    .slice(0, 6);
 
   if (!session) {
     return (
@@ -37,11 +48,11 @@ export default function ProfileScreen() {
           <Hero lines={['Hesabını', 'oluştur']} size={52} />
         </Reveal>
         <Reveal index={1}>
-          <Body muted>Topluluğa yazmak, ilerlemeni kaydetmek ve paketlere geçmek için numaranla giriş yap.</Body>
+          <Body muted>Makrolarını hesaplamak, ilerlemeni kaydetmek ve toplulukta yazmak için e-posta, telefon ya da Google ile giriş yap.</Body>
         </Reveal>
         <Reveal index={2}>
           <Card glow>
-            {['Şifre yok, sadece SMS kodu', 'Makro günlüğün her cihazda', 'Toplulukta kendi kullanıcı adın'].map(
+            {['Google, e-posta ya da telefonla saniyeler içinde', 'Günlüğün, antrenmanların ve rozetlerin her cihazda', 'Toplulukta kendi kullanıcı adın'].map(
               (t) => (
                 <Row key={t} gap={10}>
                   <Icon name={CHECK} size={16} color={colors.success} />
@@ -93,10 +104,59 @@ export default function ProfileScreen() {
       </Reveal>
 
       <Reveal index={3}>
-        <MembershipCard />
+        <PressScale onPress={() => router.push('/badges')}>
+          <Card>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <Label>Rozetler</Label>
+              <Mono style={{ color: colors.textMuted }}>
+                {Object.keys(unlocked).length}/{BADGES.length} ›
+              </Mono>
+            </Row>
+            {recent.length ? (
+              <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
+                {recent.map((b) => (
+                  <View key={b.id} style={styles.badge}>
+                    <Text style={{ fontSize: 24 }}>{b.emoji}</Text>
+                  </View>
+                ))}
+              </Row>
+            ) : (
+              <Body muted style={{ fontSize: 13.5 }}>
+                İlk öğününü gir, ilk rozetin gelsin.
+              </Body>
+            )}
+            <Row gap={spacing.md}>
+              <Mono style={{ color: colors.textMuted }}>🔥 {stats.streak} gün seri</Mono>
+              <Mono style={{ color: colors.textMuted }}>🏆 {stats.prs} rekor</Mono>
+            </Row>
+          </Card>
+        </PressScale>
       </Reveal>
 
       <Reveal index={4}>
+        <Card style={{ gap: 0, paddingVertical: spacing.xs }}>
+          {isCoach && <LinkRow icon={{ ios: 'person.badge.key.fill', android: 'shield_person', web: 'shield_person' }} label="Koç paneli" href="/coach" />}
+          <LinkRow icon={{ ios: 'chart.xyaxis.line', android: 'monitoring', web: 'monitoring' }} label="İlerleme" href="/progress" />
+          <LinkRow icon={{ ios: 'target', android: 'target', web: 'target' }} label="Hedeflerim" href="/goals" />
+          <LinkRow icon={{ ios: 'flag.checkered', android: 'flag', web: 'flag' }} label="Haftalık meydan okuma" href="/challenges" />
+          {hasFeature(tier, 'form_check') && (
+            <LinkRow icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} label="Form kontrol" href="/form-check" />
+          )}
+          {hasFeature(tier, 'coach_dm') && !isCoach && (
+            <LinkRow icon={{ ios: 'bubble.left.and.text.bubble.right.fill', android: 'forum', web: 'forum' }} label="Koçuma yaz" href="/dm/me" last />
+          )}
+        </Card>
+      </Reveal>
+
+      <Reveal index={5}>
+        <Settings />
+      </Reveal>
+
+      <Reveal index={6}>
+        <MembershipCard />
+      </Reveal>
+
+      <Reveal index={7}>
         <PressScale onPress={signOut} style={styles.signOut}>
           <Icon
             name={{ ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' }}
@@ -110,7 +170,9 @@ export default function ProfileScreen() {
   );
 }
 
-function Goal({ label, value, color = colors.text }: { label: string; value: string; color?: string }) {
+function Goal({ label, value, color }: { label: string; value: string; color?: string }) {
+  const colors = useColors();
+  color ??= colors.text;
   return (
     <View style={{ alignItems: 'center', gap: 4 }}>
       <Text style={{ fontFamily: fonts.display, fontSize: 22, color }}>{value}</Text>
@@ -119,7 +181,58 @@ function Goal({ label, value, color = colors.text }: { label: string; value: str
   );
 }
 
+function LinkRow({ icon, label, href, last }: { icon: IconName; label: string; href: Href; last?: boolean }) {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <PressScale onPress={() => router.push(href)} style={[styles.linkRow, !last && styles.linkBorder]}>
+      <Icon name={icon} size={18} color={colors.accentBright} />
+      <Text style={styles.linkText}>{label}</Text>
+      <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={14} color={colors.textDim} />
+    </PressScale>
+  );
+}
+
+function Settings() {
+  const colors = useColors();
+  const { pref, setPref } = useTheme();
+  const [reminder, setReminder] = useStored<boolean>('device:reminder', false);
+  return (
+    <Card>
+      <Label>Görünüm</Label>
+      <Segmented
+        options={[
+          { value: 'dark', label: 'Koyu' },
+          { value: 'light', label: 'Açık' },
+          { value: 'system', label: 'Sistem' },
+        ]}
+        value={pref}
+        onChange={setPref}
+      />
+      {Platform.OS !== 'web' && (
+        <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>
+          <View style={{ flex: 1 }}>
+            <Body style={{ fontSize: 14.5 }}>Akşam hatırlatması</Body>
+            <Body muted style={{ fontSize: 12.5 }}>
+              Her gün 20:30'da öğünlerini girmeyi hatırlatır.
+            </Body>
+          </View>
+          <Switch
+            value={reminder}
+            trackColor={{ true: colors.accent, false: colors.surfaceHigh }}
+            onValueChange={async (v) => {
+              const ok = await setDailyReminder(v);
+              setReminder(v && ok);
+            }}
+          />
+        </Row>
+      )}
+    </Card>
+  );
+}
+
 function MembershipCard() {
+  const colors = useColors();
   const { tier } = useAuth();
   return (
     <GradientCard colors={tierColors[tier === 'free' ? 'pro' : tier]}>
@@ -143,7 +256,20 @@ function MembershipCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
+  badge: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.surfaceHigh,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md - 2 },
+  linkBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
+  linkText: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
   username: { fontFamily: fonts.display, fontSize: 28, color: colors.text },
   signOut: {
     flexDirection: 'row',
@@ -153,4 +279,4 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   signOutText: { fontFamily: fonts.displayMedium, fontSize: 15, letterSpacing: 1, color: colors.danger },
-});
+}));

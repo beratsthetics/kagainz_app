@@ -4,12 +4,14 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Button } from '@/components/ui';
-import { colors, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 import { nextAfterSignIn } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { useColors } from '@/lib/theme';
 
 // Web'de Google girişinden dönülen sayfa: URL'deki kodu oturuma çevirir.
 export default function AuthCallbackScreen() {
+  const colors = useColors();
   const { code } = useLocalSearchParams<{ code?: string }>();
   const [error, setError] = useState<string | null>(null);
 

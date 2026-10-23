@@ -5,21 +5,22 @@ import Svg, { Path } from 'react-native-svg';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Hero, Icon, IconBox, PressScale, Reveal, Row, type IconName } from '@/components/ui';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing } from '@/constants/theme';
 import { nextAfterSignIn, useAuth } from '@/lib/auth';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { makeStyles, useColors } from '@/lib/theme';
 
-const FEATURES: { icon: IconName; text: string; color: string }[] = [
-  { icon: { ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }, text: 'Otomatik makro', color: colors.carb },
+const FEATURES: { icon: IconName; text: string; color: 'carb' | 'accentBright' | 'fat' }[] = [
+  { icon: { ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }, text: 'Otomatik makro', color: 'carb' },
   {
     icon: { ios: 'bubble.left.and.bubble.right.fill', android: 'forum', web: 'forum' },
     text: 'Topluluk',
-    color: colors.accentBright,
+    color: 'accentBright',
   },
   {
     icon: { ios: 'figure.strengthtraining.traditional', android: 'fitness_center', web: 'fitness_center' },
     text: 'Kişiye özel program',
-    color: colors.fat,
+    color: 'fat',
   },
 ];
 
@@ -59,6 +60,8 @@ function ProviderButton({
   onPress: () => void;
   disabled?: boolean;
 }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <PressScale
       onPress={onPress}
@@ -73,6 +76,8 @@ function ProviderButton({
 
 // Karşılama: Google, e-posta veya telefonla giriş/kayıt. Hepsi şifresiz.
 export default function WelcomeScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { reason } = useLocalSearchParams<{ reason?: string }>();
   const { signInWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
@@ -123,7 +128,7 @@ export default function WelcomeScreen() {
         <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
           {FEATURES.map((f) => (
             <View key={f.text} style={styles.feature}>
-              <IconBox name={f.icon} color={f.color} bg={`${f.color}1F`} size={26} />
+              <IconBox name={f.icon} color={colors[f.color]} bg={`${colors[f.color]}1F`} size={26} />
               <Text style={styles.featureText}>{f.text}</Text>
             </View>
           ))}
@@ -161,7 +166,7 @@ export default function WelcomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   logoMark: { fontSize: 26, color: colors.text },
   logo: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1.5, color: colors.text, lineHeight: 24 },
   logoSub: { fontFamily: fonts.bodyBold, fontSize: 9, letterSpacing: 3.5, color: colors.textMuted },
@@ -205,4 +210,4 @@ const styles = StyleSheet.create({
   providerText: { fontFamily: fonts.bodyBold, fontSize: 15.5, color: colors.text },
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
   legal: { fontFamily: fonts.body, fontSize: 12, color: colors.textDim, textAlign: 'center', marginTop: 4 },
-});
+}));

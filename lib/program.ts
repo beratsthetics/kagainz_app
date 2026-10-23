@@ -1,45 +1,73 @@
-// Örnek antrenman programı. Gerçek programlar ve kas animasyonları sonraki adımda veritabanından gelecek.
-export type Exercise = { name: string; sets: string; muscle: string };
-export type Day = { day: string; short: string; focus: string; exercises: Exercise[] };
+// Antrenman programı. Koç panelinden üyeye özel program atanırsa o kullanılır (assigned_programs),
+// yoksa bu örnek program gösterilir.
+export type ProgramExercise = { exerciseId: string; sets: number; reps: string; note?: string };
+export type ProgramDay = { day: string; short: string; focus: string; weekday: number; exercises: ProgramExercise[] };
+export type Program = { name: string; days: ProgramDay[]; note?: string };
 
-export const PROGRAM: Day[] = [
-  {
-    day: 'Pazartesi',
-    short: 'Pzt',
-    focus: 'Göğüs',
-    exercises: [
-      { name: 'Smith machine incline press', sets: '2×8', muscle: 'Üst göğüs' },
-      { name: 'Chest press', sets: '2×8', muscle: 'Göğüs' },
-      { name: 'Machine chest fly', sets: '2×8', muscle: 'Göğüs' },
-      { name: 'Triceps pushdown', sets: '2×12', muscle: 'Arka kol' },
-    ],
-  },
-  {
-    day: 'Çarşamba',
-    short: 'Çar',
-    focus: 'Sırt',
-    exercises: [
-      { name: 'Lat pulldown', sets: '3×10', muscle: 'Kanat' },
-      { name: 'Seated cable row', sets: '3×10', muscle: 'Orta sırt' },
-      { name: 'Straight arm pulldown', sets: '2×12', muscle: 'Kanat' },
-      { name: 'Hammer curl', sets: '2×12', muscle: 'Ön kol' },
-    ],
-  },
-  {
-    day: 'Cuma',
-    short: 'Cum',
-    focus: 'Bacak',
-    exercises: [
-      { name: 'Hack squat', sets: '3×8', muscle: 'Ön bacak' },
-      { name: 'Leg extension', sets: '2×12', muscle: 'Ön bacak' },
-      { name: 'Lying leg curl', sets: '2×12', muscle: 'Arka bacak' },
-      { name: 'Standing calf raise', sets: '3×15', muscle: 'Kalf' },
-    ],
-  },
+export const WEEKDAYS = [
+  { short: 'Paz', day: 'Pazar' },
+  { short: 'Pzt', day: 'Pazartesi' },
+  { short: 'Sal', day: 'Salı' },
+  { short: 'Çar', day: 'Çarşamba' },
+  { short: 'Per', day: 'Perşembe' },
+  { short: 'Cum', day: 'Cuma' },
+  { short: 'Cmt', day: 'Cumartesi' },
 ];
 
-const DAY_INDEX: Record<number, number> = { 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2, 0: 2 };
+export const DEFAULT_PROGRAM: Program = {
+  name: 'Kagainz 3 gün',
+  days: [
+    {
+      day: 'Pazartesi',
+      short: 'Pzt',
+      weekday: 1,
+      focus: 'Göğüs',
+      exercises: [
+        { exerciseId: 'incline_smith_press', sets: 2, reps: '6-8' },
+        { exerciseId: 'chest_press', sets: 2, reps: '8-10' },
+        { exerciseId: 'machine_fly', sets: 2, reps: '10-12' },
+        { exerciseId: 'lateral_raise', sets: 3, reps: '12-15' },
+        { exerciseId: 'triceps_pushdown', sets: 2, reps: '10-12' },
+      ],
+    },
+    {
+      day: 'Çarşamba',
+      short: 'Çar',
+      weekday: 3,
+      focus: 'Sırt',
+      exercises: [
+        { exerciseId: 'lat_pulldown', sets: 3, reps: '8-10' },
+        { exerciseId: 'seated_row', sets: 3, reps: '8-10' },
+        { exerciseId: 'straight_arm_pulldown', sets: 2, reps: '12' },
+        { exerciseId: 'rear_delt_fly', sets: 2, reps: '12-15' },
+        { exerciseId: 'hammer_curl', sets: 2, reps: '10-12' },
+      ],
+    },
+    {
+      day: 'Cuma',
+      short: 'Cum',
+      weekday: 5,
+      focus: 'Bacak',
+      exercises: [
+        { exerciseId: 'hack_squat', sets: 3, reps: '6-8' },
+        { exerciseId: 'rdl', sets: 2, reps: '8-10' },
+        { exerciseId: 'leg_extension', sets: 2, reps: '12' },
+        { exerciseId: 'lying_leg_curl', sets: 2, reps: '12' },
+        { exerciseId: 'standing_calf_raise', sets: 3, reps: '12-15' },
+      ],
+    },
+  ],
+};
 
-export function todaysWorkout(): Day {
-  return PROGRAM[DAY_INDEX[new Date().getDay()]];
+// Bugünün ya da bir sonraki antrenman gününün indeksi.
+export function todaysDayIndex(program: Program, date = new Date()) {
+  const wd = date.getDay();
+  const exact = program.days.findIndex((d) => d.weekday === wd);
+  if (exact >= 0) return exact;
+  const next = program.days.findIndex((d) => d.weekday > wd);
+  return next >= 0 ? next : 0;
+}
+
+export function isTrainingDay(program: Program, date = new Date()) {
+  return program.days.some((d) => d.weekday === date.getDay());
 }

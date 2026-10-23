@@ -4,12 +4,15 @@ import { StyleSheet, Text } from 'react-native';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Button, Eyebrow, Hero, Icon, Input, Reveal, Row } from '@/components/ui';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { makeStyles, useColors } from '@/lib/theme';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export default function EmailScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { sendCode } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -70,6 +73,6 @@ export default function EmailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger, marginTop: spacing.xs },
-});
+}));

@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
+import { MacroBar, MacroLine, WaterTracker } from '@/components/bits';
 import {
   Body,
   Button,
@@ -9,6 +10,7 @@ import {
   Chip,
   Heading,
   Icon,
+  IconBox,
   Input,
   Label,
   Mono,
@@ -18,23 +20,19 @@ import {
   Row,
   Screen,
   ScreenHeader,
+  Segmented,
   Stat,
+  TierBadge,
+  type IconName,
 } from '@/components/ui';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { useDaily } from '@/lib/daily';
+import { MEAL_ORDER, MEALS, mealForNow, totalOf, useDaily, type MealSlot } from '@/lib/daily';
 import { parseMeal, sumMacros } from '@/lib/macros';
+import { makeStyles, useColors } from '@/lib/theme';
+import { hasFeature, minTierFor } from '@/lib/tiers';
 
-const QUICK = [
-  '2 yumurta',
-  '100g yulaf',
-  '150g tavuk göğsü',
-  '200g pilav',
-  '1 muz',
-  '1 ölçek whey',
-  '200g süzme yoğurt',
-  '10g zeytinyağı',
-];
+const QUICK = ['2 yumurta', '100g yulaf', '150g tavuk göğsü', '200g pilav', '1 muz', '1 ölçek whey', '1 kase mercimek çorbası', '1 lahmacun'];
 
 // Makro hesaplama ücretsiz ama hesap gerektiriyor.
 export default function MacrosScreen() {
@@ -44,6 +42,7 @@ export default function MacrosScreen() {
 }
 
 function MacrosLocked() {
+  const colors = useColors();
   return (
     <Screen>
       <Reveal index={0}>
@@ -79,47 +78,116 @@ function MacrosLocked() {
   );
 }
 
+const MEAL_OPTIONS = MEAL_ORDER.map((m) => ({ value: m, label: MEALS[m].label }));
+
 function MacroCalculator() {
+  const colors = useColors();
+  const styles = useStyles();
+  const { tier } = useAuth();
   const [text, setText] = useState('');
-  const { entries, totals: dayTotals, goals, add, remove } = useDaily();
+  const [meal, setMeal] = useState<MealSlot>(mealForNow());
+  const [shelf, setShelf] = useState<'recent' | 'favorites'>('recent');
+  const { entries, totals: dayTotals, goals, add, remove, favorites, recent, isFavorite, toggleFavorite } = useDaily();
   const lines = useMemo(() => parseMeal(text), [text]);
   const total = useMemo(() => sumMacros(lines), [lines]);
   const known = lines.filter((l) => l.food);
+  const shelfItems = shelf === 'recent' ? recent : favorites;
+  const photoOk = hasFeature(tier, 'photo_macros');
 
   function addQuick(q: string) {
     setText((t) => (t.trim() ? `${t.trim().replace(/,$/, '')}, ${q}` : q));
   }
 
-  function logMeal() {
-    add(text.trim(), total);
-    setText('');
-  }
+  const tools: { icon: IconName; label: string; onPress: () => void; badge?: boolean }[] = [
+    {
+      icon: { ios: 'magnifyingglass', android: 'search', web: 'search' },
+      label: 'Ara',
+      onPress: () => router.push({ pathname: '/food/search', params: { meal } }),
+    },
+    {
+      icon: { ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' },
+      label: 'Barkod',
+      onPress: () => router.push({ pathname: '/food/scan', params: { meal } }),
+    },
+    {
+      icon: { ios: 'camera.viewfinder', android: 'photo_camera', web: 'photo_camera' },
+      label: 'Fotoğraf',
+      badge: !photoOk,
+      onPress: () => router.push({ pathname: '/food/photo', params: { meal } }),
+    },
+    {
+      icon: { ios: 'list.bullet.rectangle.fill', android: 'menu_book', web: 'menu_book' },
+      label: 'Plan',
+      badge: !hasFeature(tier, 'meal_plans'),
+      onPress: () => router.push('/meal-plan'),
+    },
+  ];
 
   return (
     <Screen>
       <Reveal index={0}>
-        <ScreenHeader eyebrow="Ücretsiz" title="Makro hesapla" />
-        <Body muted>Ne yediğini yaz ya da aşağıdan seç. Gerisini biz hesaplarız.</Body>
+        <ScreenHeader
+          eyebrow="Ücretsiz"
+          title="Makro"
+          right={
+            <PressScale onPress={() => router.push('/goals')} style={styles.goalBtn}>
+              <Icon name={{ ios: 'target', android: 'my_location', web: 'my_location' }} size={16} color={colors.accentBright} />
+              <Text style={styles.goalBtnText}>HEDEF</Text>
+            </PressScale>
+          }
+        />
       </Reveal>
 
+      {/* Günün özeti */}
       <Reveal index={1}>
+        <Card glow>
+          <Row gap={spacing.lg}>
+            <Ring value={dayTotals.kcal / goals.kcal} size={96} stroke={9} color={dayTotals.kcal > goals.kcal ? colors.fat : colors.accent}>
+              <Text style={styles.ringKcal}>{Math.max(0, goals.kcal - dayTotals.kcal)}</Text>
+              <Label>kaldı</Label>
+            </Ring>
+            <View style={{ flex: 1, gap: spacing.sm + 2 }}>
+              <MacroBar label="Protein" value={dayTotals.protein} goal={goals.protein} color={colors.protein} />
+              <MacroBar label="Karb." value={dayTotals.carb} goal={goals.carb} color={colors.carb} />
+              <MacroBar label="Yağ" value={dayTotals.fat} goal={goals.fat} color={colors.fat} />
+            </View>
+          </Row>
+        </Card>
+      </Reveal>
+
+      {/* Ekleme yolları */}
+      <Reveal index={2}>
+        <Row gap={spacing.sm}>
+          {tools.map((t) => (
+            <PressScale key={t.label} flex onPress={t.onPress} style={styles.tool}>
+              <Icon name={t.icon} size={22} color={colors.text} />
+              <Text style={styles.toolText}>{t.label}</Text>
+              {t.badge && (
+                <View style={styles.toolBadge}>
+                  <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={9} color={colors.primaryText} />
+                </View>
+              )}
+            </PressScale>
+          ))}
+        </Row>
+      </Reveal>
+
+      <Reveal index={3}>
+        <Segmented options={MEAL_OPTIONS} value={meal} onChange={setMeal} />
+      </Reveal>
+
+      <Reveal index={4}>
         <Input
           value={text}
           onChangeText={setText}
           multiline
-          placeholder="ör. 3 yumurta, 1 dilim ekmek, 10g zeytinyağı"
-          prefix={
-            <Icon
-              name={{ ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' }}
-              size={18}
-              color={colors.accentBright}
-            />
-          }
+          placeholder="Yaz: 3 yumurta, 1 dilim ekmek, 10g zeytinyağı"
+          prefix={<Icon name={{ ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' }} size={18} color={colors.accentBright} />}
           style={{ minHeight: 64, alignItems: 'flex-start', paddingTop: 2 }}
         />
       </Reveal>
 
-      <Reveal index={2}>
+      <Reveal index={5}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
           {QUICK.map((q) => (
             <Chip key={q} label={`+ ${q}`} onPress={() => addQuick(q)} />
@@ -127,125 +195,239 @@ function MacroCalculator() {
         </ScrollView>
       </Reveal>
 
-      <Reveal index={3}>
-        <Card glow>
-          <Row gap={spacing.lg}>
-            <Ring value={total.kcal / goals.kcal} size={112} stroke={10}>
-              <Text style={styles.kcal}>{total.kcal}</Text>
-              <Label>kcal</Label>
-            </Ring>
-            <View style={{ flex: 1, gap: spacing.sm }}>
-              <Heading>Bu öğün</Heading>
-              <Body muted style={{ fontSize: 13 }}>
-                {known.length
-                  ? `${known.length} yiyecek · günlük hedefin %${Math.round((total.kcal / goals.kcal) * 100)}'i`
-                  : 'Yazmaya başla, anında hesaplansın'}
-              </Body>
-              {/* Kalorinin makrolara dağılımı */}
-              <View style={styles.split}>
-                <View style={{ flex: total.protein * 4 || 0.001, backgroundColor: colors.protein }} />
-                <View style={{ flex: total.carb * 4 || 0.001, backgroundColor: colors.carb }} />
-                <View style={{ flex: total.fat * 9 || 0.001, backgroundColor: colors.fat }} />
+      {text.trim().length > 0 && (
+        <Reveal index={0}>
+          <Card>
+            <Row gap={spacing.lg}>
+              <Ring value={total.kcal / goals.kcal} size={92} stroke={9}>
+                <Text style={styles.ringKcal}>{total.kcal}</Text>
+                <Label>kcal</Label>
+              </Ring>
+              <View style={{ flex: 1, gap: spacing.sm }}>
+                <Heading style={{ fontSize: 20 }}>{`${MEALS[meal].label} için`}</Heading>
+                <Body muted style={{ fontSize: 13 }}>
+                  {known.length
+                    ? `${known.length} yiyecek · günlük hedefin %${Math.round((total.kcal / goals.kcal) * 100)}'i`
+                    : 'Tanıdığım bir yiyecek yaz ya da Ara ile seç'}
+                </Body>
+                <View style={styles.split}>
+                  <View style={{ flex: total.protein * 4 || 0.001, backgroundColor: colors.protein }} />
+                  <View style={{ flex: total.carb * 4 || 0.001, backgroundColor: colors.carb }} />
+                  <View style={{ flex: total.fat * 9 || 0.001, backgroundColor: colors.fat }} />
+                </View>
               </View>
-            </View>
-          </Row>
-          <Row gap={spacing.sm}>
-            <Stat label="Protein" value={`${total.protein} g`} color={colors.protein} />
-            <Stat label="Karb." value={`${total.carb} g`} color={colors.carb} />
-            <Stat label="Yağ" value={`${total.fat} g`} color={colors.fat} />
-          </Row>
-          <Button
-            title="Günlüğe ekle"
-            icon={{ ios: 'plus', android: 'add', web: 'add' }}
-            onPress={logMeal}
-            disabled={!known.length}
-          />
+            </Row>
+            {lines.map((l, i) => (
+              <Row key={`${l.input}-${i}`} style={styles.line}>
+                {l.food ? (
+                  <>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.lineName}>{l.food.name}</Text>
+                      <MacroLine p={l.macros.protein} c={l.macros.carb} f={l.macros.fat} />
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Mono>{l.macros.kcal} kcal</Mono>
+                      <Mono style={{ color: colors.textDim, fontSize: 12 }}>{Math.round(l.grams)} g</Mono>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Icon name={{ ios: 'questionmark.circle', android: 'help', web: 'help' }} size={16} color={colors.danger} />
+                    <Body style={{ flex: 1 }}>{l.input}</Body>
+                    <PressScale onPress={() => router.push({ pathname: '/food/search', params: { q: l.input, meal } })}>
+                      <Text style={[styles.link, { color: colors.danger }]}>Ara →</Text>
+                    </PressScale>
+                  </>
+                )}
+              </Row>
+            ))}
+            <Button
+              title="Günlüğe ekle"
+              icon={{ ios: 'plus', android: 'add', web: 'add' }}
+              onPress={() => {
+                add(text.trim(), total, { meal, source: 'text' });
+                setText('');
+              }}
+              disabled={!known.length}
+            />
+          </Card>
+        </Reveal>
+      )}
+
+      {/* Favoriler ve son yenenler: tek dokunuşla tekrar ekle */}
+      {(recent.length > 0 || favorites.length > 0) && (
+        <Reveal index={6}>
+          <Card>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <Row gap={spacing.sm}>
+                <Chip label="Son yenenler" active={shelf === 'recent'} onPress={() => setShelf('recent')} />
+                <Chip
+                  label={`Favoriler${favorites.length ? ` · ${favorites.length}` : ''}`}
+                  active={shelf === 'favorites'}
+                  onPress={() => setShelf('favorites')}
+                />
+              </Row>
+            </Row>
+            {shelfItems.length === 0 ? (
+              <Body muted style={{ fontSize: 13 }}>
+                Günlükteki bir öğünün yanındaki yıldıza dokun, burada dursun.
+              </Body>
+            ) : (
+              shelfItems.slice(0, 6).map((s) => (
+                <Row key={s.id} style={styles.shelfRow}>
+                  <View style={{ flex: 1 }}>
+                    <Body numberOfLines={1} style={{ fontSize: 14 }}>
+                      {s.text}
+                    </Body>
+                    <MacroLine kcal={s.macros.kcal} p={s.macros.protein} c={s.macros.carb} f={s.macros.fat} />
+                  </View>
+                  <PressScale onPress={() => add(s.text, s.macros, { meal, source: 'favorite' })} style={styles.addBtn}>
+                    <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={16} color={colors.primaryText} />
+                  </PressScale>
+                </Row>
+              ))
+            )}
+          </Card>
+        </Reveal>
+      )}
+
+      {/* Öğün başlıklarına göre günlük */}
+      <Reveal index={7}>
+        <View style={{ gap: spacing.sm }}>
+          {MEAL_ORDER.map((slot) => {
+            const items = entries.filter((e) => (e.meal ?? 'snack') === slot);
+            const t = totalOf(items);
+            return (
+              <Card key={slot} style={{ gap: spacing.sm }}>
+                <Row style={{ justifyContent: 'space-between' }}>
+                  <Row gap={spacing.sm}>
+                    <IconBox name={MEALS[slot].icon as IconName} color={colors.fat} bg={`${colors.fat}1A`} size={32} />
+                    <Heading style={{ fontSize: 18 }}>{MEALS[slot].label}</Heading>
+                  </Row>
+                  <Row gap={spacing.sm}>
+                    <Mono style={{ color: items.length ? colors.text : colors.textDim }}>{t.kcal} kcal</Mono>
+                    <PressScale
+                      onPress={() => {
+                        setMeal(slot);
+                        router.push({ pathname: '/food/search', params: { meal: slot } });
+                      }}
+                      style={styles.slotAdd}>
+                      <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={14} />
+                    </PressScale>
+                  </Row>
+                </Row>
+                {items.map((e) => (
+                  <Row key={e.id} style={styles.entry}>
+                    <View style={{ flex: 1 }}>
+                      <Body numberOfLines={1} style={{ fontSize: 14 }}>
+                        {e.text}
+                      </Body>
+                      <MacroLine p={e.macros.protein} c={e.macros.carb} f={e.macros.fat} />
+                    </View>
+                    <Mono>{e.macros.kcal}</Mono>
+                    <PressScale onPress={() => toggleFavorite(e.text, e.macros)}>
+                      <Icon
+                        name={isFavorite(e.text) ? { ios: 'star.fill', android: 'star', web: 'star' } : { ios: 'star', android: 'star_outline', web: 'star_outline' }}
+                        size={18}
+                        color={isFavorite(e.text) ? colors.fat : colors.textDim}
+                      />
+                    </PressScale>
+                    <PressScale onPress={() => remove(e.id)}>
+                      <Icon name={{ ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }} size={18} color={colors.textDim} />
+                    </PressScale>
+                  </Row>
+                ))}
+              </Card>
+            );
+          })}
+        </View>
+      </Reveal>
+
+      <Reveal index={8}>
+        <Card>
+          <WaterTracker />
         </Card>
       </Reveal>
 
-      {lines.map((l, i) => (
-        <Reveal key={`${l.input}-${i}`} index={i}>
-          <View style={styles.line}>
-            {l.food ? (
-              <>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.lineName}>{l.food.name}</Text>
-                  <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
-                    <Text style={{ color: colors.protein }}>P {l.macros.protein}</Text> ·{' '}
-                    <Text style={{ color: colors.carb }}>K {l.macros.carb}</Text> ·{' '}
-                    <Text style={{ color: colors.fat }}>Y {l.macros.fat}</Text>
-                  </Mono>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Mono>{l.macros.kcal} kcal</Mono>
-                  <Mono style={{ color: colors.textDim, fontSize: 12 }}>{Math.round(l.grams)} g</Mono>
-                </View>
-              </>
-            ) : (
-              <Row style={{ flex: 1 }}>
-                <Icon
-                  name={{ ios: 'questionmark.circle', android: 'help', web: 'help' }}
-                  size={16}
-                  color={colors.danger}
-                />
-                <Body style={{ flex: 1 }}>{l.input}</Body>
-                <Label style={{ color: colors.danger }}>Tanınmadı</Label>
-              </Row>
-            )}
-          </View>
-        </Reveal>
-      ))}
-
-      {entries.length > 0 && (
-        <Reveal index={4}>
-          <Card>
-            <Row style={{ justifyContent: 'space-between' }}>
-              <Heading>Bugünün günlüğü</Heading>
-              <Mono style={{ color: colors.textMuted }}>
-                {dayTotals.kcal}/{goals.kcal} kcal
-              </Mono>
-            </Row>
-            {entries.map((e) => (
-              <Row key={e.id} style={styles.entry}>
-                <View style={{ flex: 1 }}>
-                  <Body numberOfLines={1} style={{ fontSize: 14 }}>
-                    {e.text}
-                  </Body>
-                  <Mono style={{ color: colors.textDim, fontSize: 11.5 }}>
-                    {new Date(e.at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} · P{' '}
-                    {e.macros.protein} · K {e.macros.carb} · Y {e.macros.fat}
-                  </Mono>
-                </View>
-                <Mono>{e.macros.kcal}</Mono>
-                <PressScale onPress={() => remove(e.id)}>
-                  <Icon
-                    name={{ ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }}
-                    size={18}
-                    color={colors.textDim}
-                  />
-                </PressScale>
-              </Row>
-            ))}
-          </Card>
+      {!hasFeature(tier, 'meal_plans') && (
+        <Reveal index={9}>
+          <PressScale onPress={() => router.push('/meal-plan')}>
+            <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <IconBox name={{ ios: 'list.bullet.rectangle.fill', android: 'menu_book', web: 'menu_book' }} color={colors.accentBright} bg={colors.accentSoft} />
+              <View style={{ flex: 1 }}>
+                <Heading style={{ fontSize: 17 }}>Haftalık yemek planı</Heading>
+                <Body muted style={{ fontSize: 13 }}>
+                  Hedefine göre menü ve alışveriş listesi.
+                </Body>
+              </View>
+              <TierBadge tier={minTierFor('meal_plans')} />
+            </Card>
+          </PressScale>
         </Reveal>
       )}
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  kcal: { fontFamily: fonts.display, fontSize: 30, lineHeight: 34, color: colors.text },
-  split: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', gap: 2, marginTop: spacing.xs },
-  line: {
+const useStyles = makeStyles((colors) => ({
+  ringKcal: { fontFamily: fonts.display, fontSize: 24, lineHeight: 28, color: colors.text },
+  link: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
+  goalBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.md,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: colors.accentSoft,
+  },
+  goalBtnText: { fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, color: colors.accentBright },
+  tool: {
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: spacing.md - 2,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
+  toolText: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.text },
+  toolBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  split: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', gap: 2, marginTop: spacing.xs },
+  line: {
+    gap: spacing.md,
+    padding: spacing.sm + 4,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
+  },
   lineName: { fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text, marginBottom: 3 },
+  shelfRow: { gap: spacing.md, paddingVertical: spacing.xs },
+  addBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slotAdd: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   entry: { paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.sm + 4 },
-});
+}));

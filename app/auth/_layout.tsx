@@ -1,8 +1,9 @@
 import { Stack } from 'expo-router';
+import { useColors } from '@/lib/theme';
 
-import { colors } from '@/constants/theme';
 
 export default function AuthLayout() {
+  const colors = useColors();
   return (
     <Stack
       screenOptions={{

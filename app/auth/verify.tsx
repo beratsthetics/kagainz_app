@@ -4,13 +4,16 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Button, Eyebrow, Hero, Reveal } from '@/components/ui';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing } from '@/constants/theme';
 import { formatTarget, nextAfterSignIn, useAuth, type CodeMethod } from '@/lib/auth';
+import { makeStyles, useColors } from '@/lib/theme';
 
 const LENGTH = 6;
 const RESEND_SECONDS = 60;
 
 export default function VerifyScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { method = 'phone', target = '' } = useLocalSearchParams<{ method?: CodeMethod; target?: string }>();
   const { verifyCode, sendCode } = useAuth();
   const [code, setCode] = useState('');
@@ -111,7 +114,7 @@ export default function VerifyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   boxes: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' },
   box: {
     flex: 1,
@@ -130,4 +133,4 @@ const styles = StyleSheet.create({
   digit: { fontFamily: fonts.mono, fontSize: 26, color: colors.text },
   hidden: { ...StyleSheet.absoluteFill, opacity: 0.01, color: 'transparent' },
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
-});
+}));

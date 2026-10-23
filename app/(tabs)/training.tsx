@@ -1,109 +1,156 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Text, View } from 'react-native';
 
+import { BodyMap } from '@/components/BodyMap';
 import {
   Body,
   Button,
   Card,
   Chip,
+  GradientCard,
   Heading,
   Icon,
+  IconBox,
   Label,
   Mono,
   PressScale,
-  ProgressBar,
   Reveal,
   Row,
   Screen,
   ScreenHeader,
+  SectionHeader,
   Tag,
   TierBadge,
 } from '@/components/ui';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { PROGRAM, todaysWorkout } from '@/lib/program';
-import { hasFeature } from '@/lib/tiers';
+import { exerciseById, MUSCLES, type Muscle } from '@/lib/exercises';
+import { todaysDayIndex } from '@/lib/program';
+import { daysAgo } from '@/lib/store';
+import { makeStyles, useColors } from '@/lib/theme';
+import { hasFeature, LIMITS } from '@/lib/tiers';
+import { doneSets, useWorkouts } from '@/lib/workouts';
 
 export default function TrainingScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { tier } = useAuth();
-  const [day, setDay] = useState(PROGRAM.indexOf(todaysWorkout()));
-  const [done, setDone] = useState<Record<string, boolean>>({});
+  const { program, assigned, active, startDay, startEmpty, history, records, weeklySets } = useWorkouts();
+  const [day, setDay] = useState(todaysDayIndex(program));
   const unlocked = hasFeature(tier, 'training_programs');
-  const current = PROGRAM[day];
-  const doneCount = current.exercises.filter((e) => done[`${day}-${e.name}`]).length;
+  const fullHistory = hasFeature(tier, 'full_history');
+  const current = program.days[Math.min(day, program.days.length - 1)];
+  const volume = useMemo(() => weeklySets(), [weeklySets]);
+  const topMuscles = (Object.entries(volume) as [Muscle, number][]).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const since = daysAgo(LIMITS.freeHistoryDays).toISOString();
+  const visible = [...history].reverse().filter((s) => fullHistory || s.startedAt >= since);
+  const hidden = history.length - visible.length;
+  const prs = Object.entries(records)
+    .sort((a, b) => b[1].at.localeCompare(a[1].at))
+    .slice(0, 5);
+
+  function begin(fn: () => void) {
+    if (active) return router.push('/workout');
+    fn();
+    router.push('/workout');
+  }
 
   return (
     <Screen>
       <Reveal index={0}>
-        <ScreenHeader eyebrow="Programın" title="Antrenman" right={!unlocked && <TierBadge tier="pro" />} />
+        <ScreenHeader
+          eyebrow={assigned ? 'Koçunun programı' : 'Programın'}
+          title="Antrenman"
+          right={
+            <PressScale onPress={() => router.push('/library')} style={styles.libraryBtn}>
+              <Icon name={{ ios: 'figure.strengthtraining.traditional', android: 'fitness_center', web: 'fitness_center' }} size={16} color={colors.accentBright} />
+              <Text style={styles.libraryText}>HAREKETLER</Text>
+            </PressScale>
+          }
+        />
       </Reveal>
 
-      <Reveal index={1}>
-        <Row gap={spacing.sm}>
-          {PROGRAM.map((d, i) => (
-            <Chip key={d.day} label={`${d.short} · ${d.focus}`} active={i === day} onPress={() => setDay(i)} />
+      {active && (
+        <Reveal index={1}>
+          <PressScale onPress={() => router.push('/workout')}>
+            <GradientCard colors={tierColors.pro}>
+              <Row style={{ justifyContent: 'space-between' }}>
+                <Label>Devam eden</Label>
+                <Mono style={{ color: colors.accentBright }}>{doneSets(active)} set tamam</Mono>
+              </Row>
+              <Row style={{ justifyContent: 'space-between' }}>
+                <Heading style={{ fontSize: 24 }}>{active.title}</Heading>
+                <Icon name={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }} size={20} />
+              </Row>
+            </GradientCard>
+          </PressScale>
+        </Reveal>
+      )}
+
+      <Reveal index={2}>
+        <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
+          {program.days.map((d, i) => (
+            <Chip key={d.day + i} label={`${d.short} · ${d.focus}`} active={i === day} onPress={() => setDay(i)} />
           ))}
         </Row>
       </Reveal>
 
-      <Reveal index={2}>
+      <Reveal index={3}>
         <View>
           <Card glow>
             <Row style={{ justifyContent: 'space-between' }}>
               <Label>{current.day}</Label>
-              <Tag>{current.focus}</Tag>
+              <Row gap={6}>
+                {assigned && <Tag color={colors.gold} bg={`${colors.gold}1F`}>Koç</Tag>}
+                <Tag>{current.focus}</Tag>
+              </Row>
             </Row>
             <Heading style={{ fontSize: 28 }}>{`${current.focus} günü`}</Heading>
-            <Row style={{ justifyContent: 'space-between' }}>
-              <Mono style={{ color: colors.textMuted }}>
-                {doneCount}/{current.exercises.length} egzersiz
-              </Mono>
-              <Mono style={{ color: colors.textMuted }}>~45 dk</Mono>
-            </Row>
-            <ProgressBar value={doneCount / current.exercises.length} color={colors.success} height={5} />
+            <Mono style={{ color: colors.textMuted }}>
+              {current.exercises.length} hareket · {current.exercises.reduce((n, e) => n + e.sets, 0)} set · ~
+              {Math.round(current.exercises.reduce((n, e) => n + e.sets, 0) * 3.2)} dk
+            </Mono>
             <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
               {current.exercises.map((e, i) => {
-                const key = `${day}-${e.name}`;
-                const checked = done[key];
+                const ex = exerciseById(e.exerciseId);
+                const rec = records[e.exerciseId];
                 return (
-                  <PressScale
-                    key={key}
-                    onPress={() => setDone((s) => ({ ...s, [key]: !s[key] }))}
-                    style={styles.exercise}>
+                  <PressScale key={e.exerciseId + i} onPress={() => router.push(`/exercise/${e.exerciseId}`)} style={styles.exercise}>
                     <Text style={styles.index}>{String(i + 1).padStart(2, '0')}</Text>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.name, checked && styles.nameDone]}>{e.name}</Text>
-                      <Text style={styles.muscle}>{e.muscle}</Text>
+                      <Text style={styles.name}>{ex?.trName ?? e.exerciseId}</Text>
+                      <Text style={styles.muscle}>
+                        {ex?.primary.map((m) => MUSCLES[m].name).join(', ')}
+                        {rec ? `  ·  En iyi ${rec.kg} kg` : ''}
+                      </Text>
                     </View>
-                    <Mono style={{ color: colors.textMuted }}>{e.sets}</Mono>
-                    <View style={[styles.check, checked && styles.checkOn]}>
-                      {checked && (
-                        <Icon
-                          name={{ ios: 'checkmark', android: 'check', web: 'check' }}
-                          size={13}
-                          color={colors.primaryText}
-                        />
-                      )}
-                    </View>
+                    <Mono style={{ color: colors.textMuted }}>
+                      {e.sets}×{e.reps}
+                    </Mono>
+                    <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={14} color={colors.textDim} />
                   </PressScale>
                 );
               })}
             </View>
+            {unlocked && (
+              <Button
+                title={active ? 'Devam eden antrenmana dön' : 'Bu antrenmanı başlat'}
+                icon={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }}
+                onPress={() => begin(() => startDay(current))}
+              />
+            )}
           </Card>
 
           {!unlocked && (
-            // Kilitli: program görünür ama bulanık bir perdeyle kapalı.
-            <LinearGradient
-              colors={['rgba(8,9,11,0.78)', 'rgba(8,9,11,0.95)', colors.background]}
-              style={styles.lockOverlay}>
+            <LinearGradient colors={['transparent', `${colors.background}F2`, colors.background]} style={styles.lockOverlay}>
               <View style={styles.lockIcon}>
                 <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={22} />
               </View>
-              <Heading style={{ fontSize: 26, textAlign: 'center' }}>Pro ile aç</Heading>
-              <Body muted style={{ textAlign: 'center', maxWidth: 300 }}>
-                Kişiye özel antrenman programı, yemek planı ve Pro kulüp chat'i.
+              <Heading style={{ fontSize: 24, textAlign: 'center' }}>Program Pro ile</Heading>
+              <Body muted style={{ textAlign: 'center', maxWidth: 300, fontSize: 14 }}>
+                Kişiye özel program, tüm hareketler ve tam geçmiş.
               </Body>
               <View style={{ alignSelf: 'stretch', paddingHorizontal: spacing.lg }}>
                 <Button title="Paketleri gör" arrow onPress={() => router.push('/plans')} />
@@ -113,29 +160,127 @@ export default function TrainingScreen() {
         </View>
       </Reveal>
 
-      {unlocked && (
-        <Reveal index={3}>
-          <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <Icon
-              name={{
-                ios: 'figure.strengthtraining.traditional',
-                android: 'accessibility_new',
-                web: 'accessibility_new',
-              }}
-              size={28}
-              color={colors.accentBright}
-            />
-            <Body muted style={{ flex: 1, fontSize: 13.5 }}>
-              Kas grubu animasyonlu egzersiz anlatımları çok yakında.
-            </Body>
+      <Reveal index={4}>
+        <Button
+          title="Serbest antrenman başlat"
+          variant="outline"
+          icon={{ ios: 'plus', android: 'add', web: 'add' }}
+          onPress={() => begin(startEmpty)}
+        />
+      </Reveal>
+
+      {/* Haftalık hacim: kas başına set */}
+      <Reveal index={5}>
+        <Card>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <Label>Son 7 gün · kas başına set</Label>
+            <PressScale onPress={() => router.push('/progress')}>
+              <Text style={styles.link}>Grafikler →</Text>
+            </PressScale>
+          </Row>
+          <Row gap={spacing.md} style={{ alignItems: 'center' }}>
+            <BodyMap heat={volume} height={190} />
+            <View style={{ flex: 1, gap: 6 }}>
+              {topMuscles.length ? (
+                topMuscles.map(([m, v]) => (
+                  <Row key={m} style={{ justifyContent: 'space-between' }}>
+                    <Text style={styles.muscleName}>{MUSCLES[m].name}</Text>
+                    <Mono>{Math.round(v)}</Mono>
+                  </Row>
+                ))
+              ) : (
+                <Body muted style={{ fontSize: 13 }}>
+                  Antrenman kaydettikçe çalıştırdığın kaslar burada renklenir.
+                </Body>
+              )}
+            </View>
+          </Row>
+        </Card>
+      </Reveal>
+
+      {prs.length > 0 && (
+        <Reveal index={6}>
+          <SectionHeader title="Rekorların" action="Tümü" onAction={() => router.push('/progress')} />
+          <Card style={{ gap: 0 }}>
+            {prs.map(([id, r]) => (
+              <PressScale key={id} onPress={() => router.push(`/exercise/${id}`)}>
+                <Row style={styles.prRow}>
+                  <Text style={{ fontSize: 18 }}>🏆</Text>
+                  <Text style={[styles.name, { flex: 1 }]}>{exerciseById(id)?.trName}</Text>
+                  <Mono>
+                    {r.kg} kg × {r.reps}
+                  </Mono>
+                  <Mono style={{ color: colors.textMuted }}>1RM ~{Math.round(r.e1rm)}</Mono>
+                </Row>
+              </PressScale>
+            ))}
           </Card>
         </Reveal>
       )}
+
+      <Reveal index={7}>
+        <SectionHeader title="Geçmiş" />
+        {visible.length === 0 ? (
+          <Body muted style={{ fontSize: 13.5 }}>
+            İlk antrenmanını bitirdiğinde burada görünecek.
+          </Body>
+        ) : (
+          <View style={{ gap: spacing.sm }}>
+            {visible.slice(0, 10).map((s) => (
+              <Card key={s.id} style={{ gap: 4 }}>
+                <Row style={{ justifyContent: 'space-between' }}>
+                  <Text style={styles.name}>{s.title}</Text>
+                  <Mono style={{ color: colors.textMuted }}>
+                    {new Date(s.startedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                  </Mono>
+                </Row>
+                <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
+                  {s.exercises.length} hareket · {doneSets(s)} set · {Math.round(s.volume ?? 0).toLocaleString('tr-TR')} kg
+                  {s.prs?.length ? ` · ${s.prs.length} rekor` : ''}
+                </Mono>
+              </Card>
+            ))}
+          </View>
+        )}
+        {hidden > 0 && (
+          <PressScale onPress={() => router.push('/plans')} style={styles.more}>
+            <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={14} color={colors.textMuted} />
+            <Text style={[styles.link, { color: colors.textMuted }]}>{hidden} eski antrenman Pro ile görünür</Text>
+            <TierBadge tier="pro" />
+          </PressScale>
+        )}
+      </Reveal>
+
+      <Reveal index={8}>
+        <PressScale onPress={() => router.push('/form-check')}>
+          <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <IconBox name={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} color="#C4B5FD" bg="rgba(196,181,253,0.16)" size={46} />
+            <View style={{ flex: 1 }}>
+              <Heading style={{ fontSize: 18 }}>Form check</Heading>
+              <Body muted style={{ fontSize: 13 }}>
+                Videonu gönder, koçun zaman damgalı yorum yazsın.
+              </Body>
+            </View>
+            {!hasFeature(tier, 'form_check') && <TierBadge tier="plus" />}
+          </Card>
+        </PressScale>
+      </Reveal>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
+  libraryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: colors.accentSoft,
+  },
+  libraryText: { fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, color: colors.accentBright },
+  link: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
   exercise: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -147,23 +292,18 @@ const styles = StyleSheet.create({
   },
   index: { fontFamily: fonts.mono, fontSize: 12, color: colors.textDim },
   name: { fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text },
-  nameDone: { color: colors.textDim, textDecorationLine: 'line-through' },
   muscle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  check: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: colors.textDim,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkOn: { backgroundColor: colors.success, borderColor: colors.success },
+  muscleName: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
   lockOverlay: {
-    ...StyleSheet.absoluteFill,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     borderRadius: radius.lg,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: spacing.lg,
     gap: spacing.sm + 4,
   },
   lockIcon: {
@@ -176,4 +316,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+  prRow: { gap: spacing.sm + 2, paddingVertical: spacing.sm + 2, borderBottomWidth: 1, borderBottomColor: colors.border },
+  more: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md, justifyContent: 'center' },
+}));

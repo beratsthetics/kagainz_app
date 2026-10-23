@@ -4,9 +4,10 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Button, Eyebrow, Hero, Icon, Input, Reveal, Row } from '@/components/ui';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { makeStyles, useColors } from '@/lib/theme';
 
 // "5321234567" -> "532 123 45 67"
 function formatPhone(digits: string) {
@@ -15,6 +16,8 @@ function formatPhone(digits: string) {
 }
 
 export default function PhoneScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   // link=1: e-posta/Google ile girmiş kullanıcı chat'e yazmak için numarasını ekliyor.
   const { link } = useLocalSearchParams<{ link?: string }>();
   const method = link ? 'link_phone' : 'phone';
@@ -98,7 +101,7 @@ export default function PhoneScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   prefix: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -111,4 +114,4 @@ const styles = StyleSheet.create({
   prefixText: { fontFamily: fonts.mono, fontSize: 16, color: colors.text },
   note: { fontFamily: fonts.body, fontSize: 12, color: colors.textDim, textAlign: 'center' },
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
-});
+}));

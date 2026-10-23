@@ -1,5 +1,7 @@
 // 100 g başına makrolar (USDA FoodData Central değerlerine yakın yuvarlanmış).
 // unitGrams: "2 yumurta" gibi adetle yazılınca bir adedin gramı.
+import { MORE_FOODS } from './foods-tr';
+
 export type Food = {
   key: string;
   name: string;
@@ -7,9 +9,12 @@ export type Food = {
   per100g: { kcal: number; protein: number; fat: number; carb: number };
   unitGrams?: number;
   unitName?: string;
+  category?: FoodCategory;
 };
 
-export const FOODS: Food[] = [
+export type FoodCategory = 'temel' | 'yemek' | 'atıştırmalık' | 'içecek';
+
+const BASE_FOODS: Food[] = [
   {
     key: 'egg',
     name: 'Yumurta',
@@ -222,3 +227,9 @@ export const FOODS: Food[] = [
     unitName: 'adet',
   },
 ];
+
+export const FOODS: Food[] = [...BASE_FOODS, ...MORE_FOODS];
+
+export function foodByKey(key: string) {
+  return FOODS.find((f) => f.key === key);
+}

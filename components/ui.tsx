@@ -4,6 +4,8 @@ import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -25,11 +27,12 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Line, Pattern, RadialGradient, Rect, Stop } from 'react-native-svg';
 
-import { colors, fonts, radius, spacing, tierColors } from '@/constants/theme';
+import { fonts, radius, spacing, tierColors } from '@/constants/theme';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
+import { makeStyles, useColors } from '@/lib/theme';
 
 // CSS textTransform Türkçe 'i' harfini 'I' yapar; büyük harfi tr-TR ile kendimiz çeviriyoruz.
 export function upper(children: ReactNode): ReactNode {
@@ -44,12 +47,14 @@ export function tap() {
 
 export type IconName = SymbolViewProps['name'];
 
-export function Icon({ name, size = 20, color = colors.text }: { name: IconName; size?: number; color?: ColorValue }) {
-  return <SymbolView name={name} size={size} tintColor={color} />;
+export function Icon({ name, size = 20, color }: { name: IconName; size?: number; color?: ColorValue }) {
+  const colors = useColors();
+  return <SymbolView name={name} size={size} tintColor={color ?? colors.text} />;
 }
 
 // Sitedeki gibi ince kareli zemin ve üstte mavi bir parıltı.
 export function GridBackground({ glow = true }: { glow?: boolean }) {
+  const colors = useColors();
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Svg width="100%" height="100%">
@@ -84,6 +89,7 @@ export function Screen({
   scroll?: boolean;
   edges?: ('top' | 'bottom')[];
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.screen}>
       <GridBackground />
@@ -127,6 +133,8 @@ export function Reveal({
 
 // Sitedeki "ONLINE / FITNESS" başlığı: ilk satır beyaz, sonrakiler gümüş.
 export function Hero({ lines, size = 52, bar = true }: { lines: string[]; size?: number; bar?: boolean }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={[{ flexDirection: 'row', gap: spacing.md }]}>
       {bar && <View style={{ width: 2, backgroundColor: colors.text, borderRadius: 1 }} />}
@@ -146,11 +154,15 @@ export function Hero({ lines, size = 52, bar = true }: { lines: string[]; size?:
   );
 }
 
-export function Eyebrow({ children, color = colors.textMuted }: { children: ReactNode; color?: string }) {
+export function Eyebrow({ children, color }: { children: ReactNode; color?: string }) {
+  const colors = useColors();
+  color ??= colors.textMuted;
+  const styles = useStyles();
   return <Text style={[styles.eyebrow, { color }]}>{upper(children)}</Text>;
 }
 
 export function ScreenHeader({ eyebrow, title, right }: { eyebrow?: string; title: string; right?: ReactNode }) {
+  const styles = useStyles();
   return (
     <View
       style={{
@@ -169,6 +181,7 @@ export function ScreenHeader({ eyebrow, title, right }: { eyebrow?: string; titl
 }
 
 export function Title({ children, style, ...rest }: TextProps & { children: ReactNode }) {
+  const styles = useStyles();
   return (
     <Text style={[styles.title, style]} {...rest}>
       {upper(children)}
@@ -177,6 +190,7 @@ export function Title({ children, style, ...rest }: TextProps & { children: Reac
 }
 
 export function Heading({ children, style, ...rest }: TextProps & { children: ReactNode }) {
+  const styles = useStyles();
   return (
     <Text style={[styles.heading, style]} {...rest}>
       {upper(children)}
@@ -185,6 +199,8 @@ export function Heading({ children, style, ...rest }: TextProps & { children: Re
 }
 
 export function Body({ children, muted, style, ...rest }: TextProps & { children: ReactNode; muted?: boolean }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Text style={[styles.body, muted && { color: colors.textMuted }, style]} {...rest}>
       {children}
@@ -193,19 +209,23 @@ export function Body({ children, muted, style, ...rest }: TextProps & { children
 }
 
 export function Label({ children, style }: { children: ReactNode; style?: TextProps['style'] }) {
+  const styles = useStyles();
   return <Text style={[styles.label, style]}>{upper(children)}</Text>;
 }
 
 export function Mono({ children, style }: { children: ReactNode; style?: TextProps['style'] }) {
+  const styles = useStyles();
   return <Text style={[styles.mono, style]}>{children}</Text>;
 }
 
 // Üst kenarında hafif ışık yansıması olan kart.
 export function Card({ children, style, glow }: { children: ReactNode; style?: StyleProp<ViewStyle>; glow?: boolean }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={[styles.card, glow && styles.cardGlow, style]}>
       <LinearGradient
-        colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']}
+        colors={[colors.sheen, 'rgba(255,255,255,0)']}
         style={[StyleSheet.absoluteFill, { borderRadius: radius.lg, height: 90 }]}
         pointerEvents="none"
       />
@@ -224,6 +244,7 @@ export function GradientCard({
   colors: [string, string];
   style?: StyleProp<ViewStyle>;
 }) {
+  const styles = useStyles();
   return (
     <LinearGradient
       colors={gradient}
@@ -244,13 +265,17 @@ export function GradientCard({
 
 export function Tag({
   children,
-  color = colors.accentBright,
-  bg = colors.accentSoft,
+  color,
+  bg,
 }: {
   children: ReactNode;
   color?: string;
   bg?: string;
 }) {
+  const colors = useColors();
+  color ??= colors.accentBright;
+  bg ??= colors.accentSoft;
+  const styles = useStyles();
   return (
     <View style={[styles.tag, { backgroundColor: bg }]}>
       <Text style={[styles.tagText, { color }]}>{upper(children)}</Text>
@@ -259,6 +284,7 @@ export function Tag({
 }
 
 export function TierBadge({ tier }: { tier: Tier }) {
+  const styles = useStyles();
   return (
     <LinearGradient colors={tierColors[tier]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.tierBadge}>
       <Text style={styles.tierBadgeText}>{upper(TIER_INFO[tier].name)}</Text>
@@ -270,12 +296,16 @@ export function TierBadge({ tier }: { tier: Tier }) {
 export function PressScale({
   children,
   onPress,
+  onLongPress,
+  delayLongPress,
   style,
   disabled,
   flex,
 }: {
   children: ReactNode;
   onPress?: () => void;
+  onLongPress?: () => void;
+  delayLongPress?: number;
   style?: StyleProp<ViewStyle>;
   disabled?: boolean;
   flex?: boolean;
@@ -291,7 +321,15 @@ export function PressScale({
       onPress={() => {
         tap();
         onPress?.();
-      }}>
+      }}
+      onLongPress={
+        onLongPress &&
+        (() => {
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          onLongPress();
+        })
+      }
+      delayLongPress={delayLongPress}>
       <Animated.View style={[animated, style]}>{children}</Animated.View>
     </Pressable>
   );
@@ -314,6 +352,8 @@ export function Button({
   icon?: IconName;
   arrow?: boolean;
 }) {
+  const colors = useColors();
+  const styles = useStyles();
   const primary = variant === 'primary';
   const fg = primary ? colors.primaryText : colors.text;
   return (
@@ -340,6 +380,8 @@ export function Button({
 }
 
 export function Input({ prefix, style, ...props }: TextInputProps & { prefix?: ReactNode }) {
+  const colors = useColors();
+  const styles = useStyles();
   const [focused, setFocused] = useState(false);
   return (
     <View style={[styles.inputWrap, focused && styles.inputFocused, style as StyleProp<ViewStyle>]}>
@@ -362,6 +404,7 @@ export function Input({ prefix, style, ...props }: TextInputProps & { prefix?: R
 }
 
 export function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.stat}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -375,13 +418,16 @@ export function Stat({ label, value, color }: { label: string; value: string; co
 
 export function ProgressBar({
   value,
-  color = colors.accent,
+  color,
   height = 4,
 }: {
   value: number;
   color?: string;
   height?: number;
 }) {
+  const colors = useColors();
+  color ??= colors.accent;
+  const styles = useStyles();
   const width = useSharedValue(0);
   useEffect(() => {
     width.value = withTiming(Math.min(1, Math.max(0, value)), { duration: 700 });
@@ -401,7 +447,7 @@ export function Ring({
   value,
   size = 120,
   stroke = 10,
-  color = colors.accent,
+  color,
   children,
 }: {
   value: number;
@@ -410,6 +456,8 @@ export function Ring({
   color?: string;
   children?: ReactNode;
 }) {
+  const colors = useColors();
+  color ??= colors.accent;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const progress = useSharedValue(0);
@@ -439,10 +487,11 @@ export function Ring({
 }
 
 export function Avatar({ name, size = 40 }: { name?: string | null; size?: number }) {
+  const colors = useColors();
   const letter = (name ?? '?').charAt(0).toLocaleUpperCase('tr-TR');
   return (
     <LinearGradient
-      colors={['#2A2B33', '#15161A']}
+      colors={[colors.surfaceHigh, colors.surface]}
       style={{
         width: size,
         height: size,
@@ -468,6 +517,8 @@ export function Chip({
   onPress?: () => void;
   icon?: IconName;
 }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <PressScale onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
       {icon && <Icon name={icon} size={14} color={active ? colors.primaryText : colors.text} />}
@@ -478,8 +529,8 @@ export function Chip({
 
 export function IconBox({
   name,
-  color = colors.text,
-  bg = colors.surfaceHigh,
+  color,
+  bg,
   size = 40,
 }: {
   name: IconName;
@@ -487,6 +538,9 @@ export function IconBox({
   bg?: string;
   size?: number;
 }) {
+  const colors = useColors();
+  color ??= colors.text;
+  bg ??= colors.surfaceHigh;
   return (
     <View
       style={{
@@ -514,7 +568,185 @@ export function Row({
   return <View style={[{ flexDirection: 'row', alignItems: 'center', gap }, style]}>{children}</View>;
 }
 
-const styles = StyleSheet.create({
+
+// Alttan açılan panel (seçenekler, ürün detayı, mesaj işlemleri).
+export function Sheet({
+  visible,
+  onClose,
+  children,
+  title,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  title?: string;
+}) {
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' }} onPress={onClose} />
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderTopLeftRadius: radius.xl,
+            borderTopRightRadius: radius.xl,
+            borderWidth: 1,
+            borderColor: colors.border,
+            padding: spacing.lg,
+            paddingBottom: spacing.lg + insets.bottom,
+            gap: spacing.md,
+            maxHeight: '88%',
+            width: '100%',
+            maxWidth: 720,
+            alignSelf: 'center',
+          }}>
+          <View style={{ alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrong }} />
+          {title && <Heading>{title}</Heading>}
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: spacing.md }} showsVerticalScrollIndicator={false}>
+            {children}
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+export function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  const colors = useColors();
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        backgroundColor: colors.surfaceAlt,
+        borderRadius: radius.md,
+        padding: 4,
+        borderWidth: 1,
+        borderColor: colors.border,
+      }}>
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <PressScale
+            key={o.value}
+            flex
+            onPress={() => onChange(o.value)}
+            style={{
+              paddingVertical: 10,
+              borderRadius: radius.sm,
+              alignItems: 'center',
+              backgroundColor: active ? colors.primary : 'transparent',
+            }}>
+            <Text
+              numberOfLines={1}
+              style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: active ? colors.primaryText : colors.textMuted }}>
+              {o.label}
+            </Text>
+          </PressScale>
+        );
+      })}
+    </View>
+  );
+}
+
+// - 72 + gibi sayı ayarı (kilo, yaş, bardak).
+export function Stepper({
+  value,
+  onChange,
+  step = 1,
+  min = 0,
+  max = 999,
+  suffix,
+}: {
+  value: number;
+  onChange: (n: number) => void;
+  step?: number;
+  min?: number;
+  max?: number;
+  suffix?: string;
+}) {
+  const colors = useColors();
+  const btn = {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  };
+  return (
+    <Row gap={spacing.md}>
+      <PressScale onPress={() => onChange(Math.max(min, Math.round((value - step) * 10) / 10))} style={btn}>
+        <Icon name={{ ios: 'minus', android: 'remove', web: 'remove' }} size={16} />
+      </PressScale>
+      <Text style={{ fontFamily: fonts.mono, fontSize: 20, color: colors.text, minWidth: 70, textAlign: 'center' }}>
+        {value.toLocaleString('tr-TR')}
+        {suffix ? <Text style={{ fontSize: 13, color: colors.textMuted }}>{` ${suffix}`}</Text> : null}
+      </Text>
+      <PressScale onPress={() => onChange(Math.min(max, Math.round((value + step) * 10) / 10))} style={btn}>
+        <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={16} />
+      </PressScale>
+    </Row>
+  );
+}
+
+export function SectionHeader({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
+  const colors = useColors();
+  return (
+    <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>
+      <Heading style={{ fontSize: 20 }}>{title}</Heading>
+      {action && (
+        <PressScale onPress={onAction}>
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright }}>{action} →</Text>
+        </PressScale>
+      )}
+    </Row>
+  );
+}
+
+export function EmptyState({ icon, title, body }: { icon: IconName; title: string; body?: string }) {
+  const colors = useColors();
+  return (
+    <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl }}>
+      <IconBox name={icon} color={colors.accentBright} bg={colors.accentSoft} size={56} />
+      <Heading style={{ textAlign: 'center', fontSize: 19 }}>{title}</Heading>
+      {body && (
+        <Body muted style={{ textAlign: 'center', maxWidth: 300, fontSize: 14 }}>
+          {body}
+        </Body>
+      )}
+    </View>
+  );
+}
+
+// Paketle açılan özellik için kilit kartı.
+export function LockedCard({ tier, title, body, onPress }: { tier: Tier; title: string; body: string; onPress: () => void }) {
+  return (
+    <GradientCard colors={tierColors[tier]}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <IconBox name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} color={tierColors[tier][0]} bg={`${tierColors[tier][1]}33`} />
+        <TierBadge tier={tier} />
+      </Row>
+      <Heading>{title}</Heading>
+      <Body muted style={{ fontSize: 14 }}>
+        {body}
+      </Body>
+      <Button title={`${TIER_INFO[tier].name} ile aç`} arrow onPress={onPress} />
+    </GradientCard>
+  );
+}
+
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
   screenContent: {
     padding: spacing.md + 4,
@@ -562,7 +794,7 @@ const styles = StyleSheet.create({
   },
   buttonPrimary: {
     backgroundColor: colors.primary,
-    shadowColor: '#fff',
+    shadowColor: colors.primary,
     shadowOpacity: 0.15,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 4 },
@@ -608,4 +840,4 @@ const styles = StyleSheet.create({
   },
   chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.text },
-});
+}));

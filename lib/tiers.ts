@@ -9,17 +9,31 @@ export type Feature =
   | 'meal_plans'
   | 'pro_chat'
   | 'plus_chat'
-  | 'form_check';
+  | 'max_chat'
+  | 'form_check'
+  | 'full_library'
+  | 'full_history'
+  | 'unlimited_scans'
+  | 'all_badges'
+  | 'photo_macros'
+  | 'coach_dm';
 
-// Her özelliğin açıldığı en düşük üyelik. Max henüz tanımlanmadı, şimdilik Plus'ın her şeyini içerir.
+// Her özelliğin açıldığı en düşük üyelik.
 const FEATURE_MIN_TIER: Record<Feature, Tier> = {
   macros: 'free',
   general_chat: 'free',
   training_programs: 'pro',
   meal_plans: 'pro',
   pro_chat: 'pro',
+  full_library: 'pro',
+  full_history: 'pro',
+  unlimited_scans: 'pro',
+  all_badges: 'pro',
   plus_chat: 'plus',
   form_check: 'plus',
+  photo_macros: 'plus',
+  max_chat: 'max',
+  coach_dm: 'max',
 };
 
 export function hasFeature(tier: Tier, feature: Feature): boolean {
@@ -30,21 +44,60 @@ export function minTierFor(feature: Feature): Tier {
   return FEATURE_MIN_TIER[feature];
 }
 
-export const TIER_INFO: Record<Tier, { name: string; perks: string[] }> = {
+// Paket limitleri. Sunucu tarafı da aynı sayıları kontrol eder (supabase/migrations/0002).
+export const LIMITS = {
+  freeScansPerDay: 3,
+  freeLibrarySize: 10,
+  freeHistoryDays: 7,
+  formCheckDays: { plus: 14, max: 7 } as Partial<Record<Tier, number>>,
+  photoMacrosPerMonth: { plus: 30, max: Infinity } as Partial<Record<Tier, number>>,
+};
+
+export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: string[] }> = {
   free: {
     name: 'Ücretsiz',
-    perks: ['Otomatik makro hesaplama', 'Genel chat (yazmak için numara doğrulama + kullanıcı adı)'],
+    tagline: 'Başlamak için her şey',
+    perks: [
+      'Otomatik makro hesaplama ve kişisel hedef',
+      'Günde 3 barkod tarama',
+      'Serbest antrenman kaydı (son 7 gün)',
+      '10 hareketlik kas animasyonlu kütüphane',
+      'Genel chat (yazmak için numara + kullanıcı adı)',
+      'Seri ve temel rozetler',
+    ],
   },
   pro: {
     name: 'Pro',
-    perks: ['Makro hesaplama', 'Antrenman programları', 'Yemek programı oluşturma', 'Pro üyelere özel chat'],
+    tagline: 'Programla ilerle',
+    perks: [
+      'Kişiye özel antrenman programı',
+      'Haftalık yemek planı ve alışveriş listesi',
+      'Sınırsız barkod tarama',
+      'Tüm hareket kütüphanesi',
+      'Tüm antrenman geçmişi, rekorlar ve grafikler',
+      'Pro üyelere özel chat ve tüm rozetler',
+    ],
   },
   plus: {
     name: 'Plus',
-    perks: ["Pro'daki her şey", 'Plus üyelere özel chat', '2 haftada bir form check ve yorum'],
+    tagline: 'Koç gözüyle gelişim',
+    perks: [
+      "Pro'daki her şey",
+      '2 haftada bir video form check ve yorum',
+      'Fotoğraftan makro tahmini (ayda 30)',
+      'Plus üyelere özel chat',
+    ],
   },
   max: {
     name: 'Max',
-    perks: ['Yakında'],
+    tagline: 'Birebir koçluk',
+    perks: [
+      "Plus'taki her şey",
+      'Koçla birebir mesajlaşma',
+      'Haftada bir form check',
+      'Sınırsız fotoğraftan makro tahmini',
+      'Koç onaylı yemek planı',
+      'Max chat ve özel rozetler',
+    ],
   },
 };

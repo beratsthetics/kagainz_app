@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import {
   Body,
@@ -16,14 +16,17 @@ import {
   Screen,
   TierBadge,
 } from '@/components/ui';
-import { colors, fonts, spacing, tierColors } from '@/constants/theme';
+import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
+import { makeStyles, useColors } from '@/lib/theme';
 
 const PLANS: Tier[] = ['free', 'pro', 'plus', 'max'];
 const POPULAR: Tier = 'plus';
 
 export default function PlansScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { tier } = useAuth();
 
   return (
@@ -50,6 +53,9 @@ export default function PlansScreen() {
               {current && <Label style={{ color: colors.success }}>Mevcut paketin</Label>}
             </Row>
             <Heading style={{ fontSize: 30 }}>{TIER_INFO[t].name}</Heading>
+            <Body muted style={{ fontSize: 14, marginTop: -6 }}>
+              {TIER_INFO[t].tagline}
+            </Body>
             <View style={{ gap: spacing.sm }}>
               {TIER_INFO[t].perks.map((p) => (
                 <Row key={p} gap={10}>
@@ -65,7 +71,7 @@ export default function PlansScreen() {
             {t !== 'free' && !current && (
               <View style={{ marginTop: spacing.sm }}>
                 <Button
-                  title={t === 'max' ? 'Çok yakında' : `${TIER_INFO[t].name}'a geç`}
+                  title={`${TIER_INFO[t].name}'a geç · çok yakında`}
                   disabled
                   variant={t === POPULAR ? 'primary' : 'outline'}
                 />
@@ -83,7 +89,7 @@ export default function PlansScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   close: {
     width: 40,
     height: 40,
@@ -94,5 +100,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  popular: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: '#C4B5FD' },
-});
+  popular: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: colors.accentBright },
+}));

@@ -4,10 +4,13 @@ import * as WebBrowser from 'expo-web-browser';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
+import { registerPushToken } from './notifications';
+import { attachUser } from './store';
 import { isSupabaseConfigured, supabase } from './supabase';
 import type { Tier } from './tiers';
 
-export type Profile = { id: string; username: string | null; tier: Tier };
+export type Role = 'member' | 'coach';
+export type Profile = { id: string; username: string | null; tier: Tier; role?: Role; muted_until?: string | null };
 
 // phone: telefonla giriş/kayıt, email: e-postayla giriş/kayıt,
 // link_phone: e-posta veya Google ile girmiş kullanıcının hesabına numara eklemesi (chat'e yazmak için).
@@ -17,6 +20,7 @@ type AuthState = {
   session: Session | null;
   profile: Profile | null;
   tier: Tier;
+  isCoach: boolean;
   loading: boolean;
   // Chat'e yazabilmek için: numara doğrulanmış ve kullanıcı adı seçilmiş olmalı.
   canPost: boolean;
@@ -54,7 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = useCallback(async (userId: string | undefined) => {
     if (!userId) return setProfile(null);
-    const { data } = await supabase.from('profiles').select('id, username, tier').eq('id', userId).maybeSingle();
+    // select('*'): yeni sütunlar (role, muted_until) veritabanına eklenmeden önce de çalışsın.
+    const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
     setProfile((data as Profile | null) ?? { id: userId, username: null, tier: 'free' });
   }, []);
 
@@ -72,12 +77,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, [loadProfile]);
 
+  // Hesaptaki veriyi (günlük, antrenmanlar, rozetler) bu cihazla eşitle ve bildirim token'ını kaydet.
+  const userId = session?.user.id ?? null;
+  useEffect(() => {
+    attachUser(userId);
+    if (userId) registerPushToken();
+  }, [userId]);
+
   const hasPhone = Boolean(session?.user.phone);
 
   const value: AuthState = {
     session,
     profile,
     tier: profile?.tier ?? 'free',
+    isCoach: profile?.role === 'coach',
     loading,
     hasPhone,
     canPost: Boolean(hasPhone && profile?.username),

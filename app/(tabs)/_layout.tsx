@@ -3,13 +3,15 @@ import { Tabs } from 'expo-router';
 import { Platform, type ColorValue } from 'react-native';
 
 import { tap } from '@/components/ui';
-import { colors, fonts } from '@/constants/theme';
+import { fonts } from '@/constants/theme';
+import { useColors } from '@/lib/theme';
 
 function icon(name: SymbolViewProps['name']) {
   return ({ color }: { color: ColorValue }) => <SymbolView name={name} tintColor={color} size={24} />;
 }
 
 export default function TabLayout() {
+  const colors = useColors();
   return (
     <Tabs
       screenListeners={{ tabPress: tap }}
@@ -17,7 +19,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.textDim,
         tabBarStyle: {
-          backgroundColor: 'rgba(8,9,11,0.96)',
+          backgroundColor: colors.overlay,
           borderTopColor: colors.border,
           height: Platform.OS === 'ios' ? 88 : 68,
           paddingTop: 8,
