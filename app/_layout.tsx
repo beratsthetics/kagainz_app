@@ -8,8 +8,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
 import 'react-native-reanimated';
 
+import { AppSplash } from '@/components/AppSplash';
 import { fonts } from '@/constants/theme';
-import { AuthProvider } from '@/lib/auth';
+import { AuthProvider, useAuth } from '@/lib/auth';
 import { CelebrateProvider } from '@/lib/celebrate';
 import { DailyProvider } from '@/lib/daily';
 import { useNotificationRouting } from '@/lib/notifications';
@@ -66,6 +67,7 @@ export default function RootLayout() {
 
 function Navigation() {
   const { mode, colors } = useTheme();
+  const { loading } = useAuth();
   useNotificationRouting((route) => router.push(route as Href));
   const navTheme = useMemo(() => {
     const base = mode === 'dark' ? DarkTheme : DefaultTheme;
@@ -118,6 +120,7 @@ function Navigation() {
         <Stack.Screen name="coach/index" options={{ title: 'KOÇ PANELİ' }} />
         <Stack.Screen name="coach/member/[id]" options={{ title: 'ÜYE' }} />
       </Stack>
+      <AppSplash ready={!loading} />
     </ThemeProvider>
   );
 }
