@@ -3,8 +3,12 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Text, TextInput, View } from 'react-native';
 
+import { ExerciseMediaView } from '@/components/ExerciseMediaView';
+import { MovementAnim } from '@/components/MovementAnim';
 import { Body, Button, Card, Chip, EmptyState, Heading, Icon, Label, Mono, PressScale, ProgressBar, Row, Screen, Sheet } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
+import { useAuth } from '@/lib/auth';
+import { useExerciseMedia } from '@/lib/exerciseMedia';
 import { exerciseById } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { doneSets, sessionVolume, useWorkouts, type SetLog } from '@/lib/workouts';
@@ -126,6 +130,9 @@ function ExerciseCard({ index }: { index: number }) {
   const ex = exerciseById(e.exerciseId);
   const prev = w.lastSetsFor(e.exerciseId);
   const rec = w.records[e.exerciseId];
+  const { tier, isCoach } = useAuth();
+  const { media, url } = useExerciseMedia(e.exerciseId, isCoach || tier !== 'free');
+  const [big, setBig] = useState(false);
 
   function toggle(si: number, set: SetLog) {
     if (set.done) return w.updateSet(index, si, { done: false });
@@ -140,7 +147,15 @@ function ExerciseCard({ index }: { index: number }) {
   return (
     <Card>
       <Row style={{ justifyContent: 'space-between' }}>
-        <PressScale onPress={() => router.push(`/exercise/${e.exerciseId}`)} style={{ flex: 1 }}>
+        {/* Hareketin animasyonu: koçun videosu varsa o, yoksa çizim. Dokununca büyür. */}
+        <PressScale onPress={() => setBig((b) => !b)} style={styles.thumb}>
+          {media && url ? (
+            <ExerciseMediaView url={url} kind={media.kind} size={64} interactive={false} />
+          ) : ex ? (
+            <MovementAnim pattern={ex.pattern} size={64} />
+          ) : null}
+        </PressScale>
+        <PressScale flex onPress={() => router.push(`/exercise/${e.exerciseId}`)}>
           <Heading style={{ fontSize: 19 }}>{ex?.trName ?? e.exerciseId}</Heading>
           <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
             {e.target ? `Hedef ${e.target.sets}×${e.target.reps}` : 'Serbest'}
@@ -151,6 +166,16 @@ function ExerciseCard({ index }: { index: number }) {
           <Icon name={{ ios: 'trash', android: 'delete', web: 'delete' }} size={16} color={colors.textDim} />
         </PressScale>
       </Row>
+
+      {big && (
+        <PressScale onPress={() => setBig(false)} style={styles.bigMedia}>
+          {media && url ? (
+            <ExerciseMediaView url={url} kind={media.kind} size={260} interactive={false} />
+          ) : ex ? (
+            <MovementAnim pattern={ex.pattern} size={260} />
+          ) : null}
+        </PressScale>
+      )}
 
       <Row style={styles.headRow}>
         <Text style={[styles.head, { width: 26 }]}>SET</Text>
@@ -273,6 +298,26 @@ function RestBar() {
 }
 
 const useStyles = makeStyles((colors) => ({
+  thumb: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  bigMedia: {
+    alignItems: 'center',
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   round: {
     width: 42,
     height: 42,

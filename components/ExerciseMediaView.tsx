@@ -8,11 +8,12 @@ import { fonts } from '@/constants/theme';
 import { useColors } from '@/lib/theme';
 
 // Koçun yüklediği hareket animasyonu: video sessiz ve döngüde oynar, GIF/resim doğrudan gösterilir.
-export function ExerciseMediaView({ url, kind, size }: { url: string; kind: 'video' | 'image'; size: number }) {
+// interactive: dokununca durdur/oynat. Küçük önizlemede kapalı, dokunuş dış bileşene gider.
+export function ExerciseMediaView({ url, kind, size, interactive = true }: { url: string; kind: 'video' | 'image'; size: number; interactive?: boolean }) {
   const [failed, setFailed] = useState<string | null>(null);
-  if (failed) return <Failed size={size} message={failed} />;
+  if (failed) return size < 120 ? <View style={{ width: size, height: size }} /> : <Failed size={size} message={failed} />;
   return kind === 'video' ? (
-    <LoopVideo url={url} size={size} onError={setFailed} />
+    <LoopVideo url={url} size={size} onError={setFailed} interactive={interactive} />
   ) : (
     <Image
       source={{ uri: url }}
@@ -24,7 +25,7 @@ export function ExerciseMediaView({ url, kind, size }: { url: string; kind: 'vid
   );
 }
 
-function LoopVideo({ url, size, onError }: { url: string; size: number; onError: (m: string) => void }) {
+function LoopVideo({ url, size, onError, interactive }: { url: string; size: number; onError: (m: string) => void; interactive: boolean }) {
   const player = useVideoPlayer(url, (p) => {
     p.loop = true;
     p.muted = true;
@@ -47,11 +48,9 @@ function LoopVideo({ url, size, onError }: { url: string; size: number; onError:
     if (status === 'error') onError(error?.message ?? 'Video oynatılamadı.');
   });
   // Dokununca durdur / oynat.
-  return (
-    <Pressable onPress={() => (player.playing ? player.pause() : player.play())}>
-      <VideoView player={player} style={{ width: size, height: size }} contentFit="contain" nativeControls={false} surfaceType="textureView" />
-    </Pressable>
-  );
+  const view = <VideoView player={player} style={{ width: size, height: size }} contentFit="contain" nativeControls={false} surfaceType="textureView" />;
+  if (!interactive) return <View pointerEvents="none">{view}</View>;
+  return <Pressable onPress={() => (player.playing ? player.pause() : player.play())}>{view}</Pressable>;
 }
 
 function Failed({ size, message }: { size: number; message: string }) {
