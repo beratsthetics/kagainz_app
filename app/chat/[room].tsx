@@ -41,13 +41,14 @@ type Message = {
   image_path: string | null;
   reply_to: number | null;
   pinned: boolean;
+  hidden: boolean;
   created_at: string;
   user_id: string;
   profiles: { username: string | null; role: string | null } | null;
 };
 type Reaction = { message_id: number; user_id: string; emoji: string };
 
-const SELECT = 'id, body, kind, macros, meta, image_path, reply_to, pinned, created_at, user_id, profiles:profiles!messages_user_id_fkey(username, role)';
+const SELECT = 'id, body, kind, macros, meta, image_path, reply_to, pinned, hidden, created_at, user_id, profiles:profiles!messages_user_id_fkey(username, role)';
 const PAGE = 50;
 const EMOJIS = ['💪', '🔥', '👏', '❤️', '😂'];
 
@@ -151,7 +152,7 @@ export default function ChatRoomScreen() {
         if (m) setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `room_id=eq.${room}` }, (p) => {
-        setMessages((prev) => prev.map((x) => (x.id === p.new.id ? { ...x, pinned: Boolean(p.new.pinned) } : x)));
+        setMessages((prev) => prev.map((x) => (x.id === p.new.id ? { ...x, pinned: Boolean(p.new.pinned), hidden: Boolean(p.new.hidden) } : x)));
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, (p) => {
         setMessages((prev) => prev.filter((x) => x.id !== p.old.id));
@@ -249,7 +250,7 @@ export default function ChatRoomScreen() {
   }
 
   // Mesaj işlemleri: tepki, yanıt, şikayet, engelle; koç için sabitle, sil, sustur.
-  async function run(what: 'reply' | 'report' | 'block' | 'pin' | 'delete' | 'mute', m: Message) {
+  async function run(what: 'reply' | 'report' | 'block' | 'pin' | 'unhide' | 'delete' | 'mute', m: Message) {
     setAction(null);
     if (!me) return;
     if (what === 'reply') return setReplyTo(m);
@@ -268,6 +269,9 @@ export default function ChatRoomScreen() {
     } else if (what === 'pin') {
       ({ error: err } = await supabase.from('messages').update({ pinned: !m.pinned }).eq('id', m.id));
       if (!err) setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, pinned: !m.pinned } : x)));
+    } else if (what === 'unhide') {
+      ({ error: err } = await supabase.from('messages').update({ hidden: false }).eq('id', m.id));
+      if (!err) setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, hidden: false } : x)));
     } else if (what === 'delete') {
       ({ error: err } = await supabase.from('messages').delete().eq('id', m.id));
       if (!err) setMessages((prev) => prev.filter((x) => x.id !== m.id));
@@ -473,6 +477,9 @@ export default function ChatRoomScreen() {
                     label={action.pinned ? 'Sabitlemeyi kaldır' : 'Sabitle'}
                     onPress={() => run('pin', action)}
                   />
+                  {action.hidden && (
+                    <ActionRow icon={{ ios: 'eye.fill', android: 'visibility', web: 'visibility' }} label="Gizlemeyi kaldır" onPress={() => run('unhide', action)} />
+                  )}
                   {action.user_id !== me && (
                     <ActionRow icon={{ ios: 'speaker.slash.fill', android: 'volume_off', web: 'volume_off' }} label="24 saat sustur" onPress={() => run('mute', action)} />
                   )}
@@ -553,7 +560,7 @@ function MessageBubble({
     <Row gap={spacing.sm} style={{ alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
       {!mine && <Avatar name={message.profiles?.username} size={32} />}
       <View style={{ maxWidth: '80%', gap: 4, alignItems: mine ? 'flex-end' : 'flex-start' }}>
-        <PressScale onLongPress={onLongPress} delayLongPress={300} style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, coach && !mine && styles.bubbleCoach]}>
+        <PressScale onLongPress={onLongPress} delayLongPress={300} style={[message.hidden && { opacity: 0.55 }, styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, coach && !mine && styles.bubbleCoach]}>
           <Row style={{ justifyContent: 'space-between', gap: spacing.md }}>
             {!mine && (
               <Row gap={6}>
@@ -564,6 +571,11 @@ function MessageBubble({
                   </Tag>
                 )}
               </Row>
+            )}
+            {message.hidden && (
+              <Tag color={colors.danger} bg={colors.dangerSoft}>
+                Şikayetle gizlendi
+              </Tag>
             )}
             {message.pinned && <Icon name={{ ios: 'pin.fill', android: 'push_pin', web: 'push_pin' }} size={12} color={mine ? colors.primaryText : colors.fat} />}
             {message.kind !== 'text' && message.kind !== 'photo' && meta && (

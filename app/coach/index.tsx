@@ -81,9 +81,11 @@ export default function CoachPanel() {
       .sort((a, b) => TIER_RANK[b.tier] - TIER_RANK[a.tier]);
   }, [members, q]);
 
-  // Şikayet: mesajı sil / kullanıcıyı sustur / kapat. Her işlemde şikayet kapanır.
-  async function moderate(r: Report, what: 'delete' | 'mute' | 'resolve') {
+  // Şikayet: mesajı sil / kullanıcıyı sustur / mesajı geri aç / kapat. Her işlemde şikayet kapanır.
+  // 3 kişinin şikayet ettiği mesaj otomatik gizlenir (0004).
+  async function moderate(r: Report, what: 'delete' | 'mute' | 'restore' | 'resolve') {
     if (what === 'delete' && r.message_id != null) await supabase.from('messages').delete().eq('id', r.message_id);
+    if (what === 'restore' && r.message_id != null) await supabase.from('messages').update({ hidden: false }).eq('id', r.message_id);
     if (what === 'mute' && r.reported_user_id) await supabase.rpc('mute_user', { target: r.reported_user_id, minutes: 60 * 24 });
     await supabase.from('reports').update({ status: 'resolved' }).eq('id', r.id);
     setReports((prev) => prev?.filter((x) => x.id !== r.id) ?? null);
@@ -203,6 +205,7 @@ export default function CoachPanel() {
               <Row gap={spacing.md} style={{ flexWrap: 'wrap' }}>
                 {r.message_id != null && <ReportAction label="Mesajı sil" danger onPress={() => moderate(r, 'delete')} />}
                 {r.reported_user_id && <ReportAction label="24 saat sustur" onPress={() => moderate(r, 'mute')} />}
+                {r.message_id != null && <ReportAction label="Sorun yok, geri aç" onPress={() => moderate(r, 'restore')} />}
                 <ReportAction label="Kapat" onPress={() => moderate(r, 'resolve')} />
               </Row>
             </Card>
