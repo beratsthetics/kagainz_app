@@ -47,7 +47,7 @@ type Message = {
 };
 type Reaction = { message_id: number; user_id: string; emoji: string };
 
-const SELECT = 'id, body, kind, macros, meta, image_path, reply_to, pinned, created_at, user_id, profiles(username, role)';
+const SELECT = 'id, body, kind, macros, meta, image_path, reply_to, pinned, created_at, user_id, profiles:profiles!messages_user_id_fkey(username, role)';
 const PAGE = 50;
 const EMOJIS = ['💪', '🔥', '👏', '❤️', '😂'];
 

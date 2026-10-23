@@ -23,7 +23,7 @@ export default function FormCheckDetail() {
   const loadComments = useCallback(() => {
     supabase
       .from('form_check_comments')
-      .select('id, form_check_id, author_id, body, at_seconds, created_at, profiles(username, role)')
+      .select('id, form_check_id, author_id, body, at_seconds, created_at, profiles:profiles!form_check_comments_author_id_fkey(username, role)')
       .eq('form_check_id', id)
       .order('at_seconds', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true })

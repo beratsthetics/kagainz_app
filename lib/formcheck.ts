@@ -22,7 +22,7 @@ export type FormComment = {
   profiles?: { username: string | null; role: string | null } | null;
 };
 
-export const FORM_CHECK_SELECT = 'id, user_id, exercise_id, note, video_path, status, created_at, reviewed_at, profiles(username, tier)';
+export const FORM_CHECK_SELECT = 'id, user_id, exercise_id, note, video_path, status, created_at, reviewed_at, profiles:profiles!form_checks_user_id_fkey(username, tier)';
 
 // Bir sonraki form check ne zaman gönderilebilir? Plus 14, Max 7 günde bir. Sunucu da aynı kuralı uygular.
 export function nextAllowedAt(tier: Tier, last: FormCheck | undefined): Date | null {

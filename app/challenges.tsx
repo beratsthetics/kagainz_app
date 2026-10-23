@@ -27,7 +27,7 @@ export default function ChallengesScreen() {
     const load = () =>
       supabase
         .from('challenge_completions')
-        .select('user_id, created_at, profiles(username)')
+        .select('user_id, created_at, profiles:profiles!challenge_completions_user_id_fkey(username)')
         .eq('challenge_key', ch.key)
         .order('created_at', { ascending: true })
         .limit(100)
