@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -14,6 +15,7 @@ import {
   TextInput,
   View,
   type ColorValue,
+  type DimensionValue,
   type StyleProp,
   type TextInputProps,
   type TextProps,
@@ -24,6 +26,7 @@ import Animated, {
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
@@ -31,6 +34,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, Defs, Line, Pattern, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { fonts, radius, spacing, tierColors } from '@/constants/theme';
+import { avatarUrl } from '@/lib/media';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
 import { makeStyles, useColors } from '@/lib/theme';
 
@@ -486,21 +490,18 @@ export function Ring({
   );
 }
 
-export function Avatar({ name, size = 40 }: { name?: string | null; size?: number }) {
+// path: profildeki avatar_url. Fotoğraf yoksa ya da yüklenemezse baş harf gösterilir.
+export function Avatar({ name, size = 40, path }: { name?: string | null; size?: number; path?: string | null }) {
   const colors = useColors();
+  const [failed, setFailed] = useState(false);
+  const uri = failed ? null : avatarUrl(path);
   const letter = (name ?? '?').charAt(0).toLocaleUpperCase('tr-TR');
+  const box = { width: size, height: size, borderRadius: size / 2, borderWidth: 1, borderColor: colors.borderStrong } as const;
+  if (uri) {
+    return <Image source={{ uri }} style={[box, { backgroundColor: colors.surfaceHigh }]} contentFit="cover" transition={150} onError={() => setFailed(true)} />;
+  }
   return (
-    <LinearGradient
-      colors={[colors.surfaceHigh, colors.surface]}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: colors.borderStrong,
-      }}>
+    <LinearGradient colors={[colors.surfaceHigh, colors.surface]} style={[box, { alignItems: 'center', justifyContent: 'center' }]}>
       <Text style={{ fontFamily: fonts.display, fontSize: size * 0.42, color: colors.text }}>{letter}</Text>
     </LinearGradient>
   );
@@ -841,3 +842,65 @@ const useStyles = makeStyles((colors) => ({
   chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.text },
 }));
+
+// Yüklenirken içeriğin yerini tutan, nefes alan gri bloklar.
+export function Skeleton({ width = '100%', height = 14, radius: r = 7, style }: { width?: DimensionValue; height?: number; radius?: number; style?: StyleProp<ViewStyle> }) {
+  const colors = useColors();
+  const pulse = useSharedValue(0.45);
+  useEffect(() => {
+    pulse.value = withRepeat(withTiming(1, { duration: 750 }), -1, true);
+  }, [pulse]);
+  const animated = useAnimatedStyle(() => ({ opacity: pulse.value }));
+  return <Animated.View style={[{ width, height, borderRadius: r, backgroundColor: colors.surfaceHigh }, animated, style]} />;
+}
+
+// Hazır iskeletler: "rows" kart listesi, "chat" sohbet balonları, "detail" video/detay ekranı.
+export function SkeletonList({ variant = 'rows', count = 4 }: { variant?: 'rows' | 'chat' | 'detail'; count?: number }) {
+  const colors = useColors();
+  const card = { borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md } as const;
+  if (variant === 'detail') {
+    return (
+      <View style={{ gap: spacing.md }}>
+        <Skeleton height={320} radius={radius.lg} />
+        <Skeleton width="60%" height={22} />
+        <Skeleton width="40%" height={14} />
+        <View style={[card, { gap: spacing.sm }]}>
+          <Skeleton width="80%" />
+          <Skeleton width="55%" />
+        </View>
+      </View>
+    );
+  }
+  if (variant === 'chat') {
+    const widths = [62, 44, 70, 38, 56, 48];
+    return (
+      <View style={{ gap: spacing.md, paddingTop: spacing.md }}>
+        {Array.from({ length: count }, (_, i) => {
+          const mine = i % 3 === 2;
+          return (
+            <View key={i} style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-end', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
+              {!mine && <Skeleton width={32} height={32} radius={16} />}
+              <View style={{ width: `${widths[i % widths.length]}%`, gap: 6 }}>
+                {!mine && <Skeleton width={70} height={10} />}
+                <Skeleton height={i % 2 ? 40 : 58} radius={radius.lg} />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    );
+  }
+  return (
+    <View style={{ gap: spacing.sm }}>
+      {Array.from({ length: count }, (_, i) => (
+        <View key={i} style={[card, { flexDirection: 'row', alignItems: 'center', gap: spacing.sm }]}>
+          <Skeleton width={36} height={36} radius={18} />
+          <View style={{ flex: 1, gap: 7 }}>
+            <Skeleton width={`${50 + ((i * 17) % 35)}%`} />
+            <Skeleton width={`${30 + ((i * 11) % 25)}%`} height={10} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}

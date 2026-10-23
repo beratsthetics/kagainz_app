@@ -10,7 +10,7 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 
 const DAY_SHORT = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
-type Finisher = { user_id: string; created_at: string; profiles: { username: string | null } | null };
+type Finisher = { user_id: string; created_at: string; profiles: { username: string | null; avatar_url?: string | null } | null };
 
 export default function ChallengesScreen() {
   const colors = useColors();
@@ -27,7 +27,7 @@ export default function ChallengesScreen() {
     const load = () =>
       supabase
         .from('challenge_completions')
-        .select('user_id, created_at, profiles:profiles!challenge_completions_user_id_fkey(username)')
+        .select('user_id, created_at, profiles:profiles!challenge_completions_user_id_fkey(*)')
         .eq('challenge_key', ch.key)
         .order('created_at', { ascending: true })
         .limit(100)
@@ -108,7 +108,7 @@ export default function ChallengesScreen() {
             finishers.map((f, i) => (
               <Row key={f.user_id} gap={spacing.sm}>
                 <Mono style={{ width: 22, color: i < 3 ? colors.fat : colors.textMuted }}>{i + 1}</Mono>
-                <Avatar name={f.profiles?.username} size={28} />
+                <Avatar name={f.profiles?.username} path={f.profiles?.avatar_url} size={28} />
                 <Text style={{ flex: 1, fontFamily: fonts.bodyBold, fontSize: 14, color: f.user_id === session?.user.id ? colors.accentBright : colors.text }}>
                   @{f.profiles?.username ?? 'anonim'}
                 </Text>

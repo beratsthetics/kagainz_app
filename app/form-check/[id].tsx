@@ -1,10 +1,10 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { BodyMap } from '@/components/BodyMap';
-import { Avatar, Body, Button, Card, Input, Label, Mono, PressScale, Reveal, Row, Screen, Tag } from '@/components/ui';
+import { Avatar, Body, Button, Card, Input, Label, Mono, PressScale, Reveal, Row, Screen, SkeletonList, Tag } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { exerciseById } from '@/lib/exercises';
@@ -23,7 +23,7 @@ export default function FormCheckDetail() {
   const loadComments = useCallback(() => {
     supabase
       .from('form_check_comments')
-      .select('id, form_check_id, author_id, body, at_seconds, created_at, profiles:profiles!form_check_comments_author_id_fkey(username, role)')
+      .select('id, form_check_id, author_id, body, at_seconds, created_at, profiles:profiles!form_check_comments_author_id_fkey(*)')
       .eq('form_check_id', id)
       .order('at_seconds', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true })
@@ -51,7 +51,7 @@ export default function FormCheckDetail() {
   if (!check) {
     return (
       <Screen edges={[]}>
-        <ActivityIndicator color={colors.textMuted} />
+        <SkeletonList variant="detail" />
       </Screen>
     );
   }
@@ -60,7 +60,7 @@ export default function FormCheckDetail() {
     <Detail check={check} url={url} comments={comments} onComment={loadComments} onReviewed={() => setCheck({ ...check, status: 'reviewed' })} />
   ) : (
     <Screen edges={[]}>
-      <ActivityIndicator color={colors.textMuted} />
+      <SkeletonList variant="detail" />
     </Screen>
   );
 }
@@ -175,7 +175,7 @@ function Detail({
                       <Mono style={{ fontSize: 12, color: active ? colors.primaryText : colors.accentBright }}>{formatClock(c.at_seconds)}</Mono>
                     </View>
                   ) : (
-                    <Avatar name={c.profiles?.username} size={26} />
+                    <Avatar name={c.profiles?.username} path={c.profiles?.avatar_url} size={26} />
                   )}
                   <View style={{ flex: 1, gap: 2 }}>
                     <Row gap={6}>

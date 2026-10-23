@@ -101,7 +101,7 @@ export default function TodayScreen() {
           <Row gap={spacing.sm}>
             <ThemeToggle />
             <PressScale onPress={() => router.push(session ? '/profile' : '/auth')}>
-              <Avatar name={profile?.username ?? 'K'} size={42} />
+              <Avatar name={profile?.username ?? 'K'} path={profile?.avatar_url} size={42} />
             </PressScale>
           </Row>
         </Row>

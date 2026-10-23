@@ -20,7 +20,19 @@ function StepDot({ active, done }: { active: boolean; done: boolean }) {
 }
 
 // Giriş/kayıt adımlarının ortak çerçevesi: geri butonu, adım göstergesi, alt butonlar.
-export function AuthShell({ step, children, footer }: { step?: number; children: ReactNode; footer?: ReactNode }) {
+export function AuthShell({
+  step,
+  steps = STEPS,
+  children,
+  footer,
+  onBack,
+}: {
+  step?: number;
+  steps?: number;
+  children: ReactNode;
+  footer?: ReactNode;
+  onBack?: () => void;
+}) {
   const colors = useColors();
   const styles = useStyles();
   return (
@@ -29,12 +41,12 @@ export function AuthShell({ step, children, footer }: { step?: number; children:
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.top}>
-            <PressScale onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={styles.back}>
+            <PressScale onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))} style={styles.back}>
               <Icon name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }} size={20} />
             </PressScale>
             {step !== undefined && (
               <Row gap={6}>
-                {Array.from({ length: STEPS }, (_, i) => (
+                {Array.from({ length: steps }, (_, i) => (
                   <StepDot key={i} active={i === step} done={i < step} />
                 ))}
               </Row>

@@ -1,5 +1,6 @@
 import { router, type Href } from 'expo-router';
-import { Platform, Switch, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Platform, Switch, Text, View } from 'react-native';
 
 import {
   Avatar,
@@ -23,6 +24,7 @@ import {
 import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useDaily } from '@/lib/daily';
+import { pickImage, removeAvatar, uploadAvatar } from '@/lib/media';
 import { setDailyReminder } from '@/lib/notifications';
 import { BADGES, useProgress } from '@/lib/progress';
 import { useStored } from '@/lib/store';
@@ -76,7 +78,7 @@ export default function ProfileScreen() {
     <Screen>
       <Reveal index={0}>
         <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md }}>
-          <Avatar name={profile?.username} size={88} />
+          <ProfilePhoto />
           <Text style={styles.username}>@{profile?.username ?? 'kullanıcı adı yok'}</Text>
           <TierBadge tier={tier} />
           <Mono style={{ color: colors.textMuted }}>
@@ -181,6 +183,58 @@ function Goal({ label, value, color }: { label: string; value: string; color?: s
   );
 }
 
+// Profil fotoğrafı: dokununca galeriden kare kırpılmış fotoğraf seçilir.
+function ProfilePhoto() {
+  const colors = useColors();
+  const styles = useStyles();
+  const { session, profile, refreshProfile } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const userId = session?.user.id;
+
+  async function change() {
+    if (!userId || busy) return;
+    const asset = await pickImage(false, true);
+    if (!asset?.base64) return;
+    setBusy(true);
+    setError(null);
+    const err = await uploadAvatar(userId, asset.base64, asset.mimeType, profile?.avatar_url);
+    if (!err) await refreshProfile();
+    setBusy(false);
+    setError(err);
+  }
+
+  async function remove() {
+    if (!userId || busy) return;
+    setBusy(true);
+    const err = await removeAvatar(userId, profile?.avatar_url);
+    if (!err) await refreshProfile();
+    setBusy(false);
+    setError(err);
+  }
+
+  return (
+    <View style={{ alignItems: 'center', gap: 6 }}>
+      <PressScale onPress={change}>
+        <Avatar name={profile?.username} path={profile?.avatar_url} size={88} />
+        <View style={styles.camera}>
+          {busy ? (
+            <ActivityIndicator size="small" color={colors.primaryText} />
+          ) : (
+            <Icon name={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} size={14} color={colors.primaryText} />
+          )}
+        </View>
+      </PressScale>
+      {profile?.avatar_url && !busy && (
+        <PressScale onPress={remove}>
+          <Text style={styles.removePhoto}>Fotoğrafı kaldır</Text>
+        </PressScale>
+      )}
+      {error && <Text style={styles.photoError}>{error}</Text>}
+    </View>
+  );
+}
+
 function LinkRow({ icon, label, href, last }: { icon: IconName; label: string; href: Href; last?: boolean }) {
   const colors = useColors();
   const styles = useStyles();
@@ -257,6 +311,21 @@ function MembershipCard() {
 }
 
 const useStyles = makeStyles((colors) => ({
+  camera: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.accent,
+    borderWidth: 3,
+    borderColor: colors.background,
+  },
+  removePhoto: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
+  photoError: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger, textAlign: 'center' },
   badge: {
     width: 46,
     height: 46,

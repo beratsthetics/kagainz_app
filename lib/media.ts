@@ -7,8 +7,8 @@ import { isSupabaseConfigured, supabase } from './supabase';
 // Özel (private) depolama kovaları: dosyalar sadece imzalı, süreli bağlantıyla görülür.
 export type Bucket = 'chat' | 'form-checks';
 
-export async function pickImage(camera: boolean) {
-  const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.6, base64: true };
+export async function pickImage(camera: boolean, square = false) {
+  const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: square ? 0.5 : 0.6, base64: true, ...(square && { allowsEditing: true, aspect: [1, 1] }) };
   if (camera) {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) return null;
@@ -42,6 +42,34 @@ export async function signedUrl(bucket: Bucket, path: string) {
   if (error || !data) return null;
   cache.set(key, { url: data.signedUrl, expires: Date.now() + 55 * 60 * 1000 });
   return data.signedUrl;
+}
+
+// Profil fotoğrafları herkese açık kovada; imzasız, kalıcı adresle gösterilir.
+export function avatarUrl(path: string | null | undefined) {
+  if (!path || !isSupabaseConfigured) return null;
+  return supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+}
+
+// Yeni fotoğrafı yükler, profile yazar, eskisini siler. Hata varsa mesajını döner.
+export async function uploadAvatar(userId: string, base64: string, mime: string | undefined, oldPath?: string | null) {
+  const type = mime === 'image/png' || mime === 'image/webp' ? mime : 'image/jpeg';
+  const path = `${userId}/${Date.now()}.${type.split('/')[1].replace('jpeg', 'jpg')}`;
+  const up = await supabase.storage.from('avatars').upload(path, decode(base64), { contentType: type, upsert: false });
+  if (up.error) return up.error.message.includes('Bucket not found') ? 'Sunucu güncel değil: 0005 SQL dosyasını Supabase\'de çalıştır.' : up.error.message;
+  const { error } = await supabase.from('profiles').update({ avatar_url: path }).eq('id', userId);
+  if (error) {
+    await supabase.storage.from('avatars').remove([path]);
+    return error.message;
+  }
+  if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
+  return null;
+}
+
+export async function removeAvatar(userId: string, oldPath: string | null | undefined) {
+  const { error } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', userId);
+  if (error) return error.message;
+  if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
+  return null;
 }
 
 export function useSignedUrl(bucket: Bucket, path: string | null | undefined) {

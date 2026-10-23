@@ -28,7 +28,8 @@ export default function UsernameScreen() {
     const err = await setUsername(name);
     setLoading(false);
     if (err) return setError(err);
-    router.dismissAll();
+    // Yeni hesap: kısa karşılama akışıyla hedefleri belirle.
+    router.replace('/onboarding');
   }
 
   return (

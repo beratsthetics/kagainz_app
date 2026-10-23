@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { Avatar, Body, Card, EmptyState, Input, Label, Mono, PressScale, Reveal, Row, Screen, Segmented, Tag, TierBadge } from '@/components/ui';
+import { Avatar, Body, Card, EmptyState, Input, Label, Mono, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, Tag, TierBadge } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { exerciseById } from '@/lib/exercises';
@@ -20,8 +20,8 @@ type Report = {
   created_at: string;
   reported: { username: string | null } | null;
 };
-type Thread = { member_id: string; body: string; created_at: string; sender_id: string; member: { username: string | null; tier: Tier } | null };
-type Member = { id: string; username: string | null; tier: Tier; role: string | null; created_at: string };
+type Thread = { member_id: string; body: string; created_at: string; sender_id: string; member: { username: string | null; tier: Tier; avatar_url?: string | null } | null };
+type Member = { id: string; username: string | null; tier: Tier; role: string | null; created_at: string; avatar_url?: string | null };
 
 export default function CoachPanel() {
   const colors = useColors();
@@ -43,7 +43,7 @@ export default function CoachPanel() {
       .then(({ data }) => setForms((data ?? []) as unknown as FormCheck[]));
     supabase
       .from('coach_messages')
-      .select('member_id, body, created_at, sender_id, member:profiles!coach_messages_member_id_fkey(username, tier)')
+      .select('member_id, body, created_at, sender_id, member:profiles!coach_messages_member_id_fkey(*)')
       .order('created_at', { ascending: false })
       .limit(400)
       .then(({ data }) => {
@@ -66,7 +66,7 @@ export default function CoachPanel() {
       .then(({ data }) => setReports((data ?? []) as unknown as Report[]));
     supabase
       .from('profiles')
-      .select('id, username, tier, role, created_at')
+      .select('*')
       .not('username', 'is', null)
       .order('created_at', { ascending: false })
       .limit(500)
@@ -125,7 +125,7 @@ export default function CoachPanel() {
 
       {tab === 'forms' &&
         (forms == null ? (
-          <ActivityIndicator color={colors.textMuted} />
+          <SkeletonList />
         ) : forms.length === 0 ? (
           <EmptyState icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} title="Video yok" />
         ) : (
@@ -133,7 +133,7 @@ export default function CoachPanel() {
             <PressScale key={f.id} onPress={() => router.push({ pathname: '/form-check/[id]', params: { id: f.id } })}>
               <Card>
                 <Row gap={spacing.sm}>
-                  <Avatar name={f.profiles?.username} size={36} />
+                  <Avatar name={f.profiles?.username} path={f.profiles?.avatar_url} size={36} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>
                       {exerciseById(f.exercise_id)?.trName ?? f.exercise_id}
@@ -159,7 +159,7 @@ export default function CoachPanel() {
 
       {tab === 'dms' &&
         (threads == null ? (
-          <ActivityIndicator color={colors.textMuted} />
+          <SkeletonList />
         ) : threads.length === 0 ? (
           <EmptyState icon={{ ios: 'bubble.left.and.bubble.right', android: 'forum', web: 'forum' }} title="Mesaj yok" body="Max üyeler yazınca burada görünür." />
         ) : (
@@ -167,7 +167,7 @@ export default function CoachPanel() {
             <PressScale key={t.member_id} onPress={() => router.push({ pathname: '/dm/[member]', params: { member: t.member_id } })}>
               <Card>
                 <Row gap={spacing.sm}>
-                  <Avatar name={t.member?.username} size={36} />
+                  <Avatar name={t.member?.username} path={t.member?.avatar_url} size={36} />
                   <View style={{ flex: 1 }}>
                     <Row gap={6}>
                       <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>@{t.member?.username ?? 'üye'}</Text>
@@ -189,7 +189,7 @@ export default function CoachPanel() {
 
       {tab === 'reports' &&
         (reports == null ? (
-          <ActivityIndicator color={colors.textMuted} />
+          <SkeletonList />
         ) : reports.length === 0 ? (
           <EmptyState icon={{ ios: 'checkmark.shield.fill', android: 'verified_user', web: 'verified_user' }} title="Açık şikayet yok" />
         ) : (
@@ -216,13 +216,13 @@ export default function CoachPanel() {
         <>
           <Input value={q} onChangeText={setQ} placeholder="Kullanıcı adı ara" autoCapitalize="none" />
           {members == null ? (
-            <ActivityIndicator color={colors.textMuted} />
+            <SkeletonList />
           ) : (
             shownMembers.slice(0, 100).map((m) => (
               <PressScale key={m.id} onPress={() => router.push({ pathname: '/coach/member/[id]', params: { id: m.id } })}>
                 <Card style={{ paddingVertical: spacing.sm + 2 }}>
                   <Row gap={spacing.sm}>
-                    <Avatar name={m.username} size={32} />
+                    <Avatar name={m.username} path={m.avatar_url} size={32} />
                     <Text style={{ flex: 1, fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text }}>@{m.username}</Text>
                     {m.role === 'coach' && (
                       <Tag color={colors.primaryText} bg={colors.fat}>

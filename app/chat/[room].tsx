@@ -13,14 +13,15 @@ import {
   Heading,
   Icon,
   IconBox,
+  type IconName,
   Input,
   Label,
   Mono,
   PressScale,
   Row,
   Sheet,
+  SkeletonList,
   Tag,
-  type IconName,
 } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth, useJoinStep } from '@/lib/auth';
@@ -44,11 +45,11 @@ type Message = {
   hidden: boolean;
   created_at: string;
   user_id: string;
-  profiles: { username: string | null; role: string | null } | null;
+  profiles: { username: string | null; role: string | null; avatar_url?: string | null } | null;
 };
 type Reaction = { message_id: number; user_id: string; emoji: string };
 
-const SELECT = 'id, body, kind, macros, meta, image_path, reply_to, pinned, hidden, created_at, user_id, profiles:profiles!messages_user_id_fkey(username, role)';
+const SELECT = 'id, body, kind, macros, meta, image_path, reply_to, pinned, hidden, created_at, user_id, profiles:profiles!messages_user_id_fkey(*)';
 const PAGE = 50;
 const EMOJIS = ['💪', '🔥', '👏', '❤️', '😂'];
 
@@ -89,6 +90,7 @@ export default function ChatRoomScreen() {
   const [blocked, setBlocked] = useState<string[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [text, setText] = useState('');
   const [kind, setKind] = useState<Kind>('text');
   const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -116,6 +118,7 @@ export default function ChatRoomScreen() {
 
   useEffect(() => {
     if (!isSupabaseConfigured || !room) return;
+    setLoaded(false);
 
     supabase
       .from('messages')
@@ -128,6 +131,7 @@ export default function ChatRoomScreen() {
         setLoadError(null);
         const rows = ((data ?? []) as unknown as Message[]).reverse();
         setMessages(rows);
+        setLoaded(true);
         setHasMore(rows.length === PAGE);
         loadReactions(rows.map((m) => m.id));
       });
@@ -330,20 +334,24 @@ export default function ChatRoomScreen() {
               ) : undefined
             }
             ListEmptyComponent={
-              <View style={styles.empty}>
-                <IconBox
-                  name={{ ios: 'bubble.left.and.bubble.right.fill', android: 'forum', web: 'forum' }}
-                  color={colors.accentBright}
-                  bg={colors.accentSoft}
-                  size={64}
-                />
-                <Heading style={{ textAlign: 'center' }}>{isSupabaseConfigured ? 'İlk paylaşımı sen yap' : 'Bağlantı bekleniyor'}</Heading>
-                <Body muted style={{ textAlign: 'center', maxWidth: 280 }}>
-                  {isSupabaseConfigured
-                    ? 'Bugün ne yedin, nasıl antrenman yaptın? Topluluğa anlat.'
-                    : 'Sunucu bağlantısı henüz ayarlanmadı.'}
-                </Body>
-              </View>
+              !loaded && isSupabaseConfigured && !loadError ? (
+                <SkeletonList variant="chat" count={6} />
+              ) : (
+                <View style={styles.empty}>
+                  <IconBox
+                    name={{ ios: 'bubble.left.and.bubble.right.fill', android: 'forum', web: 'forum' }}
+                    color={colors.accentBright}
+                    bg={colors.accentSoft}
+                    size={64}
+                  />
+                  <Heading style={{ textAlign: 'center' }}>{isSupabaseConfigured ? 'İlk paylaşımı sen yap' : 'Bağlantı bekleniyor'}</Heading>
+                  <Body muted style={{ textAlign: 'center', maxWidth: 280 }}>
+                    {isSupabaseConfigured
+                      ? 'Bugün ne yedin, nasıl antrenman yaptın? Topluluğa anlat.'
+                      : 'Sunucu bağlantısı henüz ayarlanmadı.'}
+                  </Body>
+                </View>
+              )
             }
             renderItem={({ item }) => (
               <MessageBubble
@@ -558,7 +566,7 @@ function MessageBubble({
 
   return (
     <Row gap={spacing.sm} style={{ alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
-      {!mine && <Avatar name={message.profiles?.username} size={32} />}
+      {!mine && <Avatar name={message.profiles?.username} path={message.profiles?.avatar_url} size={32} />}
       <View style={{ maxWidth: '80%', gap: 4, alignItems: mine ? 'flex-end' : 'flex-start' }}>
         <PressScale onLongPress={onLongPress} delayLongPress={300} style={[message.hidden && { opacity: 0.55 }, styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, coach && !mine && styles.bubbleCoach]}>
           <Row style={{ justifyContent: 'space-between', gap: spacing.md }}>

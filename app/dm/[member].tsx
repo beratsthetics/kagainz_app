@@ -1,9 +1,9 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Body, GridBackground, Icon, Input, LockedCard, PressScale, Row, Screen } from '@/components/ui';
+import { Body, GridBackground, Icon, Input, LockedCard, PressScale, Row, Screen, SkeletonList } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
@@ -81,7 +81,9 @@ export default function DirectMessages() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
           {items == null ? (
-            <ActivityIndicator style={{ flex: 1 }} color={colors.textMuted} />
+            <View style={{ flex: 1, padding: spacing.md }}>
+              <SkeletonList variant="chat" count={5} />
+            </View>
           ) : (
             <FlatList
               ref={list}

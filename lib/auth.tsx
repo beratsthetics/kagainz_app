@@ -10,7 +10,7 @@ import { isSupabaseConfigured, supabase } from './supabase';
 import type { Tier } from './tiers';
 
 export type Role = 'member' | 'coach';
-export type Profile = { id: string; username: string | null; tier: Tier; role?: Role; muted_until?: string | null };
+export type Profile = { id: string; username: string | null; tier: Tier; role?: Role; muted_until?: string | null; avatar_url?: string | null };
 
 // phone: telefonla giriş/kayıt, email: e-postayla giriş/kayıt,
 // link_phone: e-posta veya Google ile girmiş kullanıcının hesabına numara eklemesi (chat'e yazmak için).

@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import {
   Body,
@@ -19,6 +19,7 @@ import {
   Row,
   Screen,
   Sheet,
+  SkeletonList,
   Tag,
 } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
@@ -129,7 +130,7 @@ export default function FormCheckList() {
         <Label>Gönderdiklerin</Label>
       </Reveal>
       {items == null ? (
-        <ActivityIndicator color={colors.textMuted} />
+        <SkeletonList count={3} />
       ) : items.length === 0 ? (
         <EmptyState icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} title="Henüz video yok" body="İlk form check'ini gönder, koçun yorumları burada görünsün." />
       ) : (

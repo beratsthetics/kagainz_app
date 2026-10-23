@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import {
   Avatar,
@@ -18,6 +18,7 @@ import {
   Screen,
   Segmented,
   Sheet,
+  SkeletonList,
   Stepper,
   TierBadge,
 } from '@/components/ui';
@@ -29,7 +30,7 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
 
-type Member = { id: string; username: string | null; tier: Tier; role: string | null; created_at: string };
+type Member = { id: string; username: string | null; tier: Tier; role: string | null; created_at: string; avatar_url?: string | null };
 
 export default function CoachMember() {
   const colors = useColors();
@@ -44,7 +45,7 @@ export default function CoachMember() {
     if (!isCoach || !isSupabaseConfigured || !id) return;
     supabase
       .from('profiles')
-      .select('id, username, tier, role, created_at')
+      .select('*')
       .eq('id', id)
       .single()
       .then(({ data }) => setMember(data as Member));
@@ -90,7 +91,7 @@ export default function CoachMember() {
   if (!member || !program) {
     return (
       <Screen edges={[]}>
-        <ActivityIndicator color={colors.textMuted} />
+        <SkeletonList variant="detail" />
       </Screen>
     );
   }
@@ -104,7 +105,7 @@ export default function CoachMember() {
       <Reveal index={0}>
         <Card>
           <Row gap={spacing.md}>
-            <Avatar name={member.username} size={56} />
+            <Avatar name={member.username} path={member.avatar_url} size={56} />
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text }}>@{member.username}</Text>
               <Mono style={{ fontSize: 12, color: colors.textMuted }}>

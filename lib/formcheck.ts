@@ -9,7 +9,7 @@ export type FormCheck = {
   status: 'pending' | 'reviewed';
   created_at: string;
   reviewed_at: string | null;
-  profiles?: { username: string | null; tier?: Tier } | null;
+  profiles?: { username: string | null; tier?: Tier; avatar_url?: string | null } | null;
 };
 
 export type FormComment = {
@@ -19,10 +19,10 @@ export type FormComment = {
   body: string;
   at_seconds: number | null;
   created_at: string;
-  profiles?: { username: string | null; role: string | null } | null;
+  profiles?: { username: string | null; role: string | null; avatar_url?: string | null } | null;
 };
 
-export const FORM_CHECK_SELECT = 'id, user_id, exercise_id, note, video_path, status, created_at, reviewed_at, profiles:profiles!form_checks_user_id_fkey(username, tier)';
+export const FORM_CHECK_SELECT = 'id, user_id, exercise_id, note, video_path, status, created_at, reviewed_at, profiles:profiles!form_checks_user_id_fkey(*)';
 
 // Bir sonraki form check ne zaman gönderilebilir? Plus 14, Max 7 günde bir. Sunucu da aynı kuralı uygular.
 export function nextAllowedAt(tier: Tier, last: FormCheck | undefined): Date | null {

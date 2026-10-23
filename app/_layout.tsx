@@ -98,6 +98,7 @@ function Navigation() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         <Stack.Screen name="chat/[room]" options={{ title: 'CHAT' }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false, presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="plans" options={modal} />
         <Stack.Screen name="goals" options={modal} />
         <Stack.Screen name="food/search" options={modal} />
