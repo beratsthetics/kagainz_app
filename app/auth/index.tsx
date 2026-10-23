@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { AuthShell } from '@/components/AuthShell';
+import { LogoMark } from '@/components/Logo';
 import { Body, Hero, Icon, IconBox, PressScale, Reveal, Row, type IconName } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { nextAfterSignIn, useAuth } from '@/lib/auth';
@@ -100,7 +101,7 @@ export default function WelcomeScreen() {
     <AuthShell>
       <Reveal index={0}>
         <Row gap={10}>
-          <Text style={styles.logoMark}>✦</Text>
+          <LogoMark height={34} color={colors.text} />
           <View>
             <Text style={styles.logo}>KAGAINZ</Text>
             <Text style={styles.logoSub}>COACHING</Text>
@@ -158,7 +159,7 @@ export default function WelcomeScreen() {
         {error && <Text style={styles.error}>{error}</Text>}
         <Text style={styles.legal}>
           {isSupabaseConfigured
-            ? 'Şifre yok. Giriş ve kayıt aynı adım; hesabın yoksa otomatik oluşturulur.'
+            ? 'Hesabın varsa giriş yap, yoksa birkaç saniyede oluştur.'
             : 'Sunucu bağlantısı henüz ayarlanmadı.'}
         </Text>
       </Reveal>
@@ -167,7 +168,6 @@ export default function WelcomeScreen() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  logoMark: { fontSize: 26, color: colors.text },
   logo: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1.5, color: colors.text, lineHeight: 24 },
   logoSub: { fontFamily: fonts.bodyBold, fontSize: 9, letterSpacing: 3.5, color: colors.textMuted },
   subHero: { fontFamily: fonts.display, fontSize: 24, color: colors.text, marginTop: spacing.sm, marginLeft: 18 },
