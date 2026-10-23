@@ -31,6 +31,7 @@ import { useDaily } from '@/lib/daily';
 import { exerciseById } from '@/lib/exercises';
 import { isTrainingDay, todaysDayIndex, WEEKDAYS } from '@/lib/program';
 import { useProgress } from '@/lib/progress';
+import { featuredWeekOffset } from '@/lib/week';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
 import { doneSets, useWorkouts } from '@/lib/workouts';
@@ -137,6 +138,8 @@ export default function TodayScreen() {
         <SmartTip />
       </Reveal>
 
+      <WeekBanner />
+
       {/* Beslenme özeti */}
       <Reveal index={2}>
         <PressScale onPress={() => router.push('/macros')}>
@@ -165,10 +168,17 @@ export default function TodayScreen() {
                 <Text style={styles.link}>→</Text>
               </PressScale>
             )}
-            {entries.length === 0 && (
+            {entries.length === 0 ? (
               <Body muted style={{ fontSize: 13 }}>
                 Bugün henüz öğün girmedin.
               </Body>
+            ) : (
+              <PressScale onPress={() => router.push({ pathname: '/share', params: { kind: 'day' } })}>
+                <Row gap={6}>
+                  <Icon name={{ ios: 'square.and.arrow.up', android: 'ios_share', web: 'ios_share' }} size={15} color={colors.accentBright} />
+                  <Text style={styles.link}>Günü hikâyede paylaş</Text>
+                </Row>
+              </PressScale>
             )}
           </Card>
         </PressScale>
@@ -290,6 +300,33 @@ export default function TodayScreen() {
 }
 
 // Saate göre değişen kısa öneri: sabah kahvaltı, gün içinde kalan makro, akşam kapanış.
+// Pazar günü bu haftanın, pazartesi geçen haftanın özetine çağrı.
+function WeekBanner() {
+  const colors = useColors();
+  const styles = useStyles();
+  const { session } = useAuth();
+  const offset = featuredWeekOffset();
+  if (offset == null || !session) return null;
+  return (
+    <Reveal index={1}>
+      <PressScale onPress={() => router.push({ pathname: '/week', params: { offset: String(offset) } })}>
+        <GradientCard colors={tierColors.pro}>
+          <Row gap={spacing.md}>
+            <Text style={{ fontSize: 30 }}>📊</Text>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={styles.tipTitle}>{offset === 0 ? 'HAFTALIK ÖZETİN HAZIR' : 'GEÇEN HAFTANIN ÖZETİ'}</Text>
+              <Body muted style={{ fontSize: 13 }}>
+                Antrenmanların, ortalama kalorin ve kilo değişimin tek ekranda.
+              </Body>
+            </View>
+            <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={18} color={colors.textMuted} />
+          </Row>
+        </GradientCard>
+      </PressScale>
+    </Reveal>
+  );
+}
+
 function SmartTip() {
   const colors = useColors();
   const styles = useStyles();

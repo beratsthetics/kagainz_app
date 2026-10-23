@@ -123,6 +123,23 @@ export default function CommunityScreen() {
         </PressScale>
       </Reveal>
 
+      <Reveal index={2}>
+        <PressScale onPress={() => router.push('/leaderboard')}>
+          <Card>
+            <Row gap={spacing.md}>
+              <Text style={{ fontSize: 30 }}>🏆</Text>
+              <View style={{ flex: 1 }}>
+                <Heading style={{ fontSize: 19 }}>Sıralama</Heading>
+                <Body muted style={{ fontSize: 13 }}>
+                  En uzun seri, bu haftanın en çok antrenman yapanları.
+                </Body>
+              </View>
+              <Text style={[styles.eyebrow, { fontSize: 18 }]}>›</Text>
+            </Row>
+          </Card>
+        </PressScale>
+      </Reveal>
+
       <Reveal index={3}>
         <PressScale onPress={() => router.push(isCoach ? '/coach' : dmOpen ? '/dm/me' : '/plans')}>
           <GradientCard colors={tierColors.max}>

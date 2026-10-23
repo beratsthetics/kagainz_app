@@ -13,9 +13,11 @@ import { fonts } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { CelebrateProvider } from '@/lib/celebrate';
 import { DailyProvider } from '@/lib/daily';
+import { useLeaderboardSync } from '@/lib/leaderboard';
 import { useNotificationRouting } from '@/lib/notifications';
 import { ProgressProvider } from '@/lib/progress';
 import { ThemeModeProvider, useTheme } from '@/lib/theme';
+import { useWidgetSync } from '@/lib/widget';
 import { WorkoutProvider } from '@/lib/workouts';
 
 export {
@@ -68,6 +70,8 @@ export default function RootLayout() {
 function Navigation() {
   const { mode, colors } = useTheme();
   const { loading } = useAuth();
+  useLeaderboardSync();
+  useWidgetSync();
   useNotificationRouting((route) => router.push(route as Href));
   const navTheme = useMemo(() => {
     const base = mode === 'dark' ? DarkTheme : DefaultTheme;
@@ -119,6 +123,9 @@ function Navigation() {
         <Stack.Screen name="dm/[member]" options={{ title: 'KOÇUN' }} />
         <Stack.Screen name="coach/index" options={{ title: 'KOÇ PANELİ' }} />
         <Stack.Screen name="coach/member/[id]" options={{ title: 'ÜYE' }} />
+        <Stack.Screen name="week" options={{ title: 'HAFTALIK ÖZET' }} />
+        <Stack.Screen name="share" options={{ title: 'PAYLAŞ', presentation: 'modal' }} />
+        <Stack.Screen name="leaderboard" options={{ title: 'SIRALAMA' }} />
       </Stack>
       <AppSplash ready={!loading} />
     </ThemeProvider>

@@ -64,7 +64,28 @@
         {
           "color": "#3B82F6"
         }
-      ]
+      ],
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "xyz.tanvogue.kagainz.widgets",
+          "groupIdentifier": "group.xyz.tanvogue.kagainz",
+          "widgets": [
+            {
+              "name": "KagainzToday",
+              "displayName": "Kagainz Bugün",
+              "description": "Kalan kalori, protein ve su hedefin.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium",
+                "accessoryCircular",
+                "accessoryRectangular"
+              ]
+            }
+          ]
+        }
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

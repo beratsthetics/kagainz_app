@@ -24,6 +24,7 @@ import {
 import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useDaily } from '@/lib/daily';
+import { useLeaderboardVisible } from '@/lib/leaderboard';
 import { pickImage, removeAvatar, uploadAvatar } from '@/lib/media';
 import { setDailyReminder } from '@/lib/notifications';
 import { BADGES, useProgress } from '@/lib/progress';
@@ -140,6 +141,8 @@ export default function ProfileScreen() {
           {isCoach && <LinkRow icon={{ ios: 'person.badge.key.fill', android: 'shield_person', web: 'shield_person' }} label="Koç paneli" href="/coach" />}
           <LinkRow icon={{ ios: 'chart.xyaxis.line', android: 'monitoring', web: 'monitoring' }} label="İlerleme" href="/progress" />
           <LinkRow icon={{ ios: 'target', android: 'target', web: 'target' }} label="Hedeflerim" href="/goals" />
+          <LinkRow icon={{ ios: 'calendar', android: 'calendar_month', web: 'calendar_month' }} label="Haftalık özet" href="/week" />
+          <LinkRow icon={{ ios: 'trophy.fill', android: 'trophy', web: 'trophy' }} label="Sıralama" href="/leaderboard" />
           <LinkRow icon={{ ios: 'flag.checkered', android: 'flag', web: 'flag' }} label="Haftalık meydan okuma" href="/challenges" />
           {hasFeature(tier, 'form_check') && (
             <LinkRow icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} label="Form kontrol" href="/form-check" />
@@ -251,6 +254,7 @@ function Settings() {
   const colors = useColors();
   const { pref, setPref } = useTheme();
   const [reminder, setReminder] = useStored<boolean>('device:reminder', false);
+  const [leaderboardVisible, setLeaderboardVisible] = useLeaderboardVisible();
   return (
     <Card>
       <Label>Görünüm</Label>
@@ -263,6 +267,15 @@ function Settings() {
         value={pref}
         onChange={setPref}
       />
+      <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>
+        <View style={{ flex: 1 }}>
+          <Body style={{ fontSize: 14.5 }}>Sıralamada görün</Body>
+          <Body muted style={{ fontSize: 12.5 }}>
+            Kapatırsan serin ve antrenmanların sıralamada gösterilmez.
+          </Body>
+        </View>
+        <Switch value={leaderboardVisible} trackColor={{ true: colors.accent, false: colors.surfaceHigh }} onValueChange={setLeaderboardVisible} />
+      </Row>
       {Platform.OS !== 'web' && (
         <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>
           <View style={{ flex: 1 }}>

@@ -115,6 +115,12 @@ export default function SummaryScreen() {
       </Reveal>
 
       <View style={{ height: spacing.sm }} />
+      <Button
+        title="Hikâyede paylaş"
+        variant="outline"
+        icon={{ ios: 'square.and.arrow.up', android: 'share', web: 'share' }}
+        onPress={() => router.push({ pathname: '/share', params: { kind: 'workout', id: s.id } })}
+      />
       <Button title="Bitti" arrow onPress={() => router.back()} />
     </Screen>
   );
