@@ -96,6 +96,7 @@ export default function ChatRoomScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const list = useRef<FlatList<Message>>(null);
   const atBottom = useRef(true);
   const preview = useMemo(() => sumMacros(parseMeal(text)), [text]);
@@ -121,7 +122,9 @@ export default function ChatRoomScreen() {
       .eq('room_id', room)
       .order('created_at', { ascending: false })
       .limit(PAGE)
-      .then(({ data }) => {
+      .then(({ data, error: err }) => {
+        if (err) return setLoadError(describeError(err));
+        setLoadError(null);
         const rows = ((data ?? []) as unknown as Message[]).reverse();
         setMessages(rows);
         setHasMore(rows.length === PAGE);
@@ -207,7 +210,7 @@ export default function ChatRoomScreen() {
       }
       // Öğün paylaşımında makrolar otomatik hesaplanıp mesaja eklenir.
       const macros = kind === 'meal' && body ? sumMacros(parseMeal(body)) : null;
-      const { error: err } = await supabase.from('messages').insert({
+      const { data: sent, error: err } = await supabase.from('messages').insert({
         room_id: room,
         user_id: session.user.id,
         body: body || '📷',
@@ -215,15 +218,18 @@ export default function ChatRoomScreen() {
         macros,
         image_path,
         reply_to: replyTo?.id ?? null,
-      });
+      }).select(SELECT).single();
       if (err) throw err;
+      // Canlı güncelleme gecikse bile kendi mesajın hemen görünsün.
+      const m = sent as unknown as Message;
+      setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
       atBottom.current = true;
       bump('posts');
       setText('');
       setPhoto(null);
       setReplyTo(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gönderilemedi');
+      setError(describeError(e));
     } finally {
       setSending(false);
     }
@@ -349,6 +355,12 @@ export default function ChatRoomScreen() {
               />
             )}
           />
+
+          {loadError && (
+            <View style={styles.notice}>
+              <Body style={{ flex: 1, fontSize: 13, color: colors.danger }}>{loadError}</Body>
+            </View>
+          )}
 
           {notice && (
             <PressScale onPress={() => setNotice(null)} style={styles.notice}>
@@ -481,6 +493,16 @@ export default function ChatRoomScreen() {
       </Sheet>
     </View>
   );
+}
+
+// Supabase hatalarını okunur hale getirir; eksik sütun hatası 0002 SQL'inin çalıştırılmadığını gösterir.
+function describeError(e: unknown) {
+  const message = typeof e === 'object' && e && 'message' in e ? String((e as { message: unknown }).message) : 'Bir hata oldu';
+  if (/column .* does not exist|could not find .* column|schema cache/i.test(message)) {
+    return "Sunucu güncel değil: Supabase SQL Editor'de 0002 dosyasını çalıştır.";
+  }
+  if (/row-level security/i.test(message)) return 'Bu odaya yazma iznin yok. Kullanıcı adı seçtiğinden emin ol.';
+  return message;
 }
 
 function ActionRow({ icon, label, onPress, danger }: { icon: IconName; label: string; onPress: () => void; danger?: boolean }) {
