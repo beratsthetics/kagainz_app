@@ -86,7 +86,13 @@
         }
       ],
       "expo-sharing",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Chat'te sesli mesaj gönderebilmen için mikrofona erişim gerekiyor."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

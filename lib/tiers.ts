@@ -98,6 +98,7 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
       'Sınırsız fotoğraftan makro tahmini',
       'Koç onaylı yemek planı',
       'Max chat ve özel rozetler',
+      "Chat'te sesli mesaj",
     ],
   },
 };

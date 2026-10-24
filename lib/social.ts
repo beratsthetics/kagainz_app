@@ -17,6 +17,7 @@ export type PublicProfile = {
   is_following: boolean;
   follows_me: boolean;
   kudos_today: boolean;
+  xp?: number;
 };
 
 export type UserRow = { id: string; username: string; avatar_url: string | null; tier: Tier };

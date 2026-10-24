@@ -2,6 +2,7 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
+import { LevelBadge, LevelName } from '@/components/Level';
 
 import { Avatar, Body, Button, Card, EmptyState, Label, PressScale, Reveal, Row, Screen, SkeletonList, Tag, TierBadge } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
@@ -65,8 +66,9 @@ export default function UserProfile() {
         <View style={{ alignItems: 'center', gap: spacing.sm }}>
           <Avatar name={profile.username} path={profile.avatar_url} size={96} />
           <Row gap={6}>
-            <Text style={{ fontFamily: fonts.display, fontSize: 28, color: colors.text }}>@{profile.username}</Text>
+            <LevelName username={profile.username} xp={profile.xp} style={{ fontFamily: fonts.display, fontSize: 28, color: colors.text }} />
             {profile.tier !== 'free' && <TierBadge tier={profile.tier} />}
+            <LevelBadge xp={profile.xp} size="md" />
           </Row>
           {profile.role === 'coach' && (
             <Tag color={colors.accentBright} bg={colors.accentSoft}>

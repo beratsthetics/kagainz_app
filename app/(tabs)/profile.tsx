@@ -2,6 +2,7 @@ import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Switch, View } from 'react-native';
 import { Text } from '@/components/T';
+import { LevelBadge, LevelProgress } from '@/components/Level';
 
 import {
   Avatar,
@@ -81,10 +82,14 @@ export default function ProfileScreen() {
         <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md }}>
           <ProfilePhoto />
           <Text style={styles.username}>@{profile?.username ?? 'kullanıcı adı yok'}</Text>
-          <TierBadge tier={tier} />
+          <Row gap={6}>
+            <TierBadge tier={tier} />
+            <LevelBadge xp={profile?.xp} size="md" />
+          </Row>
           <Mono style={{ color: colors.textMuted }}>
             {session.user.phone ? `+${session.user.phone.replace(/^\+/, '')}` : (session.user.email ?? '')}
           </Mono>
+          <LevelProgress xp={profile?.xp} />
         </View>
       </Reveal>
 

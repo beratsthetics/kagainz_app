@@ -21,6 +21,8 @@ export type Profile = {
   // Davet ödülü: ücretsiz üye bu tarihe kadar Pro sayılır (0008).
   bonus_until?: string | null;
   invited_by?: string | null;
+  // Aktiflik puanı; seviye lib/levels.ts ile hesaplanır (0009).
+  xp?: number;
 };
 
 // Sunucudaki my_tier() ile aynı kural.

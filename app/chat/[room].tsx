@@ -24,10 +24,13 @@ import {
   SkeletonList,
   Tag,
 } from '@/components/ui';
+import { LevelBadge, LevelFrame, LevelName } from '@/components/Level';
+import { formatMs, VoicePlayer, VoiceRecordButton, voiceMime } from '@/components/Voice';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth, useJoinStep } from '@/lib/auth';
+import { bandOf, levelOf } from '@/lib/levels';
 import { parseMeal, sumMacros, type Macros } from '@/lib/macros';
-import { pickImage, uploadBase64, useSignedUrl } from '@/lib/media';
+import { pickImage, uploadBase64, uploadFile, useSignedUrl } from '@/lib/media';
 import { useProgress } from '@/lib/progress';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
@@ -47,11 +50,15 @@ type Message = {
   hidden: boolean;
   created_at: string;
   user_id: string;
-  profiles: { username: string | null; role: string | null; avatar_url?: string | null } | null;
+  profiles: { username: string | null; role: string | null; avatar_url?: string | null; xp?: number } | null;
+  // Max üyelerin sesli mesajı (0009).
+  audio_path?: string | null;
+  audio_ms?: number | null;
 };
 type Reaction = { message_id: number; user_id: string; emoji: string };
 
-const SELECT = 'id, body, kind, macros, meta, image_path, reply_to, pinned, hidden, created_at, user_id, profiles:profiles!messages_user_id_fkey(*)';
+// * : 0009 çalışmadan da (ses sütunları yokken) chat açılsın.
+const SELECT = '*, profiles:profiles!messages_user_id_fkey(*)';
 const PAGE = 50;
 const EMOJIS = ['💪', '🔥', '👏', '❤️', '😂'];
 
@@ -83,7 +90,7 @@ export default function ChatRoomScreen() {
   const colors = useColors();
   const styles = useStyles();
   const { room } = useLocalSearchParams<{ room: string }>();
-  const { session, profile, canPost, isCoach } = useAuth();
+  const { session, profile, canPost, isCoach, tier } = useAuth();
   const { bump } = useProgress();
   const join = useJoinStep();
   const me = session?.user.id;
@@ -100,6 +107,7 @@ export default function ChatRoomScreen() {
   const [action, setAction] = useState<Message | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [recMs, setRecMs] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const list = useRef<FlatList<Message>>(null);
@@ -234,6 +242,31 @@ export default function ChatRoomScreen() {
       bump('posts');
       setText('');
       setPhoto(null);
+      setReplyTo(null);
+    } catch (e) {
+      setError(describeError(e));
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function sendVoice(uri: string, ms: number) {
+    if (!session || !room) return;
+    setSending(true);
+    setError(null);
+    try {
+      const mime = voiceMime(uri);
+      const audio_path = await uploadFile('chat', `${room}/${session.user.id}/${Date.now()}.${mime === 'audio/webm' ? 'webm' : 'm4a'}`, uri, mime);
+      const { data: sent, error: err } = await supabase
+        .from('messages')
+        .insert({ room_id: room, user_id: session.user.id, body: '🎤', kind: 'text', audio_path, audio_ms: ms, reply_to: replyTo?.id ?? null })
+        .select(SELECT)
+        .single();
+      if (err) throw err;
+      const m = sent as unknown as Message;
+      setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+      atBottom.current = true;
+      bump('posts');
       setReplyTo(null);
     } catch (e) {
       setError(describeError(e));
@@ -425,22 +458,43 @@ export default function ChatRoomScreen() {
                   <Icon name={{ ios: 'photo.on.rectangle', android: 'add_photo_alternate', web: 'add_photo_alternate' }} size={20} color={colors.text} />
                 </PressScale>
                 <View style={{ flex: 1 }}>
-                  <Input
-                    value={text}
-                    onChangeText={setText}
-                    placeholder={KINDS.find((k) => k.kind === kind)?.placeholder}
-                    multiline
-                    maxLength={2000}
-                    style={{ maxHeight: 120 }}
-                  />
-                </View>
-                <PressScale onPress={send} disabled={!canSend} style={[styles.send, !canSend && { opacity: 0.4 }]}>
-                  {sending ? (
-                    <ActivityIndicator color={colors.primaryText} />
+                  {recMs != null ? (
+                    <Row gap={spacing.sm} style={styles.recording}>
+                      <View style={styles.recDot} />
+                      <Mono style={{ color: colors.text }}>{formatMs(recMs)}</Mono>
+                      <Body muted style={{ flex: 1, fontSize: 13 }}>
+                        Bırakınca gönderilir
+                      </Body>
+                    </Row>
                   ) : (
-                    <Icon name={{ ios: 'arrow.up', android: 'arrow_upward', web: 'arrow_upward' }} size={20} color={colors.primaryText} />
+                    <Input
+                      value={text}
+                      onChangeText={setText}
+                      placeholder={KINDS.find((k) => k.kind === kind)?.placeholder}
+                      multiline
+                      maxLength={2000}
+                      style={{ maxHeight: 120 }}
+                    />
                   )}
-                </PressScale>
+                </View>
+                {!canSend && !sending && !text.trim() && !photo ? (
+                  tier === 'max' || isCoach ? (
+                    <VoiceRecordButton style={styles.send} onDone={sendVoice} onTick={setRecMs} onError={setError} />
+                  ) : (
+                    // Sesli mesaj Max'a özel: diğerlerine kilitli mikrofon, dokununca paketler.
+                    <PressScale onPress={() => router.push('/plans')} style={[styles.send, { opacity: 0.4 }]}>
+                      <Icon name={{ ios: 'mic.slash.fill', android: 'mic_off', web: 'mic_off' }} size={20} color={colors.primaryText} />
+                    </PressScale>
+                  )
+                ) : (
+                  <PressScale onPress={send} disabled={!canSend} style={[styles.send, !canSend && { opacity: 0.4 }]}>
+                    {sending ? (
+                      <ActivityIndicator color={colors.primaryText} />
+                    ) : (
+                      <Icon name={{ ios: 'arrow.up', android: 'arrow_upward', web: 'arrow_upward' }} size={20} color={colors.primaryText} />
+                    )}
+                  </PressScale>
+                )}
               </Row>
               {error && <Label style={{ color: colors.danger }}>{error}</Label>}
             </View>
@@ -569,6 +623,8 @@ function MessageBubble({
   const styles = useStyles();
   const meta = KINDS.find((k) => k.kind === message.kind);
   const coach = message.profiles?.role === 'coach';
+  const xp = message.profiles?.xp;
+  const framed = bandOf(levelOf(xp)).frame != null;
   const time = new Date(message.created_at).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' });
   const ink = mine ? colors.primaryText : colors.text;
   const grouped = EMOJIS.map((e) => ({
@@ -581,11 +637,20 @@ function MessageBubble({
     <Row gap={spacing.sm} style={{ alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
       {!mine && <Avatar name={message.profiles?.username} path={message.profiles?.avatar_url} size={32} />}
       <View style={{ maxWidth: '80%', gap: 4, alignItems: mine ? 'flex-end' : 'flex-start' }}>
-        <PressScale onLongPress={onLongPress} delayLongPress={300} style={[message.hidden && { opacity: 0.55 }, styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, coach && !mine && styles.bubbleCoach]}>
+        <LevelFrame xp={xp} radius={mine ? styles.frameMine : styles.frameOther}>
+        <PressScale
+          onLongPress={onLongPress}
+          delayLongPress={300}
+          style={[message.hidden && { opacity: 0.55 }, styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, coach && !mine && styles.bubbleCoach, framed && { borderWidth: 0 }]}>
           <Row style={{ justifyContent: 'space-between', gap: spacing.md }}>
             {!mine && (
               <Row gap={6}>
-                <Text style={styles.username}>@{message.profiles?.username ?? 'anonim'}</Text>
+                {message.profiles?.username ? (
+                  <LevelName username={message.profiles.username} xp={xp} style={styles.username} />
+                ) : (
+                  <Text style={styles.username}>@anonim</Text>
+                )}
+                <LevelBadge xp={xp} />
                 {coach && (
                   <Tag color={colors.primaryText} bg={colors.fat}>
                     Koç
@@ -614,7 +679,9 @@ function MessageBubble({
             </PressScale>
           )}
           {message.image_path && <ChatImage path={message.image_path} />}
-          {message.kind === 'workout' && message.meta ? (
+          {message.audio_path ? (
+            <VoicePlayer path={message.audio_path} ms={message.audio_ms ?? null} mine={mine} />
+          ) : message.kind === 'workout' && message.meta ? (
             <WorkoutCard meta={message.meta} mine={mine} />
           ) : message.body !== '📷' || !message.image_path ? (
             <Text raw style={[styles.text, { color: ink }]}>{message.body}</Text>
@@ -629,6 +696,7 @@ function MessageBubble({
           )}
           <Text style={[styles.time, mine && { color: colors.primaryText, opacity: 0.55 }]}>{time}</Text>
         </PressScale>
+        </LevelFrame>
         {grouped.length > 0 && (
           <Row gap={4} style={{ flexWrap: 'wrap' }}>
             {grouped.map((g) => (
@@ -758,6 +826,10 @@ const useStyles = makeStyles((colors) => ({
   },
   bubbleCoach: { borderColor: colors.fat },
   bubbleMine: { backgroundColor: colors.primary, borderBottomRightRadius: 6 },
+  frameOther: { borderRadius: radius.lg + 1.5, borderBottomLeftRadius: 7.5 },
+  frameMine: { borderRadius: radius.lg + 1.5, borderBottomRightRadius: 7.5 },
+  recording: { minHeight: 52, paddingHorizontal: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.danger, backgroundColor: colors.dangerSoft },
+  recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.danger },
   username: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
   text: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.text },
   time: { fontFamily: fonts.mono, fontSize: 10.5, color: colors.textDim, alignSelf: 'flex-end' },
