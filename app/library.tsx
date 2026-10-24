@@ -29,16 +29,21 @@ export default function LibraryScreen() {
   const { pick } = useLocalSearchParams<{ pick?: string }>();
   const [group, setGroup] = useState<MuscleGroup | null>(null);
   const [q, setQ] = useState('');
+  const [showHidden, setShowHidden] = useState(false);
   const full = hasFeature(tier, 'full_library');
-  // Koç kaldırdığı hareketleri de görür, geri ekleyebilsin diye.
+  // Kaldırılan hareketler listede görünmez; koç onları ayrı sekmede görüp geri ekleyebilir.
   const all = useExercises(isCoach);
+  const hiddenCount = all.filter((e) => isHidden(e.id)).length;
+  const hiddenTab = showHidden && hiddenCount > 0;
 
   const list = useMemo(
     () =>
-      all.filter((e) => !group || e.primary.some((m) => MUSCLES[m].group === group))
+      all
+        .filter((e) => (hiddenTab ? isHidden(e.id) : !isHidden(e.id)))
+        .filter((e) => !group || e.primary.some((m) => MUSCLES[m].group === group))
         .filter((e) => !q || plain(`${e.trName} ${e.name}`).includes(plain(q)))
         .sort((a, b) => Number(isUnlocked(b, full)) - Number(isUnlocked(a, full))),
-    [all, group, q, full],
+    [all, group, q, full, hiddenTab],
   );
 
   return (
@@ -61,10 +66,13 @@ export default function LibraryScreen() {
         prefix={<Icon name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }} size={18} color={colors.textMuted} />}
       />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
-        <Chip label="Tümü" active={!group} onPress={() => setGroup(null)} />
+        <Chip label="Tümü" active={!group && !hiddenTab} onPress={() => (setGroup(null), setShowHidden(false))} />
         {GROUPS.map((g) => (
-          <Chip key={g} label={g} active={group === g} onPress={() => setGroup(g)} />
+          <Chip key={g} label={g} active={group === g && !hiddenTab} onPress={() => (setGroup(g), setShowHidden(false))} />
         ))}
+        {isCoach && !pick && hiddenCount > 0 && (
+          <Chip label={`Kaldırılanlar (${hiddenCount})`} active={hiddenTab} onPress={() => (setGroup(null), setShowHidden(true))} />
+        )}
       </ScrollView>
 
       {list.map((e) => {

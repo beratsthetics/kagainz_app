@@ -1134,6 +1134,7 @@ export const EN: Record<string, string> = {
   "KCAL KALDI": "KCAL LEFT",
   "KALORİ": "CALORIES",
   "YENİ HAREKET": "NEW EXERCISE",
+  "Kaldırılanlar ({0})": "Removed ({0})",
   "Hareketin adını yaz.": "Enter the exercise name.",
   "En az bir ana kas seç.": "Pick at least one main muscle.",
   "Adı (uygulamada görünen)": "Name (shown in the app)",
