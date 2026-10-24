@@ -1,3 +1,4 @@
+import { requireOptionalNativeModule } from 'expo';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
@@ -12,7 +13,8 @@ export function useWidgetSync() {
   const { stats } = useProgress();
 
   useEffect(() => {
-    if (Platform.OS !== 'ios') return;
+    // Modül yokken widget dosyasını yüklemek Expo Go'da kırmızı hata ekranı açar.
+    if (Platform.OS !== 'ios' || !requireOptionalNativeModule('ExpoWidgets')) return;
     const t = setTimeout(() => {
       try {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
