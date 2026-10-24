@@ -2,6 +2,7 @@ import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Switch, View } from 'react-native';
 import { Text } from '@/components/T';
+import { BadgeMedal, LevelMedals, TierFrame } from '@/components/BadgeMedal';
 import { LevelBadge, LevelProgress } from '@/components/Level';
 import { shownXp } from '@/lib/levels';
 
@@ -114,33 +115,40 @@ export default function ProfileScreen() {
       </Reveal>
 
       <Reveal index={3}>
-        <PressScale onPress={() => router.push('/badges')}>
-          <Card>
-            <Row style={{ justifyContent: 'space-between' }}>
-              <Label>Rozetler</Label>
-              <Mono style={{ color: colors.textMuted }}>
-                {Object.keys(unlocked).length}/{BADGES.length} ›
-              </Mono>
-            </Row>
-            {recent.length ? (
-              <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
-                {recent.map((b) => (
-                  <View key={b.id} style={styles.badge}>
-                    <Text style={{ fontSize: 24 }}>{b.emoji}</Text>
-                  </View>
-                ))}
+        <TierFrame tier={tier}>
+          <PressScale onPress={() => router.push('/badges')}>
+            <Card style={tier !== 'free' && { borderWidth: 0 }}>
+              <Row style={{ justifyContent: 'space-between' }}>
+                <Label>Rozetler</Label>
+                <Mono style={{ color: colors.textMuted }}>
+                  {Object.keys(unlocked).length}/{BADGES.length} ›
+                </Mono>
               </Row>
-            ) : (
-              <Body muted style={{ fontSize: 13.5 }}>
-                İlk öğününü gir, ilk rozetin gelsin.
-              </Body>
-            )}
-            <Row gap={spacing.md}>
-              <Mono style={{ color: colors.textMuted }}>{tx('🔥 {0} gün seri', [stats.streak])}</Mono>
-              <Mono style={{ color: colors.textMuted }}>{tx('🏆 {0} rekor', [stats.prs])}</Mono>
-            </Row>
-          </Card>
-        </PressScale>
+              <LevelMedals xp={shownXp(profile?.xp, profile?.role)} />
+              <View style={styles.rule} />
+              {recent.length ? (
+                <Row gap={spacing.sm} style={{ flexWrap: 'wrap', paddingVertical: 4 }}>
+                  {recent.map((b, i) => (
+                    <BadgeMedal key={b.id} badge={b} earned size={44} delay={i * 300} />
+                  ))}
+                </Row>
+              ) : (
+                <Body muted style={{ fontSize: 13.5 }}>
+                  İlk öğününü gir, ilk rozetin gelsin.
+                </Body>
+              )}
+              {tier === 'free' && (
+                <Body muted style={{ fontSize: 12.5 }}>
+                  Pro, Plus ve Max'ta rozetlerin parlar, vitrinin canlanır.
+                </Body>
+              )}
+              <Row gap={spacing.md}>
+                <Mono style={{ color: colors.textMuted }}>{tx('🔥 {0} gün seri', [stats.streak])}</Mono>
+                <Mono style={{ color: colors.textMuted }}>{tx('🏆 {0} rekor', [stats.prs])}</Mono>
+              </Row>
+            </Card>
+          </PressScale>
+        </TierFrame>
       </Reveal>
 
       <Reveal index={4}>
@@ -370,16 +378,7 @@ const useStyles = makeStyles((colors) => ({
   },
   removePhoto: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
   photoError: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger, textAlign: 'center' },
-  badge: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: colors.surfaceHigh,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  rule: { height: 1, backgroundColor: colors.border },
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md - 2 },
   linkBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
   linkText: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
