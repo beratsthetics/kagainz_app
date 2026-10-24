@@ -1,14 +1,15 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
 import { AuthShell } from '@/components/AuthShell';
-import { Body, Button, Eyebrow, Hero, Icon, Input, PressScale, Reveal, Row, Segmented } from '@/components/ui';
+import { GoogleLogo, useGoogleSignIn } from '@/components/GoogleSignIn';
+import { Body, Button, Card, Eyebrow, Hero, Icon, Input, Label, PressScale, Reveal, Row } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { nextAfterSignIn, sendPasswordReset, useAuth } from '@/lib/auth';
 import { makeStyles, useColors } from '@/lib/theme';
-import { tx } from '@/lib/i18n';
+import { locale, tx } from '@/lib/i18n';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const MIN_PASSWORD = 6;
@@ -18,7 +19,8 @@ export default function EmailScreen() {
   const colors = useColors();
   const styles = useStyles();
   const { passwordAuth } = useAuth();
-  const [mode, setMode] = useState<'signup' | 'signin'>('signup');
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const [mode, setMode] = useState<'signup' | 'signin'>(params.mode === 'signin' ? 'signin' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeat, setRepeat] = useState('');
@@ -27,6 +29,7 @@ export default function EmailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const { google, busy: googleBusy } = useGoogleSignIn(setError);
   const signup = mode === 'signup';
   const mismatch = signup && repeat.length > 0 && repeat !== password;
   const valid = EMAIL.test(email.trim()) && password.length >= MIN_PASSWORD && (!signup || repeat === password);
@@ -83,93 +86,134 @@ export default function EmailScreen() {
     );
   }
 
+  function switchMode() {
+    setMode(signup ? 'signin' : 'signup');
+    setError(null);
+    setInfo(null);
+  }
+
   return (
-    <AuthShell
-      step={0}
-      footer={<Button title={signup ? 'Hesap oluştur' : 'Giriş yap'} arrow onPress={submit} loading={loading} disabled={!valid} />}>
+    <AuthShell step={0}>
       <Reveal index={0}>
-        <Eyebrow>{signup ? 'E-posta ve şifre' : 'Tekrar hoş geldin'}</Eyebrow>
+        <Eyebrow>{signup ? 'Ücretsiz hesap' : 'Tekrar hoş geldin'}</Eyebrow>
         <Hero lines={signup ? ['Hesabını', 'oluştur'] : ['Giriş', 'yap']} size={48} />
+        <Body muted style={{ marginTop: spacing.sm }}>
+          {signup ? 'E-posta ve şifrenle saniyeler içinde kayıt ol.' : 'E-posta ve şifrenle hesabına gir.'}
+        </Body>
       </Reveal>
+
       <Reveal index={1}>
-        <Segmented
-          options={[
-            { value: 'signup', label: 'Kayıt ol' },
-            { value: 'signin', label: 'Giriş yap' },
-          ]}
-          value={mode}
-          onChange={(m) => {
-            setMode(m);
-            setError(null);
-          }}
-        />
-      </Reveal>
-      <Reveal index={2}>
-        <View style={{ gap: spacing.sm }}>
-          <Input
-            value={email}
-            onChangeText={setEmail}
-            placeholder="ornek@mail.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="email"
-            textContentType="emailAddress"
-            prefix={<Icon name={{ ios: 'envelope.fill', android: 'mail', web: 'mail' }} size={18} color={colors.textMuted} />}
-          />
-          <Row gap={spacing.sm}>
-            <View style={{ flex: 1 }}>
-              <Input
-                value={password}
-                onChangeText={setPassword}
-                placeholder={signup ? tx('Şifre (en az {0} karakter)', [MIN_PASSWORD]) : 'Şifre'}
-                secureTextEntry={!show}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete={signup ? 'new-password' : 'current-password'}
-                textContentType={signup ? 'newPassword' : 'password'}
-                onSubmitEditing={() => !signup && submit()}
-                prefix={lock}
-              />
-            </View>
-            {eye}
-          </Row>
-          {signup && (
+        <Card glow style={styles.sheet}>
+          <View style={styles.field}>
+            <Label>E-posta</Label>
             <Input
-              value={repeat}
-              onChangeText={setRepeat}
-              placeholder="Şifre tekrar"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="ornek@mail.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
+              prefix={<Icon name={{ ios: 'envelope.fill', android: 'mail', web: 'mail' }} size={18} color={colors.textMuted} />}
+            />
+          </View>
+          <View style={styles.field}>
+            <Label>Şifre</Label>
+            <Input
+              value={password}
+              onChangeText={setPassword}
+              placeholder={signup ? tx('En az {0} karakter', [MIN_PASSWORD]) : '••••••'}
               secureTextEntry={!show}
               autoCapitalize="none"
               autoCorrect={false}
-              autoComplete="new-password"
-              textContentType="newPassword"
-              onSubmitEditing={submit}
+              autoComplete={signup ? 'new-password' : 'current-password'}
+              textContentType={signup ? 'newPassword' : 'password'}
+              onSubmitEditing={() => !signup && submit()}
               prefix={lock}
+              suffix={eye}
             />
+          </View>
+          {signup && (
+            <View style={styles.field}>
+              <Label>Şifre tekrar</Label>
+              <Input
+                value={repeat}
+                onChangeText={setRepeat}
+                placeholder="••••••"
+                secureTextEntry={!show}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="new-password"
+                textContentType="newPassword"
+                onSubmitEditing={submit}
+                prefix={lock}
+              />
+            </View>
           )}
           {mismatch && <Text style={styles.error}>Şifreler aynı değil.</Text>}
           {!signup && (
-            <PressScale onPress={forgot} style={{ alignSelf: 'flex-end', paddingVertical: spacing.xs }}>
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright }}>Şifremi unuttum</Text>
+            <PressScale onPress={forgot} style={{ alignSelf: 'flex-end' }}>
+              <Text style={styles.link}>Şifremi unuttum</Text>
             </PressScale>
           )}
-        </View>
+          {error && <Text style={styles.error}>{error}</Text>}
+          {info && <Text style={[styles.error, { color: colors.success }]}>{info}</Text>}
+
+          <Button title={signup ? 'Kayıt ol' : 'Giriş yap'} arrow onPress={submit} loading={loading} disabled={!valid} />
+
+          <Row gap={spacing.sm} style={{ marginVertical: spacing.xs }}>
+            <View style={styles.rule} />
+            <Text style={styles.or}>{tx('veya').toLocaleUpperCase(locale())}</Text>
+            <View style={styles.rule} />
+          </Row>
+
+          <PressScale onPress={google} disabled={googleBusy} style={[styles.social, googleBusy && { opacity: 0.5 }]}>
+            <GoogleLogo size={18} />
+            <Text style={styles.socialText}>Google ile devam et</Text>
+          </PressScale>
+          <PressScale onPress={() => router.push('/auth/phone')} style={styles.social}>
+            <Icon name={{ ios: 'phone.fill', android: 'call', web: 'call' }} size={18} />
+            <Text style={styles.socialText}>Telefon ile devam et</Text>
+          </PressScale>
+
+          <Row style={{ justifyContent: 'center', marginTop: spacing.xs }}>
+            <Text style={styles.switchText}>{signup ? 'Hesabın var mı?' : 'Hesabın yok mu?'} </Text>
+            <PressScale onPress={switchMode}>
+              <Text style={styles.link}>{signup ? 'Giriş yap' : 'Kayıt ol'}</Text>
+            </PressScale>
+          </Row>
+        </Card>
       </Reveal>
-      <Reveal index={3}>
-        <Row gap={10}>
-          <Icon name={{ ios: 'checkmark.shield.fill', android: 'verified_user', web: 'verified_user' }} size={16} color={colors.success} />
-          <Body muted style={{ fontSize: 13.5, flex: 1 }}>
-            E-postan sadece giriş için kullanılır, kimseyle paylaşılmaz.
-          </Body>
+
+      <Reveal index={2}>
+        <Row gap={10} style={{ justifyContent: 'center' }}>
+          <Icon name={{ ios: 'checkmark.shield.fill', android: 'verified_user', web: 'verified_user' }} size={14} color={colors.success} />
+          <Text style={styles.switchText}>E-postan sadece giriş için kullanılır, kimseyle paylaşılmaz.</Text>
         </Row>
       </Reveal>
-      {error && <Text style={styles.error}>{error}</Text>}
-      {info && <Text style={[styles.error, { color: colors.success }]}>{info}</Text>}
     </AuthShell>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
-  error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger, marginTop: spacing.xs },
+  sheet: { borderRadius: 28, padding: spacing.lg, gap: spacing.md },
+  field: { gap: 6 },
+  error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
+  link: { fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.accentBright },
+  rule: { flex: 1, height: 1, backgroundColor: colors.border },
+  or: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.6, color: colors.textDim },
+  social: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm + 2,
+    minHeight: 52,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceAlt,
+  },
+  socialText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
+  switchText: { fontFamily: fonts.body, fontSize: 13, color: colors.textMuted },
 }));

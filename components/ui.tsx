@@ -377,7 +377,7 @@ export function Button({
   );
 }
 
-export function Input({ prefix, style, ...props }: TextInputProps & { prefix?: ReactNode }) {
+export function Input({ prefix, suffix, style, ...props }: TextInputProps & { prefix?: ReactNode; suffix?: ReactNode }) {
   const colors = useColors();
   const styles = useStyles();
   const [focused, setFocused] = useState(false);
@@ -398,6 +398,7 @@ export function Input({ prefix, style, ...props }: TextInputProps & { prefix?: R
         }}
         style={styles.input}
       />
+      {suffix}
     </View>
   );
 }
@@ -861,6 +862,7 @@ const useStyles = makeStyles((colors) => ({
   inputFocused: { borderColor: colors.accent, backgroundColor: colors.surfaceHigh },
   input: {
     flex: 1,
+    minWidth: 0,
     paddingVertical: spacing.md,
     color: colors.text,
     fontFamily: fonts.body,
