@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { MovementAnim } from '@/components/MovementAnim';
 import { Body, Chip, Icon, Input, PressScale, Row, Screen, Tag, TierBadge } from '@/components/ui';
@@ -11,6 +12,7 @@ import { EXERCISES, GROUPS, isUnlocked, MUSCLES, type MuscleGroup } from '@/lib/
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature, LIMITS } from '@/lib/tiers';
 import { useWorkouts } from '@/lib/workouts';
+import { tx } from '@/lib/i18n';
 
 const plain = (s: string) => s.toLocaleLowerCase('tr-TR');
 
@@ -37,9 +39,7 @@ export default function LibraryScreen() {
     <Screen edges={[]}>
       {!full && (
         <Row gap={spacing.sm} style={styles.banner}>
-          <Body style={{ flex: 1, fontSize: 13 }}>
-            Ücretsiz pakette {LIMITS.freeLibrarySize} hareket açık. Tamamı için:
-          </Body>
+          <Body style={{ flex: 1, fontSize: 13 }}>{tx('Ücretsiz pakette {0} hareket açık. Tamamı için:', [LIMITS.freeLibrarySize])}</Body>
           <PressScale onPress={() => router.push('/plans')}>
             <TierBadge tier="pro" />
           </PressScale>
@@ -78,7 +78,7 @@ export default function LibraryScreen() {
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={styles.name}>{e.trName}</Text>
               <Text style={styles.muscles} numberOfLines={1}>
-                {e.primary.map((m) => MUSCLES[m].name).join(', ')}
+                {e.primary.map((m) => tx(MUSCLES[m].name)).join(', ')}
               </Text>
               <Row gap={6}>
                 <Tag color={colors.textMuted} bg={colors.surfaceAlt}>

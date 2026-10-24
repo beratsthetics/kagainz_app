@@ -1,13 +1,15 @@
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Share, Text, View } from 'react-native';
+import { Share, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { Body, Button, Card, EmptyState, GradientCard, Heading, Input, Label, Mono, Reveal, Row, Screen } from '@/components/ui';
 import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 // Davet kodu = kullanıcı adı. Davetle gelen biri ücretli pakete geçince davet edene 1 hafta Pro (0008).
 export default function InviteScreen() {
@@ -38,7 +40,7 @@ export default function InviteScreen() {
   const canRedeem = !profile.invited_by && profile.created_at != null && Date.now() - new Date(profile.created_at).getTime() < 14 * 86400000;
 
   async function share() {
-    await Share.share({ message: `Kagainz'de birlikte antrenman yapalım 💪 Kayıt olurken davet kodumu gir: ${myCode}\nhttps://tanvogue.xyz` }).catch(() => {});
+    await Share.share({ message: tx('Kagainz\'de birlikte antrenman yapalım 💪 Kayıt olurken davet kodumu gir: {0}\nhttps://tanvogue.xyz', [myCode]) }).catch(() => {});
   }
 
   async function copy() {
@@ -58,7 +60,7 @@ export default function InviteScreen() {
         text: /redeem_invite|schema cache/.test(error.message) ? "Sunucu güncel değil: 0008 SQL dosyasını Supabase'de çalıştır." : error.message,
       });
     }
-    setNotice({ ok: true, text: `@${data} davetiyle katıldın. Hoş geldin!` });
+    setNotice({ ok: true, text: tx('@{0} davetiyle katıldın. Hoş geldin!', [data]) });
     refreshProfile();
   }
 
@@ -67,7 +69,7 @@ export default function InviteScreen() {
       <Reveal index={0}>
         <GradientCard colors={tierColors.pro}>
           <Label>Davet kodun</Label>
-          <Text style={{ fontFamily: fonts.display, fontSize: 44, color: colors.text, letterSpacing: 1 }}>{myCode.toLocaleUpperCase('tr-TR')}</Text>
+          <Text style={{ fontFamily: fonts.display, fontSize: 44, color: colors.text, letterSpacing: 1 }}>{myCode.toLocaleUpperCase(locale())}</Text>
           <Body style={{ fontSize: 14 }}>
             Arkadaşın kayıt olurken bu kodu girsin. Ücretli bir pakete (Pro, Plus ya da Max) geçtiğinde sana 1 hafta Pro hediye.
           </Body>
@@ -94,9 +96,7 @@ export default function InviteScreen() {
         <Reveal index={2}>
           <Card style={{ borderColor: colors.accent }}>
             <Label>Hediye Pro</Label>
-            <Body style={{ fontSize: 14.5 }}>
-              {bonus.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })} tarihine kadar Pro özellikler açık.
-            </Body>
+            <Body style={{ fontSize: 14.5 }}>{tx('{0} tarihine kadar Pro özellikler açık.', [bonus.toLocaleDateString(locale(), { day: 'numeric', month: 'long' })])}</Body>
           </Card>
         </Reveal>
       )}

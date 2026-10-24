@@ -1,6 +1,7 @@
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Switch, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import {
   Avatar,
@@ -29,6 +30,7 @@ import { pickImage, removeAvatar, uploadAvatar } from '@/lib/media';
 import { BADGES, useProgress } from '@/lib/progress';
 import { hasFeature, TIER_INFO } from '@/lib/tiers';
 import { makeStyles, useColors, useTheme } from '@/lib/theme';
+import { LANGS, locale, tx, useLangPref } from '@/lib/i18n';
 
 const CHECK: IconName = { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' };
 
@@ -127,8 +129,8 @@ export default function ProfileScreen() {
               </Body>
             )}
             <Row gap={spacing.md}>
-              <Mono style={{ color: colors.textMuted }}>🔥 {stats.streak} gün seri</Mono>
-              <Mono style={{ color: colors.textMuted }}>🏆 {stats.prs} rekor</Mono>
+              <Mono style={{ color: colors.textMuted }}>{tx('🔥 {0} gün seri', [stats.streak])}</Mono>
+              <Mono style={{ color: colors.textMuted }}>{tx('🏆 {0} rekor', [stats.prs])}</Mono>
             </Row>
           </Card>
         </PressScale>
@@ -170,7 +172,7 @@ export default function ProfileScreen() {
             size={18}
             color={colors.danger}
           />
-          <Text style={styles.signOutText}>{'Çıkış yap'.toLocaleUpperCase('tr-TR')}</Text>
+          <Text style={styles.signOutText}>{tx('Çıkış yap').toLocaleUpperCase(locale())}</Text>
         </PressScale>
       </Reveal>
     </Screen>
@@ -256,8 +258,11 @@ function Settings() {
   const colors = useColors();
   const { pref, setPref } = useTheme();
   const [leaderboardVisible, setLeaderboardVisible] = useLeaderboardVisible();
+  const [lang, setLang] = useLangPref();
   return (
     <Card>
+      <Label>Dil / Language</Label>
+      <Segmented options={LANGS} value={lang} onChange={setLang} />
       <Label>Görünüm</Label>
       <Segmented
         options={[

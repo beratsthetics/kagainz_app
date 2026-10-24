@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Button, Eyebrow, Hero, Icon, Input, PressScale, Reveal, Row, Segmented } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { nextAfterSignIn, useAuth } from '@/lib/auth';
 import { makeStyles, useColors } from '@/lib/theme';
+import { tx } from '@/lib/i18n';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const MIN_PASSWORD = 6;
@@ -65,9 +67,7 @@ export default function EmailScreen() {
           <Hero lines={['Mailini', 'onayla']} size={48} />
         </Reveal>
         <Reveal index={1}>
-          <Body muted>
-            {email.trim()} adresine bir onay linki gönderdik. Linke tıkla, sonra buraya dönüp şifrenle giriş yap. Gelmezse spam klasörüne bak.
-          </Body>
+          <Body muted>{tx('{0} adresine bir onay linki gönderdik. Linke tıkla, sonra buraya dönüp şifrenle giriş yap. Gelmezse spam klasörüne bak.', [email.trim()])}</Body>
         </Reveal>
       </AuthShell>
     );
@@ -112,7 +112,7 @@ export default function EmailScreen() {
               <Input
                 value={password}
                 onChangeText={setPassword}
-                placeholder={signup ? `Şifre (en az ${MIN_PASSWORD} karakter)` : 'Şifre'}
+                placeholder={signup ? tx('Şifre (en az {0} karakter)', [MIN_PASSWORD]) : 'Şifre'}
                 secureTextEntry={!show}
                 autoCapitalize="none"
                 autoCorrect={false}

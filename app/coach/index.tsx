@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { Avatar, Body, Card, EmptyState, Input, Label, Mono, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, Tag, TierBadge } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
@@ -11,6 +12,7 @@ import { FORM_CHECK_SELECT, type FormCheck } from '@/lib/formcheck';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { TIER_RANK, type Tier } from '@/lib/tiers';
+import { locale, tx } from '@/lib/i18n';
 
 type Tab = 'forms' | 'checkins' | 'dms' | 'reports' | 'members';
 type Report = {
@@ -127,7 +129,7 @@ export default function CoachPanel() {
             { value: 'forms', label: 'Form' },
             { value: 'checkins', label: 'Check-in' },
             { value: 'dms', label: 'Mesaj' },
-            { value: 'reports', label: `Şikayet${reports?.length ? ` (${reports.length})` : ''}` },
+            { value: 'reports', label: tx('Şikayet{0}', [reports?.length ? ` (${reports.length})` : '']) },
             { value: 'members', label: 'Üye' },
           ]}
           value={tab}
@@ -151,7 +153,7 @@ export default function CoachPanel() {
                       {exerciseById(f.exercise_id)?.trName ?? f.exercise_id}
                     </Text>
                     <Mono style={{ fontSize: 12, color: colors.textMuted }}>
-                      @{f.profiles?.username ?? ''} · {new Date(f.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                      @{f.profiles?.username ?? ''} · {new Date(f.created_at).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })}
                     </Mono>
                   </View>
                   {f.status === 'pending' ? (
@@ -182,9 +184,7 @@ export default function CoachPanel() {
                   <Avatar name={c.profiles?.username} path={c.profiles?.avatar_url} size={36} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>@{c.profiles?.username ?? 'üye'}</Text>
-                    <Mono style={{ fontSize: 12, color: colors.textMuted }}>
-                      {weekTitle(c.week_start)} · {fmt(c.weight)} kg{c.photos.length ? ` · ${c.photos.length} foto` : ''}
-                    </Mono>
+                    <Mono style={{ fontSize: 12, color: colors.textMuted }}>{tx('{0} · {1} kg{2}', [weekTitle(c.week_start), fmt(c.weight), c.photos.length ? ` · ${c.photos.length} foto` : ''])}</Mono>
                   </View>
                   {c.coach_note ? (
                     <Tag color={colors.success} bg={colors.successSoft}>
@@ -223,7 +223,7 @@ export default function CoachPanel() {
                     </Body>
                   </View>
                   <Mono style={{ fontSize: 11, color: colors.textMuted }}>
-                    {new Date(t.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                    {new Date(t.created_at).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })}
                   </Mono>
                 </Row>
               </Card>
@@ -242,7 +242,7 @@ export default function CoachPanel() {
               <Row style={{ justifyContent: 'space-between' }}>
                 <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text }}>@{r.reported?.username ?? 'silinmiş'}</Text>
                 <Mono style={{ fontSize: 11.5, color: colors.textMuted }}>
-                  {new Date(r.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  {new Date(r.created_at).toLocaleString(locale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                 </Mono>
               </Row>
               <Body style={{ fontSize: 14 }}>“{r.body_snapshot ?? '...'}”</Body>

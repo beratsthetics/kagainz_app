@@ -1,4 +1,5 @@
 import { FOODS, type Food } from './foods';
+import { tx } from './i18n';
 
 export type Macros = { kcal: number; protein: number; fat: number; carb: number };
 
@@ -19,7 +20,10 @@ export function findFood(text: string): Food | null {
   const t = lower(text);
   let best: { food: Food; len: number } | null = null;
   for (const food of FOODS) {
-    for (const alias of food.aliases) {
+    // İngilizcede yemeğin çevrilmiş adı da takma ad sayılır ("Rice (cooked)" -> "rice").
+    const en = tx(food.name);
+    const aliases = en === food.name ? food.aliases : [...food.aliases, en.replace(/\s*\(.*\)/, '').toLowerCase()];
+    for (const alias of aliases) {
       if (t.includes(alias) && (!best || alias.length > best.len)) {
         best = { food, len: alias.length };
       }
@@ -63,10 +67,10 @@ export function parseLine(raw: string): MacroLine {
   return { input, food, grams, macros: scale(food, grams) };
 }
 
-// Virgül, yeni satır, "ve" ve "+" ile ayrılmış öğün metnini satırlara böler.
+// Virgül, yeni satır, "ve"/"and" ve "+" ile ayrılmış öğün metnini satırlara böler.
 export function parseMeal(text: string): MacroLine[] {
   return text
-    .split(/\n|,(?!\d)|\+|\bve\b/i)
+    .split(/\n|,(?!\d)|\+|\bve\b|\band\b/i)
     .map((s) => s.trim())
     .filter(Boolean)
     .map(parseLine);

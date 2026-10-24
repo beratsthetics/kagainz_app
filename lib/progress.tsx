@@ -5,6 +5,7 @@ import { useCelebrate } from './celebrate';
 import { useDaily } from './daily';
 import { dayKey, daysAgo, useStored } from './store';
 import { TIER_RANK, type Tier } from './tiers';
+import { tx } from './i18n';
 
 // Seri (streak), rozetler ve sayaçlar. Her gün için ne yapıldığı "activity" anahtarında tutulur:
 // m: girilen öğün sayısı, w: antrenman sayısı, p: protein hedefi doldu, h: su hedefi doldu.
@@ -119,8 +120,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const proteinHit = goals.protein > 0 && totals.protein >= goals.protein;
     const waterHit = water >= waterGoal;
     if (a.m === entries.length && Boolean(a.p) === proteinHit && Boolean(a.h) === waterHit) return;
-    if (proteinHit && !a.p) celebrate({ title: 'Protein hedefi tamam', subtitle: `${goals.protein} g protein`, emoji: '🥩' });
-    if (waterHit && !a.h) celebrate({ title: 'Su hedefi tamam', subtitle: `${waterGoal} bardak`, emoji: '💧' });
+    if (proteinHit && !a.p) celebrate({ title: 'Protein hedefi tamam', subtitle: tx('{0} g protein', [goals.protein]), emoji: '🥩' });
+    if (waterHit && !a.h) celebrate({ title: 'Su hedefi tamam', subtitle: tx('{0} bardak', [waterGoal]), emoji: '💧' });
     patchToday((d) => ({ ...d, m: entries.length, p: proteinHit, h: waterHit }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activityLoaded, entries.length, totals.protein, goals.protein, water, waterGoal]);
@@ -143,7 +144,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!activityLoaded) return;
     if (prevStreak.current != null && stats.streak > prevStreak.current && STREAK_MILESTONES.includes(stats.streak)) {
-      celebrate({ title: `${stats.streak} gün seri`, subtitle: 'Böyle devam, zinciri kırma.', emoji: '🔥' });
+      celebrate({ title: tx('{0} gün seri', [stats.streak]), subtitle: 'Böyle devam, zinciri kırma.', emoji: '🔥' });
     }
     prevStreak.current = stats.streak;
   }, [stats.streak, activityLoaded, celebrate]);
@@ -157,7 +158,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (!fresh.length) return;
     const now = new Date().toISOString();
     setUnlocked((prev) => ({ ...prev, ...Object.fromEntries(fresh.map((b) => [b.id, now])) }));
-    fresh.forEach((b) => celebrate({ title: `Rozet: ${b.title}`, subtitle: b.description, emoji: b.emoji }));
+    fresh.forEach((b) => celebrate({ title: tx('Rozet: {0}', [b.title]), subtitle: b.description, emoji: b.emoji }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stats, tier, activityLoaded, unlockedLoaded]);
 

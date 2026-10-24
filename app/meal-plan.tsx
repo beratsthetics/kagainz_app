@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { MacroLine } from '@/components/bits';
 import {
@@ -32,6 +33,7 @@ import { useStored } from '@/lib/store';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
+import { tx } from '@/lib/i18n';
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
@@ -70,9 +72,9 @@ export default function MealPlanScreen() {
   async function sendToCoach() {
     if (!session || !isSupabaseConfigured) return;
     const text =
-      `Yemek planım (${WEEKDAYS[ORDER[day]].day}) için onayını rica ediyorum:\n` +
+      tx('Yemek planım ({0}) için onayını rica ediyorum:\n', [tx(WEEKDAYS[ORDER[day]].day)]) +
       current.meals.map((m) => `${MEALS[m.slot].label}: ${m.items.map((i) => i.label).join(', ')}`).join('\n') +
-      `\nToplam: ${current.totals.kcal} kcal, P ${current.totals.protein} / K ${current.totals.carb} / Y ${current.totals.fat}`;
+      tx('\nToplam: {0} kcal, P {1} / K {2} / Y {3}', [current.totals.kcal, current.totals.protein, current.totals.carb, current.totals.fat]);
     await supabase.from('coach_messages').insert({ member_id: session.user.id, sender_id: session.user.id, body: text });
     setSent(true);
   }
@@ -119,7 +121,7 @@ export default function MealPlanScreen() {
             </Row>
             <Text style={{ fontFamily: fonts.display, fontSize: 40, color: colors.text }}>
               {current.totals.kcal}
-              <Text style={{ fontSize: 16, color: colors.textMuted }}> / {goals.kcal} kcal</Text>
+              <Text style={{ fontSize: 16, color: colors.textMuted }}>{tx('/ {0} kcal', [goals.kcal])}</Text>
             </Text>
             <MacroLine p={current.totals.protein} c={current.totals.carb} f={current.totals.fat} />
           </Card>
@@ -131,7 +133,7 @@ export default function MealPlanScreen() {
                   <IconBox name={MEALS[m.slot].icon as IconName} color={colors.fat} bg={`${colors.fat}1A`} size={32} />
                   <Heading style={{ fontSize: 18 }}>{MEALS[m.slot].label}</Heading>
                 </Row>
-                <Mono>{m.macros.kcal} kcal</Mono>
+                <Mono>{tx('{0} kcal', [m.macros.kcal])}</Mono>
               </Row>
               {m.items.map((it) => (
                 <Row key={it.key} gap={spacing.sm}>
@@ -172,7 +174,7 @@ export default function MealPlanScreen() {
         <>
           <Row gap={spacing.sm}>
             {[1, 3, 7].map((n) => (
-              <Chip key={n} label={n === 1 ? 'Bugün' : `${n} gün`} active={listDays === n} onPress={() => setListDays(n)} />
+              <Chip key={n} label={n === 1 ? 'Bugün' : tx('{0} gün', [n])} active={listDays === n} onPress={() => setListDays(n)} />
             ))}
           </Row>
           <Card>

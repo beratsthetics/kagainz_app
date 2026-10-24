@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import {
   Avatar,
@@ -29,6 +30,7 @@ import { DEFAULT_PROGRAM, WEEKDAYS, type Program, type ProgramDay } from '@/lib/
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
+import { locale, tx } from '@/lib/i18n';
 
 type Member = { id: string; username: string | null; tier: Tier; role: string | null; created_at: string; avatar_url?: string | null };
 
@@ -65,7 +67,7 @@ export default function CoachMember() {
     const { error } = await supabase.rpc('set_member_tier', { target: member.id, new_tier: tier });
     if (error) return setNotice(error.message);
     setMember({ ...member, tier });
-    setNotice(`Paket ${TIER_INFO[tier].name} yapıldı.`);
+    setNotice(tx('Paket {0} yapıldı.', [TIER_INFO[tier].name]));
   }
 
   async function save() {
@@ -101,16 +103,14 @@ export default function CoachMember() {
 
   return (
     <Screen edges={[]}>
-      <Stack.Screen options={{ title: `@${member.username ?? 'üye'}`.toLocaleUpperCase('tr-TR') }} />
+      <Stack.Screen options={{ title: `@${member.username ?? 'üye'}`.toLocaleUpperCase(locale()) }} />
       <Reveal index={0}>
         <Card>
           <Row gap={spacing.md}>
             <Avatar name={member.username} path={member.avatar_url} size={56} />
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text }}>@{member.username}</Text>
-              <Mono style={{ fontSize: 12, color: colors.textMuted }}>
-                Üye: {new Date(member.created_at).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
-              </Mono>
+              <Mono style={{ fontSize: 12, color: colors.textMuted }}>{tx('Üye: {0}', [new Date(member.created_at).toLocaleDateString(locale(), { month: 'long', year: 'numeric' })])}</Mono>
             </View>
             <TierBadge tier={member.tier} />
           </Row>
@@ -358,7 +358,7 @@ function NutritionEditor({ memberId }: { memberId: string }) {
         {field('fat', 'Yağ (g)')}
       </View>
       {fromMacros > 0 && (
-        <Mono style={{ fontSize: 12, color: colors.textMuted }}>Makrolardan: {fromMacros.toLocaleString('tr-TR')} kcal</Mono>
+        <Mono style={{ fontSize: 12, color: colors.textMuted }}>{tx('Makrolardan: {0} kcal', [fromMacros.toLocaleString(locale())])}</Mono>
       )}
       <Input value={form.note} onChangeText={(note) => setForm({ ...form, note })} placeholder="Not (ör. Kesim, haftada 0,5 kg)" multiline maxLength={500} />
       {msg && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: msg.ok ? colors.success : colors.danger }}>{msg.text}</Text>}

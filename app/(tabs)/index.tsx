@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { MacroBar, StreakPill, ThemeToggle, WaterTracker } from '@/components/bits';
 import {
@@ -35,6 +36,7 @@ import { featuredWeekOffset } from '@/lib/week';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
 import { doneSets, useWorkouts } from '@/lib/workouts';
+import { locale, tx } from '@/lib/i18n';
 
 function greeting() {
   const h = new Date().getHours();
@@ -91,11 +93,11 @@ export default function TodayScreen() {
       <Reveal index={0}>
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
-            <Eyebrow>Bugün · {WEEKDAYS[new Date().getDay()].day}</Eyebrow>
+            <Eyebrow>{tx('Bugün · {0}', [tx(WEEKDAYS[new Date().getDay()].day)])}</Eyebrow>
             <Text style={styles.greet}>
-              {greeting().toLocaleUpperCase('tr-TR')}
+              {greeting().toLocaleUpperCase(locale())}
               {profile?.username ? (
-                <Text style={{ color: colors.silver }}>{`, ${profile.username.toLocaleUpperCase('tr-TR')}`}</Text>
+                <Text style={{ color: colors.silver }}>{`, ${profile.username.toLocaleUpperCase(locale())}`}</Text>
               ) : null}
             </Text>
           </View>
@@ -123,7 +125,7 @@ export default function TodayScreen() {
             <GradientCard colors={tierColors.pro}>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Label>Devam eden antrenman</Label>
-                <Mono style={{ color: colors.accentBright }}>{doneSets(active)} set</Mono>
+                <Mono style={{ color: colors.accentBright }}>{tx('{0} set', [doneSets(active)])}</Mono>
               </Row>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Heading style={{ fontSize: 24 }}>{active.title}</Heading>
@@ -146,13 +148,11 @@ export default function TodayScreen() {
           <Card glow>
             <Row style={{ justifyContent: 'space-between' }}>
               <Label>Beslenme</Label>
-              <Mono style={{ color: colors.textMuted }}>
-                {totals.kcal.toLocaleString('tr-TR')} / {goals.kcal.toLocaleString('tr-TR')} kcal
-              </Mono>
+              <Mono style={{ color: colors.textMuted }}>{tx('{0} / {1} kcal', [totals.kcal.toLocaleString(locale()), goals.kcal.toLocaleString(locale())])}</Mono>
             </Row>
             <Row gap={spacing.lg} style={{ marginTop: spacing.xs }}>
               <Ring value={totals.kcal / goals.kcal} size={124} stroke={11} color={totals.kcal > goals.kcal ? colors.fat : colors.accent}>
-                <Text style={styles.ringValue}>{left.toLocaleString('tr-TR')}</Text>
+                <Text style={styles.ringValue}>{left.toLocaleString(locale())}</Text>
                 <Label>kcal kaldı</Label>
               </Ring>
               <View style={{ flex: 1, gap: spacing.md }}>
@@ -207,10 +207,10 @@ export default function TodayScreen() {
         <Reveal index={5}>
           <Card>
             <Row style={{ justifyContent: 'space-between' }}>
-              <Label>{trainingToday ? 'Bugünkü antrenman' : `Sıradaki: ${day.day}`}</Label>
+              <Label>{trainingToday ? 'Bugünkü antrenman' : tx('Sıradaki: {0}', [tx(day.day)])}</Label>
               <Tag>{day.focus}</Tag>
             </Row>
-            <Heading style={{ fontSize: 26 }}>{`${day.focus} günü`}</Heading>
+            <Heading style={{ fontSize: 26 }}>{tx('{0} günü', [tx(day.focus)])}</Heading>
             <View style={{ gap: 6, opacity: canTrain ? 1 : 0.35 }}>
               {day.exercises.slice(0, 3).map((e, i) => (
                 <Row key={e.exerciseId} style={styles.exercise}>
@@ -224,7 +224,7 @@ export default function TodayScreen() {
                 </Row>
               ))}
               {day.exercises.length > 3 && (
-                <Mono style={{ color: colors.textDim, fontSize: 12 }}>+{day.exercises.length - 3} hareket daha</Mono>
+                <Mono style={{ color: colors.textDim, fontSize: 12 }}>{tx('+{0} hareket daha', [day.exercises.length - 3])}</Mono>
               )}
             </View>
             {canTrain ? (
@@ -340,17 +340,17 @@ function SmartTip() {
   let body = '3 yumurta + 60 g yulaf + 1 muz ≈ 35 g protein, 520 kcal.';
   if (h >= 11 && h < 17) {
     icon = { ios: 'sun.max.fill', android: 'light_mode', web: 'light_mode' };
-    title = proteinLeft > 0 ? `${proteinLeft} g protein kaldı` : 'Protein tamam';
+    title = proteinLeft > 0 ? tx('{0} g protein kaldı', [proteinLeft]) : 'Protein tamam';
     body =
       proteinLeft > 40
-        ? `Öğlen 200 g tavuk göğsü + 150 g pilav ≈ 66 g protein. Kalan ${kcalLeft} kcal.`
-        : `Kalan ${kcalLeft} kcal. Ara öğünde 200 g süzme yoğurt iyi gider.`;
+        ? tx('Öğlen 200 g tavuk göğsü + 150 g pilav ≈ 66 g protein. Kalan {0} kcal.', [kcalLeft])
+        : tx('Kalan {0} kcal. Ara öğünde 200 g süzme yoğurt iyi gider.', [kcalLeft]);
   } else if (h >= 17) {
     icon = { ios: 'moon.stars.fill', android: 'bedtime', web: 'bedtime' };
-    title = kcalLeft > 0 ? `Günü kapat: ${kcalLeft} kcal` : 'Hedefe ulaştın';
+    title = kcalLeft > 0 ? tx('Günü kapat: {0} kcal', [kcalLeft]) : 'Hedefe ulaştın';
     body =
       proteinLeft > 0
-        ? `Akşam ${proteinLeft} g protein daha: ör. 150 g somon + salata, yatmadan lor peyniri.`
+        ? tx('Akşam {0} g protein daha: ör. 150 g somon + salata, yatmadan lor peyniri.', [proteinLeft])
         : 'Bugünkü makroların tamam. Yarın için su ve uyku planla.';
   } else if (h < 5) {
     icon = { ios: 'moon.zzz.fill', android: 'bedtime', web: 'bedtime' };
@@ -362,7 +362,7 @@ function SmartTip() {
     <View style={styles.tip}>
       <IconBox name={icon} color={colors.fat} bg={`${colors.fat}1F`} size={38} />
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={styles.tipTitle}>{title.toLocaleUpperCase('tr-TR')}</Text>
+        <Text style={styles.tipTitle}>{title.toLocaleUpperCase(locale())}</Text>
         <Body muted style={{ fontSize: 13 }}>
           {body}
         </Body>

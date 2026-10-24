@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import {
   Body,
@@ -20,6 +21,7 @@ import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
 import { makeStyles, useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 const PLANS: Tier[] = ['free', 'pro', 'plus', 'max'];
 const POPULAR: Tier = 'plus';
@@ -49,7 +51,7 @@ export default function PlansScreen() {
           <>
             <Row style={{ justifyContent: 'space-between' }}>
               <TierBadge tier={t} />
-              {t === POPULAR && <Text style={styles.popular}>{'★ En popüler'.toLocaleUpperCase('tr-TR')}</Text>}
+              {t === POPULAR && <Text style={styles.popular}>{tx('★ En popüler').toLocaleUpperCase(locale())}</Text>}
               {current && <Label style={{ color: colors.success }}>Mevcut paketin</Label>}
             </Row>
             <Heading style={{ fontSize: 30 }}>{TIER_INFO[t].name}</Heading>
@@ -71,7 +73,7 @@ export default function PlansScreen() {
             {t !== 'free' && !current && (
               <View style={{ marginTop: spacing.sm }}>
                 <Button
-                  title={`${TIER_INFO[t].name}'a geç · çok yakında`}
+                  title={tx('{0}\'a geç · çok yakında', [TIER_INFO[t].name])}
                   disabled
                   variant={t === POPULAR ? 'primary' : 'outline'}
                 />

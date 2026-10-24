@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Switch, Text, View } from 'react-native';
+import { Switch, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { Body, Card, Chip, Label, Reveal, Row, Screen } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { remindersSupported, useReminders, type ReminderSettings } from '@/lib/reminders';
 import { useColors } from '@/lib/theme';
 import { useWorkouts } from '@/lib/workouts';
+import { tx } from '@/lib/i18n';
 
 const EVENING_HOURS = [19, 20, 21, 22];
 const WORKOUT_HOURS = [7, 12, 17, 18, 19, 20];
@@ -20,7 +22,7 @@ export default function RemindersScreen() {
     setDenied(!(await update(patch)));
   }
 
-  const days = program.days.map((d) => d.short).join(', ');
+  const days = program.days.map((d) => tx(d.short)).join(', ');
 
   return (
     <Screen edges={[]}>
@@ -50,7 +52,7 @@ export default function RemindersScreen() {
         <Card>
           <Item
             title="Antrenman günü"
-            body={`Programındaki günlerde (${days}) o günün antrenmanını hatırlatır. Program değişirse kendiliğinden güncellenir.`}
+            body={tx('Programındaki günlerde ({0}) o günün antrenmanını hatırlatır. Program değişirse kendiliğinden güncellenir.', [days])}
             value={settings.workout}
             onChange={(workout) => set({ workout })}
           />

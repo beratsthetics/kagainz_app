@@ -1,6 +1,7 @@
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { Avatar, Body, Button, Card, EmptyState, Label, PressScale, Reveal, Row, Screen, SkeletonList, Tag, TierBadge } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
@@ -8,6 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { useProgress } from '@/lib/progress';
 import { KUDOS, sendKudos, setFollowing, usePublicProfile } from '@/lib/social';
 import { useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 export default function UserProfile() {
   const colors = useColors();
@@ -53,12 +55,12 @@ export default function UserProfile() {
     if (err) return setNotice(err);
     bump('kudos');
     setProfile({ ...profile, kudos_today: true });
-    setNotice(`@${profile.username} tebrik edildi ${emoji}`);
+    setNotice(tx('@{0} tebrik edildi {1}', [profile.username, emoji]));
   }
 
   return (
     <Screen edges={[]}>
-      <Stack.Screen options={{ title: `@${profile.username}`.toLocaleUpperCase('tr-TR') }} />
+      <Stack.Screen options={{ title: `@${profile.username}`.toLocaleUpperCase(locale()) }} />
       <Reveal index={0}>
         <View style={{ alignItems: 'center', gap: spacing.sm }}>
           <Avatar name={profile.username} path={profile.avatar_url} size={96} />

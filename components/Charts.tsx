@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/T';
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
 import { fonts } from '@/constants/theme';
 import { useColors } from '@/lib/theme';
+import { locale } from '@/lib/i18n';
 
 // Tek serili, sade grafikler: ince işaretler, silik ızgara, dokununca değer. Tek seri olduğu için
 // lejant yok; başlığı ekran söyler.
@@ -15,7 +17,7 @@ export function BarChart({
   color,
   height = 150,
   unit = '',
-  format = (v: number) => Math.round(v).toLocaleString('tr-TR'),
+  format = (v: number) => Math.round(v).toLocaleString(locale()),
 }: {
   values: number[];
   labels: string[];
@@ -95,7 +97,7 @@ export function LineChart({
   color,
   height = 150,
   unit = '',
-  format = (v: number) => v.toLocaleString('tr-TR', { maximumFractionDigits: 1 }),
+  format = (v: number) => v.toLocaleString(locale(), { maximumFractionDigits: 1 }),
 }: {
   values: number[];
   labels: string[];

@@ -5,6 +5,7 @@ import { type WeightLog } from './goals';
 import { useProgress } from './progress';
 import { dayKey, useStored } from './store';
 import { useWorkouts } from './workouts';
+import { locale } from './i18n';
 
 // Haftalık özet: pazartesiden pazara. offset 0 bu hafta, -1 geçen hafta.
 export type WeekSummary = {
@@ -44,8 +45,10 @@ function addDays(d: Date, n: number) {
 
 export function weekLabel(start: Date) {
   const end = addDays(start, 6);
-  const f = (d: Date, month: boolean) => d.toLocaleDateString('tr-TR', month ? { day: 'numeric', month: 'long' } : { day: 'numeric' });
-  return start.getMonth() === end.getMonth() ? `${f(start, false)}–${f(end, true)}` : `${f(start, true)} – ${f(end, true)}`;
+  const f = (d: Date, month: boolean) => d.toLocaleDateString(locale(), month ? { day: 'numeric', month: 'long' } : { day: 'numeric' });
+  if (start.getMonth() !== end.getMonth()) return `${f(start, true)} – ${f(end, true)}`;
+  // "19–25 Ekim" / "October 19–25"
+  return locale() === 'tr-TR' ? `${f(start, false)}–${f(end, true)}` : `${f(start, true)}–${f(end, false)}`;
 }
 
 // Pazar günü bu haftanın, pazartesi geçen haftanın özeti öne çıkar.

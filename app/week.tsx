@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 import { LOGO_BLUE } from '@/components/Logo';
@@ -9,6 +10,7 @@ import { fonts, radius, spacing, tierColors } from '@/constants/theme';
 import { useDaily } from '@/lib/daily';
 import { makeStyles, useColors } from '@/lib/theme';
 import { useWeekSummary, type WeekSummary } from '@/lib/week';
+import { locale, tx } from '@/lib/i18n';
 
 const WEEKDAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
@@ -64,14 +66,14 @@ export default function WeekScreen() {
             <Card>
               <Label>Beslenme</Label>
               <Row gap={spacing.sm}>
-                <Box label="Ort. kalori" value={week.avgKcal ? week.avgKcal.toLocaleString('tr-TR') : '–'} hint={`hedef ${goals.kcal.toLocaleString('tr-TR')}`} />
-                <Box label="Ort. protein" value={week.avgProtein ? `${week.avgProtein} g` : '–'} hint={`hedef ${goals.protein} g`} color={colors.protein} />
+                <Box label="Ort. kalori" value={week.avgKcal ? week.avgKcal.toLocaleString(locale()) : '–'} hint={tx('hedef {0}', [goals.kcal.toLocaleString(locale())])} />
+                <Box label="Ort. protein" value={week.avgProtein ? `${week.avgProtein} g` : '–'} hint={tx('hedef {0} g', [goals.protein])} color={colors.protein} />
               </Row>
               <Row gap={spacing.sm}>
-                <Box label="Protein hedefi" value={`${week.proteinDays}/7 gün`} color={colors.protein} />
-                <Box label="Su hedefi" value={`${week.waterDays}/7 gün`} color={colors.water} />
+                <Box label="Protein hedefi" value={tx('{0}/7 gün', [week.proteinDays])} color={colors.protein} />
+                <Box label="Su hedefi" value={tx('{0}/7 gün', [week.waterDays])} color={colors.water} />
               </Row>
-              <Mono style={{ color: colors.textMuted, fontSize: 12 }}>{week.loggedDays} gün öğün girdin.</Mono>
+              <Mono style={{ color: colors.textMuted, fontSize: 12 }}>{tx('{0} gün öğün girdin.', [week.loggedDays])}</Mono>
             </Card>
           </Animated.View>
 
@@ -79,8 +81,8 @@ export default function WeekScreen() {
             <Card>
               <Label>Antrenman detayı</Label>
               <Row gap={spacing.sm}>
-                <Box label="Hacim" value={week.volume ? `${week.volume.toLocaleString('tr-TR')} kg` : '–'} />
-                <Box label="Süre" value={week.minutes ? `${week.minutes} dk` : '–'} />
+                <Box label="Hacim" value={week.volume ? tx('{0} kg', [week.volume.toLocaleString(locale())]) : '–'} />
+                <Box label="Süre" value={week.minutes ? tx('{0} dk', [week.minutes]) : '–'} />
               </Row>
               <Row gap={spacing.sm}>
                 <Box label="Set" value={`${week.sets}`} />
@@ -98,7 +100,7 @@ export default function WeekScreen() {
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Label>Seri</Label>
-                  <Text style={styles.side}>🔥 {week.streak} gün</Text>
+                  <Text style={styles.side}>{tx('🔥 {0} gün', [week.streak])}</Text>
                 </View>
               </Row>
               {week.weightStart == null && (
@@ -128,22 +130,22 @@ export default function WeekScreen() {
 
 function weightText(w: WeekSummary) {
   if (w.weightStart == null) return '–';
-  if (w.weightEnd == null) return `${w.weightStart.toLocaleString('tr-TR')} kg`;
+  if (w.weightEnd == null) return tx('{0} kg', [w.weightStart.toLocaleString(locale())]);
   const d = Math.round((w.weightEnd - w.weightStart) * 10) / 10;
-  return `${d > 0 ? '+' : ''}${d.toLocaleString('tr-TR')} kg`;
+  return tx('{0}{1} kg', [d > 0 ? '+' : '', d.toLocaleString(locale())]);
 }
 
 // Haftanın tek cümlelik yorumu.
 function verdict(w: WeekSummary) {
   if (w.activeDays === 0) return 'Bu hafta henüz kayıt yok. Bugün bir öğün girerek başla, seri kendiliğinden gelir.';
   const parts: string[] = [];
-  if (w.workouts >= 4) parts.push(`${w.workouts} antrenmanla çok güçlü bir hafta`);
-  else if (w.workouts > 0) parts.push(`${w.workouts} antrenman yaptın`);
-  else parts.push('Bu hafta antrenman yok');
-  if (w.prev && w.workouts > w.prev.workouts) parts.push(`geçen haftadan ${w.workouts - w.prev.workouts} fazla`);
-  if (w.proteinDays >= 5) parts.push('proteini neredeyse her gün tutturdun');
-  else if (w.loggedDays > 0 && w.proteinDays <= 2) parts.push('protein hedefine biraz daha odaklan');
-  return `${parts.join(', ')}. ${w.activeDays >= 6 ? 'Disiplin tam.' : 'Gelecek hafta bir gün daha ekle.'}`;
+  if (w.workouts >= 4) parts.push(tx('{0} antrenmanla çok güçlü bir hafta', [w.workouts]));
+  else if (w.workouts > 0) parts.push(tx('{0} antrenman yaptın', [w.workouts]));
+  else parts.push(tx('Bu hafta antrenman yok'));
+  if (w.prev && w.workouts > w.prev.workouts) parts.push(tx('geçen haftadan {0} fazla', [w.workouts - w.prev.workouts]));
+  if (w.proteinDays >= 5) parts.push(tx('proteini neredeyse her gün tutturdun'));
+  else if (w.loggedDays > 0 && w.proteinDays <= 2) parts.push(tx('protein hedefine biraz daha odaklan'));
+  return `${parts.join(', ')}. ${tx(w.activeDays >= 6 ? 'Disiplin tam.' : 'Gelecek hafta bir gün daha ekle.')}`;
 }
 
 function Delta({ now, prev }: { now: number; prev?: number }) {
@@ -151,9 +153,7 @@ function Delta({ now, prev }: { now: number; prev?: number }) {
   if (prev == null || now === prev) return null;
   const up = now > prev;
   return (
-    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, marginBottom: 12, color: up ? colors.success : colors.textMuted }}>
-      {up ? '▲' : '▼'} {Math.abs(now - prev)} geçen haftaya göre
-    </Text>
+    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, marginBottom: 12, color: up ? colors.success : colors.textMuted }}>{tx('{0} {1} geçen haftaya göre', [up ? '▲' : '▼', Math.abs(now - prev)])}</Text>
   );
 }
 
@@ -203,7 +203,7 @@ function PressLink({ label, onPress }: { label: string; onPress: () => void }) {
   const styles = useStyles();
   return (
     <Text onPress={onPress} style={styles.link}>
-      {label} →
+      {tx(label)} →
     </Text>
   );
 }

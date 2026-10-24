@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { Icon, PressScale, ProgressBar, Row } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
@@ -7,6 +8,7 @@ import { GLASS_ML } from '@/lib/goals';
 import { useDaily } from '@/lib/daily';
 import { useProgress } from '@/lib/progress';
 import { useColors, useTheme } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 // Sitedeki gibi güneş/ay düğmesi.
 export function ThemeToggle() {
@@ -56,9 +58,7 @@ export function StreakPill() {
         borderColor: on ? `${colors.fat}55` : colors.border,
       }}>
       <Text style={{ fontSize: 12 }}>🔥</Text>
-      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 0.6, color: on ? colors.fat : colors.textMuted }}>
-        {stats.streak} GÜN
-      </Text>
+      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 0.6, color: on ? colors.fat : colors.textMuted }}>{tx('{0} GÜN', [stats.streak])}</Text>
     </PressScale>
   );
 }
@@ -76,8 +76,8 @@ export function WaterTracker() {
           <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.textMuted }}>SU</Text>
         </Row>
         <Text style={{ fontFamily: fonts.mono, fontSize: 12.5, color: colors.textMuted }}>
-          <Text style={{ color: colors.text }}>{((water * GLASS_ML) / 1000).toLocaleString('tr-TR')} L</Text> /{' '}
-          {((waterGoal * GLASS_ML) / 1000).toLocaleString('tr-TR')} L
+          <Text style={{ color: colors.text }}>{((water * GLASS_ML) / 1000).toLocaleString(locale())} L</Text> /{' '}
+          {((waterGoal * GLASS_ML) / 1000).toLocaleString(locale())} L
         </Text>
       </Row>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
@@ -125,7 +125,7 @@ export function MacroBar({ label, value, goal, color }: { label: string; value: 
     <View style={{ gap: 6 }}>
       <Row style={{ justifyContent: 'space-between' }}>
         <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.textMuted }}>
-          {label.toLocaleUpperCase('tr-TR')}
+          {label.toLocaleUpperCase(locale())}
         </Text>
         <Text style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.text }}>
           {Math.round(value)}
@@ -141,7 +141,7 @@ export function MacroLine({ p, c, f, kcal }: { p: number; c: number; f: number; 
   const colors = useColors();
   return (
     <Text style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.textMuted }}>
-      {kcal != null ? `${kcal} kcal · ` : ''}
+      {kcal != null ? tx('{0} kcal · ', [kcal]) : ''}
       <Text style={{ color: colors.protein }}>P {p}</Text> · <Text style={{ color: colors.carb }}>K {c}</Text> ·{' '}
       <Text style={{ color: colors.fat }}>Y {f}</Text>
     </Text>

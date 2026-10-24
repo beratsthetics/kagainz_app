@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { MacroBar, MacroLine, WaterTracker } from '@/components/bits';
 import {
@@ -31,6 +32,7 @@ import { MEAL_ORDER, MEALS, mealForNow, totalOf, useDaily, type MealSlot } from 
 import { parseMeal, sumMacros } from '@/lib/macros';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature, minTierFor } from '@/lib/tiers';
+import { tx } from '@/lib/i18n';
 
 const QUICK = ['2 yumurta', '100g yulaf', '150g tavuk göğsü', '200g pilav', '1 muz', '1 ölçek whey', '1 kase mercimek çorbası', '1 lahmacun'];
 
@@ -190,7 +192,7 @@ function MacroCalculator() {
       <Reveal index={5}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
           {QUICK.map((q) => (
-            <Chip key={q} label={`+ ${q}`} onPress={() => addQuick(q)} />
+            <Chip key={q} label={`+ ${tx(q)}`} onPress={() => addQuick(tx(q))} />
           ))}
         </ScrollView>
       </Reveal>
@@ -204,10 +206,10 @@ function MacroCalculator() {
                 <Label>kcal</Label>
               </Ring>
               <View style={{ flex: 1, gap: spacing.sm }}>
-                <Heading style={{ fontSize: 20 }}>{`${MEALS[meal].label} için`}</Heading>
+                <Heading style={{ fontSize: 20 }}>{tx('{0} için', [tx(MEALS[meal].label)])}</Heading>
                 <Body muted style={{ fontSize: 13 }}>
                   {known.length
-                    ? `${known.length} yiyecek · günlük hedefin %${Math.round((total.kcal / goals.kcal) * 100)}'i`
+                    ? tx('{0} yiyecek · günlük hedefin %{1}\'i', [known.length, Math.round((total.kcal / goals.kcal) * 100)])
                     : 'Tanıdığım bir yiyecek yaz ya da Ara ile seç'}
                 </Body>
                 <View style={styles.split}>
@@ -226,7 +228,7 @@ function MacroCalculator() {
                       <MacroLine p={l.macros.protein} c={l.macros.carb} f={l.macros.fat} />
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
-                      <Mono>{l.macros.kcal} kcal</Mono>
+                      <Mono>{tx('{0} kcal', [l.macros.kcal])}</Mono>
                       <Mono style={{ color: colors.textDim, fontSize: 12 }}>{Math.round(l.grams)} g</Mono>
                     </View>
                   </>
@@ -262,7 +264,7 @@ function MacroCalculator() {
               <Row gap={spacing.sm}>
                 <Chip label="Son yenenler" active={shelf === 'recent'} onPress={() => setShelf('recent')} />
                 <Chip
-                  label={`Favoriler${favorites.length ? ` · ${favorites.length}` : ''}`}
+                  label={tx('Favoriler{0}', [favorites.length ? ` · ${favorites.length}` : ''])}
                   active={shelf === 'favorites'}
                   onPress={() => setShelf('favorites')}
                 />
@@ -305,7 +307,7 @@ function MacroCalculator() {
                     <Heading style={{ fontSize: 18 }}>{MEALS[slot].label}</Heading>
                   </Row>
                   <Row gap={spacing.sm}>
-                    <Mono style={{ color: items.length ? colors.text : colors.textDim }}>{t.kcal} kcal</Mono>
+                    <Mono style={{ color: items.length ? colors.text : colors.textDim }}>{tx('{0} kcal', [t.kcal])}</Mono>
                     <PressScale
                       onPress={() => {
                         setMeal(slot);

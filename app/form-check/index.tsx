@@ -1,7 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import {
   Body,
@@ -31,6 +32,7 @@ import { useProgress } from '@/lib/progress';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { hasFeature, LIMITS } from '@/lib/tiers';
+import { locale, tx } from '@/lib/i18n';
 
 export default function FormCheckList() {
   const colors = useColors();
@@ -63,7 +65,7 @@ export default function FormCheckList() {
         <LockedCard
           tier="plus"
           title="Video form check"
-          body={`Hareketini çek, koç videonun üzerine saniye saniye yorum yazsın. Plus'ta ${LIMITS.formCheckDays.plus} günde bir, Max'ta haftada bir.`}
+          body={tx('Hareketini çek, koç videonun üzerine saniye saniye yorum yazsın. Plus\'ta {0} günde bir, Max\'ta haftada bir.', [LIMITS.formCheckDays.plus])}
           onPress={() => router.push('/plans')}
         />
       </Screen>
@@ -118,7 +120,7 @@ export default function FormCheckList() {
       <Reveal index={0}>
         <Card glow>
           <Label>Sıradaki hakkın</Label>
-          <Heading style={{ fontSize: 24 }}>{ready ? 'Şimdi gönderebilirsin' : `${daysLeft} gün sonra`}</Heading>
+          <Heading style={{ fontSize: 24 }}>{ready ? 'Şimdi gönderebilirsin' : tx('{0} gün sonra', [daysLeft])}</Heading>
           <Body muted style={{ fontSize: 13.5 }}>
             60 saniyeye kadar video. Yandan, tüm vücut görünecek şekilde çek. Koç videonun ilgili saniyelerine yorum bırakır.
           </Body>
@@ -153,7 +155,7 @@ export default function FormCheckList() {
                   )}
                 </Row>
                 <Mono style={{ color: colors.textMuted }}>
-                  {new Date(f.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                  {new Date(f.created_at).toLocaleDateString(locale(), { day: 'numeric', month: 'long' })}
                 </Mono>
               </Card>
             </PressScale>
@@ -179,9 +181,7 @@ export default function FormCheckList() {
           </View>
         </Row>
         {video && (
-          <Mono style={{ color: colors.success }}>
-            Video seçildi{video.duration ? ` · ${Math.round(video.duration / 1000)} sn` : ''}
-          </Mono>
+          <Mono style={{ color: colors.success }}>{tx('Video seçildi{0}', [video.duration ? ` · ${Math.round(video.duration / 1000)} sn` : ''])}</Mono>
         )}
         {error && <Text style={{ fontFamily: fonts.bodyBold, color: colors.danger }}>{error}</Text>}
         <Button title={busy ? 'Yükleniyor...' : 'Gönder'} arrow disabled={!video || busy} onPress={submit} />

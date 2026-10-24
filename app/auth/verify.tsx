@@ -1,12 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Button, Eyebrow, Hero, Reveal } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { formatTarget, nextAfterSignIn, useAuth, type CodeMethod } from '@/lib/auth';
 import { makeStyles, useColors } from '@/lib/theme';
+import { tx } from '@/lib/i18n';
 
 const LENGTH = 6;
 const RESEND_SECONDS = 60;
@@ -56,7 +58,7 @@ export default function VerifyScreen() {
         <>
           <Button title="Doğrula" arrow onPress={() => submit()} loading={loading} disabled={code.length !== LENGTH} />
           <Button
-            title={wait > 0 ? `Tekrar gönder (${wait})` : 'Kodu tekrar gönder'}
+            title={wait > 0 ? tx('Tekrar gönder ({0})', [wait]) : 'Kodu tekrar gönder'}
             variant="ghost"
             disabled={wait > 0}
             onPress={() => {

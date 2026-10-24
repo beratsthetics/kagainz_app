@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { CheckinPhoto } from '@/components/CheckinPhoto';
 import {
@@ -43,6 +44,7 @@ import { dayKey, useStored } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { TIER_RANK } from '@/lib/tiers';
+import { tx } from '@/lib/i18n';
 
 type NewPhoto = { uri: string; base64: string; mime?: string };
 type Form = { weight: string; note: string; photos: string[]; added: NewPhoto[] } & Record<Measure, string>;
@@ -198,9 +200,7 @@ export default function CheckinScreen() {
                   )}
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>{weekTitle(c.week_start)}</Text>
-                    <Mono style={{ fontSize: 12.5, color: colors.textMuted }}>
-                      {fmt(c.weight)} kg · bel {fmt(c.waist)} cm
-                    </Mono>
+                    <Mono style={{ fontSize: 12.5, color: colors.textMuted }}>{tx('{0} kg · bel {1} cm', [fmt(c.weight), fmt(c.waist)])}</Mono>
                   </View>
                   {c.coach_note && (
                     <Tag color={colors.success} bg={colors.successSoft}>
@@ -253,7 +253,7 @@ export default function CheckinScreen() {
             </View>
           </Row>
         )}
-        <Mono style={{ fontSize: 11.5, color: colors.textMuted }}>Fotoğrafları sadece sen{coachReviews ? ' ve koçun' : ''} görebilir.</Mono>
+        <Mono style={{ fontSize: 11.5, color: colors.textMuted }}>{tx('Fotoğrafları sadece sen{0} görebilir.', [coachReviews ? tx(' ve koçun') : ''])}</Mono>
         <Label>Not (isteğe bağlı)</Label>
         <Input value={form.note} onChangeText={(note) => setForm({ ...form, note })} placeholder="ör. Bu hafta 2 antrenman kaçırdım, uykum iyiydi" multiline maxLength={1000} />
         {error && <Text style={{ fontFamily: fonts.bodyBold, color: colors.danger }}>{error}</Text>}

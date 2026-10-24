@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/T';
 import Svg, { Path } from 'react-native-svg';
 
 import { AuthShell } from '@/components/AuthShell';
@@ -10,6 +11,7 @@ import { fonts, radius, spacing } from '@/constants/theme';
 import { nextAfterSignIn, useAuth } from '@/lib/auth';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 const FEATURES: { icon: IconName; text: string; color: 'carb' | 'accentBright' | 'fat' }[] = [
   { icon: { ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }, text: 'Otomatik makro', color: 'carb' },
@@ -111,7 +113,7 @@ export default function WelcomeScreen() {
 
       <Reveal index={1}>
         <Hero lines={['ONLINE', 'FITNESS']} size={60} />
-        <Text style={styles.subHero}>{'Topluluğuna katıl'.toLocaleUpperCase('tr-TR')}</Text>
+        <Text style={styles.subHero}>{tx('Topluluğuna katıl').toLocaleUpperCase(locale())}</Text>
       </Reveal>
 
       <Reveal index={2}>

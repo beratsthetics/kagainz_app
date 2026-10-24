@@ -5,6 +5,7 @@ import { Platform, type ColorValue } from 'react-native';
 import { tap } from '@/components/ui';
 import { fonts } from '@/constants/theme';
 import { useColors } from '@/lib/theme';
+import { translate } from '@/lib/i18n';
 
 function icon(name: SymbolViewProps['name']) {
   return ({ color }: { color: ColorValue }) => <SymbolView name={name} tintColor={color} size={24} />;
@@ -30,30 +31,30 @@ export default function TabLayout() {
       }}>
       <Tabs.Screen
         name="index"
-        options={{ title: 'BUGÜN', tabBarIcon: icon({ ios: 'house.fill', android: 'home', web: 'home' }) }}
+        options={{ title: translate('BUGÜN'), tabBarIcon: icon({ ios: 'house.fill', android: 'home', web: 'home' }) }}
       />
       <Tabs.Screen
         name="community"
         options={{
-          title: 'TOPLULUK',
+          title: translate('TOPLULUK'),
           tabBarIcon: icon({ ios: 'bubble.left.and.bubble.right.fill', android: 'forum', web: 'forum' }),
         }}
       />
       <Tabs.Screen
         name="macros"
-        options={{ title: 'MAKRO', tabBarIcon: icon({ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }) }}
+        options={{ title: translate('MAKRO'), tabBarIcon: icon({ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }) }}
       />
       <Tabs.Screen
         name="training"
         options={{
-          title: 'ANTRENMAN',
+          title: translate('ANTRENMAN'),
           tabBarIcon: icon({ ios: 'dumbbell.fill', android: 'fitness_center', web: 'fitness_center' }),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'PROFİL',
+          title: translate('PROFİL'),
           tabBarIcon: icon({ ios: 'person.crop.circle.fill', android: 'person', web: 'person' }),
         }}
       />

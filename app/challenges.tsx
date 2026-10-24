@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { Avatar, Body, Card, GradientCard, Heading, Label, Mono, ProgressBar, Reveal, Row, Screen, Tag } from '@/components/ui';
 import { fonts, spacing, tierColors } from '@/constants/theme';
@@ -8,6 +9,7 @@ import { challengeProgress, CHALLENGES, currentChallenge, weekDays } from '@/lib
 import { useProgress } from '@/lib/progress';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 const DAY_SHORT = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
 type Finisher = { user_id: string; created_at: string; profiles: { username: string | null; avatar_url?: string | null } | null };
@@ -57,7 +59,7 @@ export default function ChallengesScreen() {
                 Tamamlandı
               </Tag>
             ) : (
-              <Mono style={{ color: colors.textMuted }}>{left > 0 ? `${left} gün kaldı` : 'Son gün'}</Mono>
+              <Mono style={{ color: colors.textMuted }}>{left > 0 ? tx('{0} gün kaldı', [left]) : 'Son gün'}</Mono>
             )}
           </Row>
           <Text style={{ fontSize: 56 }}>{ch.challenge.emoji}</Text>
@@ -113,7 +115,7 @@ export default function ChallengesScreen() {
                   @{f.profiles?.username ?? 'anonim'}
                 </Text>
                 <Mono style={{ fontSize: 11.5, color: colors.textMuted }}>
-                  {new Date(f.created_at).toLocaleDateString('tr-TR', { weekday: 'short' })}
+                  {new Date(f.created_at).toLocaleDateString(locale(), { weekday: 'short' })}
                 </Mono>
               </Row>
             ))
@@ -139,9 +141,7 @@ export default function ChallengesScreen() {
               </View>
             </Row>
           ))}
-          <Body muted style={{ fontSize: 12 }}>
-            {CHALLENGES.length} görev her hafta sırayla döner.
-          </Body>
+          <Body muted style={{ fontSize: 12 }}>{tx('{0} görev her hafta sırayla döner.', [CHALLENGES.length])}</Body>
         </Card>
       </Reveal>
     </Screen>

@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, Text, TextInput, View } from 'react-native';
+import { Platform, TextInput, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { ExerciseMediaView } from '@/components/ExerciseMediaView';
 import { MovementAnim } from '@/components/MovementAnim';
@@ -12,6 +13,7 @@ import { useExerciseMedia } from '@/lib/exerciseMedia';
 import { exerciseById } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { doneSets, sessionVolume, useWorkouts, type SetLog } from '@/lib/workouts';
+import { locale, tx } from '@/lib/i18n';
 
 function useNow(interval = 1000) {
   const [now, setNow] = useState(Date.now());
@@ -69,7 +71,7 @@ export default function WorkoutScreen() {
 
         <Row gap={spacing.sm}>
           <Mini label="Set" value={`${totalDone}`} />
-          <Mini label="Hacim" value={`${Math.round(sessionVolume(active)).toLocaleString('tr-TR')} kg`} />
+          <Mini label="Hacim" value={tx('{0} kg', [Math.round(sessionVolume(active)).toLocaleString(locale())])} />
           <Mini label="Hareket" value={`${active.exercises.length}`} />
         </Row>
 
@@ -90,7 +92,7 @@ export default function WorkoutScreen() {
         <Body muted>
           {confirm === 'finish'
             ? totalDone
-              ? `${totalDone} set kaydedilecek. İşaretlenmeyen setler kaydedilmez.`
+              ? tx('{0} set kaydedilecek. İşaretlenmeyen setler kaydedilmez.', [totalDone])
               : 'Hiç set işaretlemedin; antrenman kaydedilmeden kapanacak.'
             : 'Bu antrenmandaki tüm setler silinecek.'}
         </Body>
@@ -158,8 +160,8 @@ function ExerciseCard({ index }: { index: number }) {
         <PressScale flex onPress={() => router.push(`/exercise/${e.exerciseId}`)}>
           <Heading style={{ fontSize: 19 }}>{ex?.trName ?? e.exerciseId}</Heading>
           <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
-            {e.target ? `Hedef ${e.target.sets}×${e.target.reps}` : 'Serbest'}
-            {rec ? ` · Rekor ${rec.kg} kg × ${rec.reps}` : ''}
+            {e.target ? tx('Hedef {0}×{1}', [e.target.sets, e.target.reps]) : 'Serbest'}
+            {rec ? tx(' · Rekor {0} kg × {1}', [rec.kg, rec.reps]) : ''}
           </Mono>
         </PressScale>
         <PressScale onPress={() => w.removeExercise(index)}>
@@ -288,7 +290,7 @@ function RestBar() {
           <Label>Dinlenme süresi</Label>
           <Row gap={spacing.xs}>
             {[60, 90, 120, 180].map((s) => (
-              <Chip key={s} label={s < 120 ? `${s} sn` : `${s / 60} dk`} active={restSeconds === s} onPress={() => setRestSeconds(s)} />
+              <Chip key={s} label={s < 120 ? tx('{0} sn', [s]) : tx('{0} dk', [s / 60])} active={restSeconds === s} onPress={() => setRestSeconds(s)} />
             ))}
           </Row>
         </Row>

@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { Body, Button, Card, Chip, GradientCard, Hero, Label, Mono, Reveal, Row, Screen, Stat } from '@/components/ui';
 import { fonts, spacing, tierColors } from '@/constants/theme';
@@ -10,6 +11,7 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
 import { useWorkouts, workoutMeta } from '@/lib/workouts';
+import { locale, tx } from '@/lib/i18n';
 
 export default function SummaryScreen() {
   const colors = useColors();
@@ -41,7 +43,7 @@ export default function SummaryScreen() {
   async function share() {
     if (!session || !isSupabaseConfigured) return;
     setError(null);
-    const body = `${meta.title} bitti: ${meta.sets} set, ${meta.volume.toLocaleString('tr-TR')} kg, ${meta.minutes} dk${meta.prs.length ? ` · ${meta.prs.length} rekor 🏆` : ''}`;
+    const body = tx('{0} bitti: {1} set, {2} kg, {3} dk{4}', [meta.title, meta.sets, meta.volume.toLocaleString(locale()), meta.minutes, meta.prs.length ? ` · ${meta.prs.length} rekor 🏆` : '']);
     const { error: err } = await supabase.from('messages').insert({ room_id: room, user_id: session.user.id, body, kind: 'workout', meta });
     if (err) return setError(err.message);
     bump('posts');
@@ -58,9 +60,9 @@ export default function SummaryScreen() {
         <GradientCard colors={tierColors.pro}>
           <Label>{meta.title}</Label>
           <Row gap={spacing.sm}>
-            <Stat label="Süre" value={`${meta.minutes} dk`} />
+            <Stat label="Süre" value={tx('{0} dk', [meta.minutes])} />
             <Stat label="Set" value={`${meta.sets}`} />
-            <Stat label="Hacim" value={`${meta.volume.toLocaleString('tr-TR')} kg`} color={colors.fat} />
+            <Stat label="Hacim" value={tx('{0} kg', [meta.volume.toLocaleString(locale())])} color={colors.fat} />
           </Row>
           {meta.exercises.map((e) => (
             <Row key={e.name} style={{ justifyContent: 'space-between' }}>

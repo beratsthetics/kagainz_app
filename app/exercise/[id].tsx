@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { BodyMap } from '@/components/BodyMap';
 import { ExerciseMediaView } from '@/components/ExerciseMediaView';
@@ -14,6 +15,7 @@ import { exerciseById, isUnlocked, MUSCLES } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
 import { e1rm, useWorkouts } from '@/lib/workouts';
+import { locale, tx } from '@/lib/i18n';
 
 export default function ExerciseScreen() {
   const colors = useColors();
@@ -81,13 +83,13 @@ export default function ExerciseScreen() {
               <Row gap={spacing.md} style={{ justifyContent: 'center' }}>
                 <Row gap={6}>
                   <View style={[styles.dot, { backgroundColor: colors.accentBright }]} />
-                  <Text style={styles.legend}>{ex.primary.map((m) => MUSCLES[m].name).join(', ')}</Text>
+                  <Text style={styles.legend}>{ex.primary.map((m) => tx(MUSCLES[m].name)).join(', ')}</Text>
                 </Row>
               </Row>
               {ex.secondary.length > 0 && (
                 <Row gap={6} style={{ justifyContent: 'center' }}>
                   <View style={[styles.dot, { backgroundColor: colors.accent, opacity: 0.5 }]} />
-                  <Text style={[styles.legend, { color: colors.textMuted }]}>Yardımcı: {ex.secondary.map((m) => MUSCLES[m].name).join(', ')}</Text>
+                  <Text style={[styles.legend, { color: colors.textMuted }]}>{tx('Yardımcı: {0}', [ex.secondary.map((m) => tx(MUSCLES[m].name)).join(', ')])}</Text>
                 </Row>
               )}
             </Card>
@@ -117,13 +119,13 @@ export default function ExerciseScreen() {
               {rec ? (
                 <>
                   <Row gap={spacing.sm}>
-                    <Stat label="En ağır" value={`${rec.kg} kg × ${rec.reps}`} />
-                    <Stat label="Tahmini 1RM" value={`${Math.round(rec.e1rm)} kg`} color={colors.fat} />
+                    <Stat label="En ağır" value={tx('{0} kg × {1}', [rec.kg, rec.reps])} />
+                    <Stat label="Tahmini 1RM" value={tx('{0} kg', [Math.round(rec.e1rm)])} color={colors.fat} />
                   </Row>
                   {points.length > 1 && (
                     <LineChart
                       values={points.map((p) => p.v)}
-                      labels={points.map((p) => p.date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }))}
+                      labels={points.map((p) => p.date.toLocaleDateString(locale(), { day: 'numeric', month: 'short' }))}
                       unit="kg 1RM"
                       color={colors.fat}
                     />

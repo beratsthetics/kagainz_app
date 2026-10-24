@@ -1,7 +1,8 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useCallback, useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { BodyMap } from '@/components/BodyMap';
 import { Avatar, Body, Button, Card, Input, Label, Mono, PressScale, Reveal, Row, Screen, SkeletonList, Tag } from '@/components/ui';
@@ -12,6 +13,7 @@ import { FORM_CHECK_SELECT, formatClock, type FormCheck, type FormComment } from
 import { useSignedUrl } from '@/lib/media';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 export default function FormCheckDetail() {
   const colors = useColors();
@@ -131,7 +133,7 @@ function Detail({
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text }}>{exercise?.trName ?? check.exercise_id}</Text>
               <Mono style={{ color: colors.textMuted }}>
-                @{check.profiles?.username ?? 'üye'} · {new Date(check.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                @{check.profiles?.username ?? 'üye'} · {new Date(check.created_at).toLocaleDateString(locale(), { day: 'numeric', month: 'long' })}
               </Mono>
             </View>
             {exercise && <BodyMap primary={exercise.primary} secondary={exercise.secondary} height={90} labels={false} />}
@@ -186,7 +188,7 @@ function Detail({
                         </Tag>
                       )}
                     </Row>
-                    <Body style={{ fontSize: 14.5 }}>{c.body}</Body>
+                    <Body raw style={{ fontSize: 14.5 }}>{c.body}</Body>
                   </View>
                 </Row>
               </PressScale>
@@ -210,7 +212,7 @@ function Detail({
                     backgroundColor: stamp ? colors.accent : 'transparent',
                   }}
                 />
-                <Body style={{ fontSize: 13.5 }}>Videonun şu anki saniyesine ekle ({formatClock(now)})</Body>
+                <Body style={{ fontSize: 13.5 }}>{tx('Videonun şu anki saniyesine ekle ({0})', [formatClock(now)])}</Body>
               </Row>
             </PressScale>
           )}

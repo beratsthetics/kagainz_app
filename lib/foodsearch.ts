@@ -1,4 +1,5 @@
 import { FOODS, type Food } from './foods';
+import { tx } from './i18n';
 import type { Macros } from './macros';
 
 // Yiyecek arama: önce uygulamadaki Türkçe veritabanı, sonra Open Food Facts (ücretsiz, Türk
@@ -41,7 +42,7 @@ export function searchLocal(query: string, limit = 12): FoodResult[] {
   const q = plain(query);
   if (!q) return [];
   return FOODS.map((f) => {
-    const names = [f.name, ...f.aliases].map(plain);
+    const names = [f.name, tx(f.name), ...f.aliases].map(plain);
     const score = names.reduce((best, n) => {
       if (n === q) return Math.max(best, 100);
       if (n.startsWith(q)) return Math.max(best, 80 - n.length / 10);

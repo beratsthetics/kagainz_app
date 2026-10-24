@@ -8,6 +8,7 @@ import { DEFAULT_PROGRAM, type Program, type ProgramDay } from './program';
 import { useProgress } from './progress';
 import { daysAgo, useStored } from './store';
 import { isSupabaseConfigured, supabase } from './supabase';
+import { tx } from './i18n';
 
 export type SetLog = { kg: number | null; reps: number | null; done: boolean };
 export type ExerciseLog = { exerciseId: string; target?: { sets: number; reps: string }; sets: SetLog[] };
@@ -58,9 +59,9 @@ export function workoutMeta(s: Session): WorkoutMeta {
     volume: Math.round(s.volume ?? 0),
     exercises: s.exercises.map((e) => {
       const best = e.sets.reduce((b, x) => ((x.kg ?? 0) > (b.kg ?? 0) ? x : b), e.sets[0]);
-      return { name: exerciseById(e.exerciseId)?.trName ?? e.exerciseId, best: `${best.kg} kg × ${best.reps}` };
+      return { name: exerciseById(e.exerciseId)?.trName ?? e.exerciseId, best: tx('{0} kg × {1}', [best.kg, best.reps]) };
     }),
-    prs: (s.prs ?? []).map((p) => `${exerciseById(p.exerciseId)?.trName}: ${p.kg} kg × ${p.reps}`),
+    prs: (s.prs ?? []).map((p) => tx('{0}: {1} kg × {2}', [exerciseById(p.exerciseId)?.trName, p.kg, p.reps])),
   };
 }
 
@@ -195,8 +196,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       bump('prs', prs.length);
       const first = prs[0];
       celebrate({
-        title: prs.length > 1 ? `${prs.length} yeni rekor` : 'Yeni rekor',
-        subtitle: `${exerciseById(first.exerciseId)?.trName ?? ''}: ${first.kg} kg × ${first.reps}`,
+        title: prs.length > 1 ? tx('{0} yeni rekor', [prs.length]) : 'Yeni rekor',
+        subtitle: tx('{0}: {1} kg × {2}', [exerciseById(first.exerciseId)?.trName ?? '', first.kg, first.reps]),
         emoji: '🏆',
       });
     }
@@ -214,7 +215,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       startDay: (day) =>
         setActive({
           id: `${Date.now()}`,
-          title: `${day.focus} günü`,
+          title: tx('{0} günü', [day.focus]),
           startedAt: new Date().toISOString(),
           exercises: day.exercises.map((e) => ({
             exerciseId: e.exerciseId,

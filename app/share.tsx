@@ -1,7 +1,8 @@
 import * as Sharing from 'expo-sharing';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { Platform, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, useWindowDimensions, View } from 'react-native';
+import { Text } from '@/components/T';
 import { captureRef } from 'react-native-view-shot';
 
 import { CARD_H, CARD_W, ShareCard, type CardData, type CardStyle } from '@/components/ShareCard';
@@ -13,6 +14,7 @@ import { BADGES, useProgress } from '@/lib/progress';
 import { makeStyles } from '@/lib/theme';
 import { useWeekSummary } from '@/lib/week';
 import { useWorkouts, workoutMeta } from '@/lib/workouts';
+import { translate } from '@/lib/i18n';
 
 // Hikâye kartı: kind=day (bugün), kind=workout&id=..., kind=week&offset=0|-1.
 export default function ShareScreen() {
@@ -64,7 +66,7 @@ export default function ShareScreen() {
 
   return (
     <View style={styles.root}>
-      <Stack.Screen options={{ title: 'PAYLAŞ' }} />
+      <Stack.Screen options={{ title: translate('PAYLAŞ') }} />
       <View style={styles.previewArea}>
         {data ? (
           <View style={{ width: CARD_W * scale, height: CARD_H * scale }}>

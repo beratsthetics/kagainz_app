@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { AuthShell } from '@/components/AuthShell';
 import { Avatar, Body, Button, Eyebrow, Hero, Icon, Input, Label, Reveal, Row } from '@/components/ui';

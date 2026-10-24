@@ -2,7 +2,8 @@ import { useEventListener } from 'expo';
 import { Image } from 'expo-image';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { fonts } from '@/constants/theme';
 import { useColors } from '@/lib/theme';

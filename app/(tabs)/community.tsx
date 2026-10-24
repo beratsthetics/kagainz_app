@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import {
   Body,
@@ -25,6 +26,7 @@ import { challengeProgress } from '@/lib/challenges';
 import { useProgress } from '@/lib/progress';
 import { hasFeature, type Feature, type Tier } from '@/lib/tiers';
 import { makeStyles, useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 const ROOMS: { id: string; name: string; description: string; feature: Feature; minTier: Tier; icon: IconName }[] = [
   {
@@ -102,7 +104,7 @@ export default function CommunityScreen() {
         <PressScale onPress={() => router.push('/challenges')}>
           <Card>
             <Row style={{ justifyContent: 'space-between' }}>
-              <Text style={styles.eyebrow}>{'Haftanın meydan okuması'.toLocaleUpperCase('tr-TR')}</Text>
+              <Text style={styles.eyebrow}>{'Haftanın meydan okuması'.toLocaleUpperCase(locale())}</Text>
               {ch.done && (
                 <Tag color={colors.success} bg={colors.successSoft}>
                   Tamam
@@ -179,7 +181,7 @@ export default function CommunityScreen() {
               {room.minTier === 'free' ? (
                 <Row gap={6}>
                   <View style={styles.liveDot} />
-                  <Text style={styles.open}>{'Açık'.toLocaleUpperCase('tr-TR')}</Text>
+                  <Text style={styles.open}>{tx('AÇIK')}</Text>
                 </Row>
               ) : (
                 <TierBadge tier={room.minTier} />
@@ -191,7 +193,7 @@ export default function CommunityScreen() {
             </Body>
             <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>
               <Text style={[styles.cta, !open && { color: colors.textMuted }]}>
-                {(open ? 'Sohbete gir' : 'Kilidi aç').toLocaleUpperCase('tr-TR')}
+                {tx(open ? 'Sohbete gir' : 'Kilidi aç').toLocaleUpperCase(locale())}
               </Text>
               <Icon
                 name={

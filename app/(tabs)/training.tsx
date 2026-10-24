@@ -1,7 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { BodyMap } from '@/components/BodyMap';
 import {
@@ -32,6 +33,7 @@ import { daysAgo } from '@/lib/store';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature, LIMITS } from '@/lib/tiers';
 import { doneSets, useWorkouts } from '@/lib/workouts';
+import { locale, tx } from '@/lib/i18n';
 
 export default function TrainingScreen() {
   const colors = useColors();
@@ -78,7 +80,7 @@ export default function TrainingScreen() {
             <GradientCard colors={tierColors.pro}>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Label>Devam eden</Label>
-                <Mono style={{ color: colors.accentBright }}>{doneSets(active)} set tamam</Mono>
+                <Mono style={{ color: colors.accentBright }}>{tx('{0} set tamam', [doneSets(active)])}</Mono>
               </Row>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Heading style={{ fontSize: 24 }}>{active.title}</Heading>
@@ -92,7 +94,7 @@ export default function TrainingScreen() {
       <Reveal index={2}>
         <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
           {program.days.map((d, i) => (
-            <Chip key={d.day + i} label={`${d.short} · ${d.focus}`} active={i === day} onPress={() => setDay(i)} />
+            <Chip key={d.day + i} label={`${tx(d.short)} · ${tx(d.focus)}`} active={i === day} onPress={() => setDay(i)} />
           ))}
         </Row>
       </Reveal>
@@ -107,11 +109,8 @@ export default function TrainingScreen() {
                 <Tag>{current.focus}</Tag>
               </Row>
             </Row>
-            <Heading style={{ fontSize: 28 }}>{`${current.focus} günü`}</Heading>
-            <Mono style={{ color: colors.textMuted }}>
-              {current.exercises.length} hareket · {current.exercises.reduce((n, e) => n + e.sets, 0)} set · ~
-              {Math.round(current.exercises.reduce((n, e) => n + e.sets, 0) * 3.2)} dk
-            </Mono>
+            <Heading style={{ fontSize: 28 }}>{tx('{0} günü', [tx(current.focus)])}</Heading>
+            <Mono style={{ color: colors.textMuted }}>{tx('{0} hareket · {1} set · ~ {2} dk', [current.exercises.length, current.exercises.reduce((n, e) => n + e.sets, 0), Math.round(current.exercises.reduce((n, e) => n + e.sets, 0) * 3.2)])}</Mono>
             <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
               {current.exercises.map((e, i) => {
                 const ex = exerciseById(e.exerciseId);
@@ -123,7 +122,7 @@ export default function TrainingScreen() {
                       <Text style={styles.name}>{ex?.trName ?? e.exerciseId}</Text>
                       <Text style={styles.muscle}>
                         {ex?.primary.map((m) => MUSCLES[m].name).join(', ')}
-                        {rec ? `  ·  En iyi ${rec.kg} kg` : ''}
+                        {rec ? tx('  ·  En iyi {0} kg', [rec.kg]) : ''}
                       </Text>
                     </View>
                     <Mono style={{ color: colors.textMuted }}>
@@ -207,10 +206,8 @@ export default function TrainingScreen() {
                 <Row style={styles.prRow}>
                   <Text style={{ fontSize: 18 }}>🏆</Text>
                   <Text style={[styles.name, { flex: 1 }]}>{exerciseById(id)?.trName}</Text>
-                  <Mono>
-                    {r.kg} kg × {r.reps}
-                  </Mono>
-                  <Mono style={{ color: colors.textMuted }}>1RM ~{Math.round(r.e1rm)}</Mono>
+                  <Mono>{tx('{0} kg × {1}', [r.kg, r.reps])}</Mono>
+                  <Mono style={{ color: colors.textMuted }}>{tx('1RM ~{0}', [Math.round(r.e1rm)])}</Mono>
                 </Row>
               </PressScale>
             ))}
@@ -231,13 +228,10 @@ export default function TrainingScreen() {
                 <Row style={{ justifyContent: 'space-between' }}>
                   <Text style={styles.name}>{s.title}</Text>
                   <Mono style={{ color: colors.textMuted }}>
-                    {new Date(s.startedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                    {new Date(s.startedAt).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })}
                   </Mono>
                 </Row>
-                <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
-                  {s.exercises.length} hareket · {doneSets(s)} set · {Math.round(s.volume ?? 0).toLocaleString('tr-TR')} kg
-                  {s.prs?.length ? ` · ${s.prs.length} rekor` : ''}
-                </Mono>
+                <Mono style={{ color: colors.textMuted, fontSize: 12 }}>{tx('{0} hareket · {1} set · {2} kg {3}', [s.exercises.length, doneSets(s), Math.round(s.volume ?? 0).toLocaleString(locale()), s.prs?.length ? ` · ${s.prs.length} rekor` : ''])}</Mono>
               </Card>
             ))}
           </View>
@@ -245,7 +239,7 @@ export default function TrainingScreen() {
         {hidden > 0 && (
           <PressScale onPress={() => router.push('/plans')} style={styles.more}>
             <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={14} color={colors.textMuted} />
-            <Text style={[styles.link, { color: colors.textMuted }]}>{hidden} eski antrenman Pro ile görünür</Text>
+            <Text style={[styles.link, { color: colors.textMuted }]}>{tx('{0} eski antrenman Pro ile görünür', [hidden])}</Text>
             <TierBadge tier="pro" />
           </PressScale>
         )}

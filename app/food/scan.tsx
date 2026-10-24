@@ -1,7 +1,8 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/T';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FoodSheet } from '@/components/FoodSheet';
@@ -14,6 +15,7 @@ import { useProgress } from '@/lib/progress';
 import { dayKey, useStored } from '@/lib/store';
 import { useColors } from '@/lib/theme';
 import { hasFeature, LIMITS } from '@/lib/tiers';
+import { tx } from '@/lib/i18n';
 
 export default function ScanScreen() {
   const colors = useColors();
@@ -65,7 +67,7 @@ export default function ScanScreen() {
             <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={18} color="#fff" />
           </PressScale>
           <View style={styles.counter}>
-            <Text style={styles.counterText}>{unlimited ? 'SINIRSIZ TARAMA' : `BUGÜN ${left} TARAMA KALDI`}</Text>
+            <Text style={styles.counterText}>{unlimited ? 'SINIRSIZ TARAMA' : tx('BUGÜN {0} TARAMA KALDI', [left])}</Text>
           </View>
         </Row>
 
@@ -94,9 +96,7 @@ export default function ScanScreen() {
                 <Text style={[styles.panelTitle, { color: colors.text }]}>GÜNLÜK TARAMA HAKKIN BİTTİ</Text>
                 <TierBadge tier="pro" />
               </Row>
-              <Body muted style={{ fontSize: 13.5 }}>
-                Ücretsiz pakette günde {LIMITS.freeScansPerDay} tarama var. Pro ile sınırsız tara.
-              </Body>
+              <Body muted style={{ fontSize: 13.5 }}>{tx('Ücretsiz pakette günde {0} tarama var. Pro ile sınırsız tara.', [LIMITS.freeScansPerDay])}</Body>
               <Button title="Pro'ya geç" arrow onPress={() => router.push('/plans')} />
             </>
           ) : !permission?.granted ? (

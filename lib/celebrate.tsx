@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/T';
 import Animated, {
   Easing,
   FadeInUp,
@@ -15,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fonts, radius, spacing } from '@/constants/theme';
 
 import { useColors } from './theme';
+import { locale, tx } from './i18n';
 
 export type Celebration = { title: string; subtitle?: string; emoji?: string };
 
@@ -78,7 +80,7 @@ function CelebrationOverlay({ c }: { c: Celebration }) {
         ]}>
         {c.emoji ? <Text style={styles.emoji}>{c.emoji}</Text> : null}
         <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: colors.text }]}>{c.title.toLocaleUpperCase('tr-TR')}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{c.title.toLocaleUpperCase(locale())}</Text>
           {c.subtitle ? <Text style={[styles.subtitle, { color: colors.textMuted }]}>{c.subtitle}</Text> : null}
         </View>
       </Animated.View>
@@ -106,7 +108,7 @@ function Piece({ color }: { color: string }) {
     transform: [
       { translateX: start.x + start.drift * t.value },
       { translateY: -30 + (height * 0.85 + 30) * t.value },
-      { rotate: `${start.spin * t.value}deg` },
+      { rotate: tx('{0}deg', [start.spin * t.value]) },
     ],
   }));
   return (

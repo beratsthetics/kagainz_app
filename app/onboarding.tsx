@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
 
 import { AuthShell } from '@/components/AuthShell';
@@ -12,6 +13,7 @@ import { ACTIVITY, calculateGoals, GOALS, waterGoalGlasses, type Activity, type 
 import { dayKey, useStored } from '@/lib/store';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 // Kayıttan hemen sonra 4 adımlık karşılama: hedef, vücut, hareket, kişisel sonuç.
 // Bitince hedefler ve ilk kilo kaydı yazılır, ana sayfa ilk günden kişisel açılır.
@@ -63,7 +65,7 @@ export default function Onboarding() {
         {step === 0 && (
           <>
             <View>
-              <Eyebrow>{profile?.username ? `Hoş geldin @${profile.username}` : 'Hoş geldin'}</Eyebrow>
+              <Eyebrow>{profile?.username ? tx('Hoş geldin @{0}', [profile.username]) : 'Hoş geldin'}</Eyebrow>
               <Hero lines={['Hedefin', 'ne?']} size={48} />
             </View>
             <Body muted>Seçimine göre kalori ve protein hedefini hesaplayacağız. Sonra istediğin zaman değiştirebilirsin.</Body>
@@ -74,7 +76,7 @@ export default function Onboarding() {
                   <View key={g} style={styles.goalCell}>
                     <PressScale flex onPress={() => set('goal', g)} style={[styles.goal, active && styles.goalActive]}>
                       <Text style={{ fontSize: 30 }}>{GOAL_EMOJI[g]}</Text>
-                      <Text style={[styles.goalTitle, active && { color: colors.accentBright }]}>{GOALS[g].label.toLocaleUpperCase('tr-TR')}</Text>
+                      <Text style={[styles.goalTitle, active && { color: colors.accentBright }]}>{GOALS[g].label.toLocaleUpperCase(locale())}</Text>
                       <Text style={styles.hint}>{GOALS[g].hint}</Text>
                     </PressScale>
                   </View>
@@ -144,9 +146,7 @@ export default function Onboarding() {
                 <Stat label="Yağ" value={`${goals.fat} g`} color={colors.fat} />
               </Row>
             </View>
-            <Body muted style={{ fontSize: 13.5 }}>
-              {GOAL_EMOJI[p.goal]} {GOALS[p.goal].label} · su hedefin {waterGoalGlasses(p.weightKg)} bardak. Öğün girdikçe ana sayfadaki halka dolacak.
-            </Body>
+            <Body muted style={{ fontSize: 13.5 }}>{tx('{0} {1} · su hedefin {2} bardak. Öğün girdikçe ana sayfadaki halka dolacak.', [GOAL_EMOJI[p.goal], GOALS[p.goal].label, waterGoalGlasses(p.weightKg)])}</Body>
             {isSupabaseConfigured && <InviteCode />}
           </>
         )}
@@ -168,7 +168,7 @@ function InviteCode() {
     const { data, error } = await supabase.rpc('redeem_invite', { code });
     setBusy(false);
     if (error) return setMsg({ ok: false, text: /redeem_invite|schema cache/.test(error.message) ? 'Davet kodu şu an kullanılamıyor.' : error.message });
-    setMsg({ ok: true, text: `@${data} davetiyle katıldın 🎉` });
+    setMsg({ ok: true, text: tx('@{0} davetiyle katıldın 🎉', [data]) });
     refreshProfile();
   }
 
@@ -208,7 +208,7 @@ function CountUp({ value, style }: { value: number; style: object }) {
     }, 16);
     return () => clearInterval(id);
   }, [value]);
-  return <Text style={style}>{shown.toLocaleString('tr-TR')}</Text>;
+  return <Text style={style}>{shown.toLocaleString(locale())}</Text>;
 }
 
 const useStyles = makeStyles((colors) => ({

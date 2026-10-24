@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { uploadBase64 } from './media';
 import { isSupabaseConfigured, supabase } from './supabase';
 import type { Tier } from './tiers';
+import { locale, tx } from './i18n';
 
 // Haftalık check-in: kilo, ölçüler (cm), en fazla 3 fotoğraf ve not. Haftada bir kayıt (pazartesi başlar).
 export type Measure = 'waist' | 'chest' | 'hip' | 'arm' | 'thigh';
@@ -39,7 +40,7 @@ export function thisWeekKey(now = new Date()) {
 
 export function weekTitle(weekStart: string) {
   const d = new Date(`${weekStart}T12:00:00`);
-  return `${d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })} haftası`;
+  return tx('{0} haftası', [d.toLocaleDateString(locale(), { day: 'numeric', month: 'long' })]);
 }
 
 // "72,5" ya da "72.5" -> 72.5; boş ya da geçersizse null.
@@ -49,7 +50,7 @@ export function parseNum(text: string): number | null {
 }
 
 export function fmt(n: number | null | undefined) {
-  return n == null ? '–' : n.toLocaleString('tr-TR', { maximumFractionDigits: 1 });
+  return n == null ? '–' : n.toLocaleString(locale(), { maximumFractionDigits: 1 });
 }
 
 export function serverError(message: string) {

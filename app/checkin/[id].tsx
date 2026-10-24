@@ -1,6 +1,7 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { CheckinPhoto } from '@/components/CheckinPhoto';
 import { Avatar, Body, Button, Card, EmptyState, Input, Label, Mono, Reveal, Row, Screen, SkeletonList, TierBadge } from '@/components/ui';
@@ -9,6 +10,7 @@ import { useAuth } from '@/lib/auth';
 import { CHECKIN_SELECT, fmt, MEASURES, serverError, weekTitle, type Checkin } from '@/lib/checkins';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
+import { locale, translate } from '@/lib/i18n';
 
 export default function CheckinDetail() {
   const colors = useColors();
@@ -73,7 +75,7 @@ export default function CheckinDetail() {
 
   return (
     <Screen edges={[]}>
-      <Stack.Screen options={{ title: 'CHECK-IN' }} />
+      <Stack.Screen options={{ title: translate('CHECK-IN') }} />
       <Reveal index={0}>
         <Row gap={spacing.sm}>
           {!mine && <Avatar name={item.profiles?.username} path={item.profiles?.avatar_url} size={40} />}
@@ -118,7 +120,7 @@ export default function CheckinDetail() {
         <Reveal index={3}>
           <Card>
             <Label>{mine ? 'Notun' : 'Üyenin notu'}</Label>
-            <Body style={{ fontSize: 14.5 }}>{item.note}</Body>
+            <Body raw style={{ fontSize: 14.5 }}>{item.note}</Body>
           </Card>
         </Reveal>
       )}
@@ -134,10 +136,10 @@ export default function CheckinDetail() {
         ) : item.coach_note ? (
           <Card style={{ borderColor: colors.accent }}>
             <Label>Koçun yorumu</Label>
-            <Body style={{ fontSize: 14.5 }}>{item.coach_note}</Body>
+            <Body raw style={{ fontSize: 14.5 }}>{item.coach_note}</Body>
             {item.reviewed_at && (
               <Mono style={{ fontSize: 11.5, color: colors.textMuted }}>
-                {new Date(item.reviewed_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                {new Date(item.reviewed_at).toLocaleDateString(locale(), { day: 'numeric', month: 'long' })}
               </Mono>
             )}
           </Card>

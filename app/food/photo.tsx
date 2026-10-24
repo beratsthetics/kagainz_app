@@ -2,7 +2,8 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { MacroLine } from '@/components/bits';
 import {
@@ -29,6 +30,7 @@ import { useProgress } from '@/lib/progress';
 import { supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
+import { tx } from '@/lib/i18n';
 
 type Item = { name: string; grams: number; kcal: number; protein: number; carb: number; fat: number; scale: number };
 
@@ -135,7 +137,7 @@ export default function PhotoMacrosScreen() {
         <Card glow>
           <Row style={{ justifyContent: 'space-between' }}>
             <Label>Tahmin</Label>
-            {remaining != null && <Mono style={{ color: colors.textMuted }}>Bu ay {remaining} hak kaldı</Mono>}
+            {remaining != null && <Mono style={{ color: colors.textMuted }}>{tx('Bu ay {0} hak kaldı', [remaining])}</Mono>}
           </Row>
           <Row gap={spacing.sm}>
             <Stat label="Kalori" value={`${total.kcal}`} />

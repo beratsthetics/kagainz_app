@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { Body, Button, Card, Label, Mono, PressScale, ProgressBar, Reveal, Row, Screen, Sheet, TierBadge } from '@/components/ui';
 import { fonts, radius, spacing, tierColors } from '@/constants/theme';
@@ -8,6 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { BADGES, useProgress, type Badge } from '@/lib/progress';
 import { makeStyles, useColors } from '@/lib/theme';
 import { TIER_INFO, TIER_RANK, type Tier } from '@/lib/tiers';
+import { locale, tx } from '@/lib/i18n';
 
 const ORDER: Tier[] = ['free', 'pro', 'plus', 'max'];
 
@@ -38,7 +40,7 @@ export default function BadgesScreen() {
         return (
           <Reveal key={t} index={i + 1}>
             <Row style={{ justifyContent: 'space-between' }}>
-              <Label>{t === 'free' ? 'Herkese açık' : `${TIER_INFO[t].name} rozetleri`}</Label>
+              <Label>{t === 'free' ? 'Herkese açık' : tx('{0} rozetleri', [TIER_INFO[t].name])}</Label>
               {!reachable && <TierBadge tier={t} />}
             </Row>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm }}>
@@ -60,9 +62,7 @@ export default function BadgesScreen() {
             </Body>
             {unlocked[open.id] ? (
               <>
-                <Mono style={{ color: colors.success }}>
-                  Kazanıldı · {new Date(unlocked[open.id]).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </Mono>
+                <Mono style={{ color: colors.success }}>{tx('Kazanıldı · {0}', [new Date(unlocked[open.id]).toLocaleDateString(locale(), { day: 'numeric', month: 'long', year: 'numeric' })])}</Mono>
                 <Button
                   title="Hikâyede paylaş"
                   arrow
@@ -76,7 +76,7 @@ export default function BadgesScreen() {
               </>
             ) : TIER_RANK[tier] < TIER_RANK[open.tier] ? (
               <Button
-                title={`${TIER_INFO[open.tier].name} ile aç`}
+                title={tx('{0} ile aç', [TIER_INFO[open.tier].name])}
                 arrow
                 onPress={() => {
                   setOpen(null);

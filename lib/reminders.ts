@@ -7,6 +7,7 @@ import type { Program } from './program';
 import { useProgress } from './progress';
 import { dayKey, useStored } from './store';
 import { useWorkouts } from './workouts';
+import { tx } from './i18n';
 
 // Telefonda kurulan yerel hatırlatmalar. Ayarlar cihaza özel ("device:" anahtarı hesapla eşitlenmez).
 export type ReminderSettings = {
@@ -42,7 +43,7 @@ async function applyRepeating(s: ReminderSettings, program: Program) {
   if (s.evening) {
     await Notifications.scheduleNotificationAsync({
       identifier: 'kagainz-daily-reminder',
-      content: { title: 'Bugünü kaydettin mi?', body: 'Öğünlerini gir, serini koru 🔥' },
+      content: { title: tx('Bugünü kaydettin mi?'), body: tx('Öğünlerini gir, serini koru 🔥') },
       trigger: daily(s.eveningHour, 30),
     });
   }
@@ -50,7 +51,7 @@ async function applyRepeating(s: ReminderSettings, program: Program) {
     for (const h of WATER_HOURS) {
       await Notifications.scheduleNotificationAsync({
         identifier: `kagainz-water-${h}`,
-        content: { title: 'Su molası 💧', body: 'Bir bardak su iç, hedefe bir adım daha.', data: { route: '/' } },
+        content: { title: tx('Su molası 💧'), body: tx('Bir bardak su iç, hedefe bir adım daha.'), data: { route: '/' } },
         trigger: daily(h),
       });
     }
@@ -59,7 +60,7 @@ async function applyRepeating(s: ReminderSettings, program: Program) {
     for (const d of program.days) {
       await Notifications.scheduleNotificationAsync({
         identifier: `kagainz-workout-${d.weekday}`,
-        content: { title: `Bugün ${d.focus} günü 💪`, body: `${program.name}: ${d.exercises.length} hareket seni bekliyor.`, data: { route: '/training' } },
+        content: { title: tx('Bugün {0} günü 💪', [tx(d.focus)]), body: tx('{0}: {1} hareket seni bekliyor.', [program.name, d.exercises.length]), data: { route: '/training' } },
         // Expo'da haftanın günü 1 = pazar; programda 0 = pazar.
         trigger: { type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: d.weekday + 1, hour: s.workoutHour, minute: 0 },
       });
@@ -124,7 +125,7 @@ export function useReminderSync() {
       if (at.getTime() <= Date.now() || !(await ensurePermission(false))) return;
       await Notifications.scheduleNotificationAsync({
         identifier: STREAK_ID,
-        content: { title: `${stats.streak} günlük serin bozulmak üzere 🔥`, body: 'Bir öğün ya da antrenman gir, seri devam etsin.', data: { route: '/' } },
+        content: { title: tx('{0} günlük serin bozulmak üzere 🔥', [stats.streak]), body: tx('Bir öğün ya da antrenman gir, seri devam etsin.'), data: { route: '/' } },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
       });
     })().catch(() => {});

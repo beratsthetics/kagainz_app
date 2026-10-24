@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { Avatar, Body, Button, Card, Chip, EmptyState, Eyebrow, Hero, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, TierBadge } from '@/components/ui';
@@ -8,6 +9,7 @@ import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useLeaderboard, useLeaderboardVisible, type Board, type LeaderRow } from '@/lib/leaderboard';
 import { makeStyles, useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 const BOARDS: Record<Board, { label: string; unit: string; hint: string }> = {
   streak: { label: 'Seri', unit: 'gün', hint: 'Üst üste kayıt girilen gün sayısı.' },
@@ -102,9 +104,7 @@ export default function LeaderboardScreen() {
             </View>
           )}
           {!me && visible && (
-            <Body muted style={{ fontSize: 13, textAlign: 'center' }}>
-              Henüz bu listede değilsin. {board === 'week' ? 'Bu hafta bir antrenman bitir.' : board === 'streak' ? 'Bugün kayıt gir, serin başlasın.' : 'Bu haftanın meydan okumasını tamamla.'}
-            </Body>
+            <Body muted style={{ fontSize: 13, textAlign: 'center' }}>{tx('Henüz bu listede değilsin. {0}', [board === 'week' ? 'Bu hafta bir antrenman bitir.' : board === 'streak' ? 'Bugün kayıt gir, serin başlasın.' : 'Bu haftanın meydan okumasını tamamla.'])}</Body>
           )}
         </View>
       )}
@@ -136,7 +136,7 @@ function Podium({ rows, unit }: { rows: LeaderRow[]; unit: string }) {
             </Text>
             <View style={[styles.step, { height: heights[i] }, i === 1 && { borderColor: colors.accent, backgroundColor: colors.accentSoft }]}>
               <Text style={styles.stepValue}>{r.value}</Text>
-              <Text style={styles.stepUnit}>{unit.toLocaleUpperCase('tr-TR')}</Text>
+              <Text style={styles.stepUnit}>{unit.toLocaleUpperCase(locale())}</Text>
             </View>
           </Animated.View>
         ) : (

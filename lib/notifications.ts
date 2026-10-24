@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
 import { isSupabaseConfigured, supabase } from './supabase';
+import { tx } from './i18n';
 
 // Yerel bildirimler (dinlenme bitti; hatırlatmalar lib/reminders.ts) ve uzak bildirimler (yanıt / tepki geldi).
 // Uzak bildirim için EAS proje kimliği gerekir: `npx eas init` sonrası app.json'a eklenir.
@@ -34,7 +35,7 @@ export async function ensurePermission(ask = true): Promise<boolean> {
 export async function scheduleRestDone(seconds: number): Promise<string | null> {
   if (!supported || !(await ensurePermission(false))) return null;
   return Notifications.scheduleNotificationAsync({
-    content: { title: 'Dinlenme bitti', body: 'Sıradaki sete geç 💪', sound: true },
+    content: { title: tx('Dinlenme bitti'), body: tx('Sıradaki sete geç 💪'), sound: true },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: Math.max(1, seconds) },
   });
 }

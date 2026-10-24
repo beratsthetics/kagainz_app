@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { FlatList, KeyboardAvoidingView, Platform, View } from 'react-native';
+import { Text } from '@/components/T';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Body, GridBackground, Icon, Input, LockedCard, PressScale, Row, Screen, SkeletonList } from '@/components/ui';
@@ -9,6 +10,7 @@ import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
+import { locale, tx } from '@/lib/i18n';
 
 // Max üyesi ile koçlar arasındaki birebir mesajlaşma. Her üyenin tek bir konuşması vardır;
 // üye kendi konuşmasını "me" ile açar, koç ise üyenin kimliğiyle.
@@ -43,7 +45,7 @@ export default function DirectMessages() {
         .select('username')
         .eq('id', memberId)
         .single()
-        .then(({ data }) => data?.username && setTitle(`@${data.username}`.toLocaleUpperCase('tr-TR')));
+        .then(({ data }) => data?.username && setTitle(`@${data.username}`.toLocaleUpperCase(locale())));
     }
     const channel = supabase
       .channel(`dm:${memberId}`)
@@ -101,10 +103,10 @@ export default function DirectMessages() {
                 const coach = item.profiles?.role === 'coach';
                 return (
                   <View style={[styles.bubble, mine ? styles.mine : styles.other]}>
-                    {!mine && <Text style={styles.name}>{coach ? `Koç @${item.profiles?.username ?? ''}` : `@${item.profiles?.username ?? ''}`}</Text>}
-                    <Text style={[styles.text, mine && { color: colors.primaryText }]}>{item.body}</Text>
+                    {!mine && <Text style={styles.name}>{coach ? tx('Koç @{0}', [item.profiles?.username ?? '']) : `@${item.profiles?.username ?? ''}`}</Text>}
+                    <Text raw style={[styles.text, mine && { color: colors.primaryText }]}>{item.body}</Text>
                     <Text style={[styles.time, mine && { color: colors.primaryText, opacity: 0.55 }]}>
-                      {new Date(item.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {new Date(item.created_at).toLocaleString(locale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </Text>
                   </View>
                 );

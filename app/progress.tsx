@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import { BodyMap } from '@/components/BodyMap';
 import { BarChart, LineChart } from '@/components/Charts';
@@ -15,6 +16,7 @@ import { dayKey, daysAgo, useStored } from '@/lib/store';
 import { useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
 import { useWorkouts } from '@/lib/workouts';
+import { locale, tx } from '@/lib/i18n';
 
 const DAY_LETTERS = ['Pz', 'Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct'];
 
@@ -65,8 +67,8 @@ export default function ProgressScreen() {
     <Screen edges={[]}>
       <Reveal index={0}>
         <Row gap={spacing.sm}>
-          <Stat label="Seri" value={`${stats.streak} gün`} color={colors.fat} />
-          <Stat label="En iyi seri" value={`${stats.bestStreak} gün`} />
+          <Stat label="Seri" value={tx('{0} gün', [stats.streak])} color={colors.fat} />
+          <Stat label="En iyi seri" value={tx('{0} gün', [stats.bestStreak])} />
         </Row>
         <Row gap={spacing.sm} style={{ marginTop: spacing.sm }}>
           <Stat label="Antrenman" value={`${stats.workouts}`} color={colors.accentBright} />
@@ -94,7 +96,7 @@ export default function ProgressScreen() {
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
             <Label>Kalori</Label>
-            <Mono style={{ color: colors.textMuted }}>Ort. {avgKcal} · hedef {goals.kcal}</Mono>
+            <Mono style={{ color: colors.textMuted }}>{tx('Ort. {0} · hedef {1}', [avgKcal, goals.kcal])}</Mono>
           </Row>
           <BarChart values={days.map((d) => d.totals.kcal)} labels={labels} goal={goals.kcal} unit="kcal" />
         </Card>
@@ -104,7 +106,7 @@ export default function ProgressScreen() {
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
             <Label>Protein</Label>
-            <Mono style={{ color: colors.textMuted }}>Ort. {avgProtein} g · hedef {goals.protein} g</Mono>
+            <Mono style={{ color: colors.textMuted }}>{tx('Ort. {0} g · hedef {1} g', [avgProtein, goals.protein])}</Mono>
           </Row>
           <BarChart values={days.map((d) => d.totals.protein)} labels={labels} goal={goals.protein} unit="g" color={colors.protein} />
         </Card>
@@ -116,7 +118,7 @@ export default function ProgressScreen() {
           {shownWeights.length > 1 ? (
             <LineChart
               values={shownWeights.map((w) => w.kg)}
-              labels={shownWeights.map((w) => new Date(`${w.day}T12:00:00`).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }))}
+              labels={shownWeights.map((w) => new Date(`${w.day}T12:00:00`).toLocaleDateString(locale(), { day: 'numeric', month: 'short' }))}
               unit="kg"
             />
           ) : (
@@ -169,7 +171,7 @@ function GroupRow({ g, sets, max }: { g: MuscleGroup; sets: number; max: number 
     <View style={{ gap: 4 }}>
       <Row style={{ justifyContent: 'space-between' }}>
         <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.text }}>{g}</Text>
-        <Mono style={{ fontSize: 12 }}>{Math.round(sets)} set</Mono>
+        <Mono style={{ fontSize: 12 }}>{tx('{0} set', [Math.round(sets)])}</Mono>
       </Row>
       <ProgressBar value={sets / max} color={good ? colors.success : colors.accent} height={5} />
     </View>

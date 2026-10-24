@@ -1,7 +1,8 @@
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, View } from 'react-native';
+import { Text } from '@/components/T';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -31,6 +32,7 @@ import { useProgress } from '@/lib/progress';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
 import type { WorkoutMeta } from '@/lib/workouts';
+import { locale, tx } from '@/lib/i18n';
 
 type Kind = 'text' | 'meal' | 'workout' | 'activity' | 'photo';
 type Message = {
@@ -268,7 +270,7 @@ export default function ChatRoomScreen() {
       ({ error: err } = await supabase.from('blocks').insert({ blocker_id: me, blocked_id: m.user_id }));
       if (!err) {
         setBlocked((b) => [...b, m.user_id]);
-        setNotice(`@${m.profiles?.username ?? 'kullanıcı'} engellendi. Mesajlarını artık görmeyeceksin.`);
+        setNotice(tx('@{0} engellendi. Mesajlarını artık görmeyeceksin.', [m.profiles?.username ?? 'kullanıcı']));
       }
     } else if (what === 'pin') {
       ({ error: err } = await supabase.from('messages').update({ pinned: !m.pinned }).eq('id', m.id));
@@ -281,7 +283,7 @@ export default function ChatRoomScreen() {
       if (!err) setMessages((prev) => prev.filter((x) => x.id !== m.id));
     } else if (what === 'mute') {
       ({ error: err } = await supabase.rpc('mute_user', { target: m.user_id, minutes: 60 * 24 }));
-      if (!err) setNotice(`@${m.profiles?.username ?? 'kullanıcı'} 24 saat susturuldu.`);
+      if (!err) setNotice(tx('@{0} 24 saat susturuldu.', [m.profiles?.username ?? 'kullanıcı']));
     }
     if (err) setNotice(err.message);
   }
@@ -386,7 +388,7 @@ export default function ChatRoomScreen() {
               {replyTo && (
                 <Row gap={spacing.sm} style={styles.replyBar}>
                   <View style={{ flex: 1 }}>
-                    <Label style={{ color: colors.accentBright }}>@{replyTo.profiles?.username ?? 'anonim'} yanıtlanıyor</Label>
+                    <Label style={{ color: colors.accentBright }}>{tx('@{0} yanıtlanıyor', [replyTo.profiles?.username ?? 'anonim'])}</Label>
                     <Text numberOfLines={1} style={styles.replyText}>
                       {replyTo.body}
                     </Text>
@@ -448,7 +450,7 @@ export default function ChatRoomScreen() {
                 <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={16} color={colors.textMuted} />
                 <Body muted style={{ flex: 1, fontSize: 13.5 }}>
                   {muted
-                    ? `Bir moderatör seni ${mutedUntil!.toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} saatine kadar susturdu.`
+                    ? tx('Bir moderatör seni {0} saatine kadar susturdu.', [mutedUntil!.toLocaleString(locale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })])
                     : join?.hint}
                 </Body>
               </Row>
@@ -567,7 +569,7 @@ function MessageBubble({
   const styles = useStyles();
   const meta = KINDS.find((k) => k.kind === message.kind);
   const coach = message.profiles?.role === 'coach';
-  const time = new Date(message.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const time = new Date(message.created_at).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' });
   const ink = mine ? colors.primaryText : colors.text;
   const grouped = EMOJIS.map((e) => ({
     emoji: e,
@@ -615,7 +617,7 @@ function MessageBubble({
           {message.kind === 'workout' && message.meta ? (
             <WorkoutCard meta={message.meta} mine={mine} />
           ) : message.body !== '📷' || !message.image_path ? (
-            <Text style={[styles.text, { color: ink }]}>{message.body}</Text>
+            <Text raw style={[styles.text, { color: ink }]}>{message.body}</Text>
           ) : null}
           {message.macros && (
             <Row gap={6} style={{ flexWrap: 'wrap', marginTop: 4 }}>
@@ -660,9 +662,9 @@ function WorkoutCard({ meta, mine }: { meta: WorkoutMeta; mine: boolean }) {
     <View style={[styles.workout, mine && { borderColor: colors.overlay }]}>
       <Text style={[styles.workoutTitle, { color: ink }]}>{meta.title}</Text>
       <Row gap={spacing.md}>
-        <Mono style={{ color: ink }}>{meta.minutes} dk</Mono>
-        <Mono style={{ color: ink }}>{meta.sets} set</Mono>
-        <Mono style={{ color: ink }}>{meta.volume.toLocaleString('tr-TR')} kg</Mono>
+        <Mono style={{ color: ink }}>{tx('{0} dk', [meta.minutes])}</Mono>
+        <Mono style={{ color: ink }}>{tx('{0} set', [meta.sets])}</Mono>
+        <Mono style={{ color: ink }}>{tx('{0} kg', [meta.volume.toLocaleString(locale())])}</Mono>
       </Row>
       {meta.exercises.slice(0, 5).map((e) => (
         <Row key={e.name} style={{ justifyContent: 'space-between', gap: spacing.md }}>
@@ -685,7 +687,7 @@ function MacroPill({ label, value, color }: { label: string; value: number; colo
   const styles = useStyles();
   return (
     <View style={styles.pill}>
-      <Text style={[styles.pillText, { color }]}>{label === 'kcal' ? `${value} kcal` : `${label} ${value}g`}</Text>
+      <Text style={[styles.pillText, { color }]}>{label === 'kcal' ? tx('{0} kcal', [value]) : `${label} ${value}g`}</Text>
     </View>
   );
 }

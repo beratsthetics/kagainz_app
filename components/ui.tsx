@@ -3,24 +3,8 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useEffect, useState, type ReactNode } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  type ColorValue,
-  type DimensionValue,
-  type StyleProp,
-  type TextInputProps,
-  type TextProps,
-  type ViewStyle,
-} from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, type ColorValue, type DimensionValue, type StyleProp, type TextInputProps, type TextProps, type ViewStyle } from 'react-native';
+import { Text, translateChildren } from '@/components/T';
 import Animated, {
   FadeInDown,
   useAnimatedProps,
@@ -37,12 +21,15 @@ import { fonts, radius, spacing, tierColors } from '@/constants/theme';
 import { avatarUrl } from '@/lib/media';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
 import { makeStyles, useColors } from '@/lib/theme';
+import { locale, translate, tx } from '@/lib/i18n';
 
-// CSS textTransform Türkçe 'i' harfini 'I' yapar; büyük harfi tr-TR ile kendimiz çeviriyoruz.
+// CSS textTransform Türkçe 'i' harfini 'I' yapar; büyük harfi seçili dile göre kendimiz çeviriyoruz.
+// Önce çeviri yapılır (sözlük anahtarları normal yazımla).
 export function upper(children: ReactNode): ReactNode {
-  if (typeof children === 'string') return children.toLocaleUpperCase('tr-TR');
-  if (Array.isArray(children)) return children.map((c) => (typeof c === 'string' ? c.toLocaleUpperCase('tr-TR') : c));
-  return children;
+  const t = translateChildren(children);
+  if (typeof t === 'string') return t.toLocaleUpperCase(locale());
+  if (Array.isArray(t)) return t.map((c) => (typeof c === 'string' ? c.toLocaleUpperCase(locale()) : c));
+  return t;
 }
 
 export function tap() {
@@ -143,7 +130,8 @@ export function Hero({ lines, size = 52, bar = true }: { lines: string[]; size?:
     <View style={[{ flexDirection: 'row', gap: spacing.md }]}>
       {bar && <View style={{ width: 2, backgroundColor: colors.text, borderRadius: 1 }} />}
       <View>
-        {lines.map((l, i) => (
+        {/* Satırlar birlikte çevrilir: İngilizcede kelime sırası değişebilir ("Kodu / gir" -> "Enter / the code"). */}
+        {tx(lines.join('\n')).split('\n').map((l, i) => (
           <Text
             key={l}
             style={[
@@ -202,7 +190,7 @@ export function Heading({ children, style, ...rest }: TextProps & { children: Re
   );
 }
 
-export function Body({ children, muted, style, ...rest }: TextProps & { children: ReactNode; muted?: boolean }) {
+export function Body({ children, muted, style, ...rest }: TextProps & { children: ReactNode; muted?: boolean; raw?: boolean }) {
   const colors = useColors();
   const styles = useStyles();
   return (
@@ -393,6 +381,7 @@ export function Input({ prefix, style, ...props }: TextInputProps & { prefix?: R
       <TextInput
         placeholderTextColor={colors.textDim}
         {...props}
+        placeholder={props.placeholder == null ? undefined : translate(props.placeholder)}
         onFocus={(e) => {
           setFocused(true);
           props.onFocus?.(e);
@@ -495,7 +484,7 @@ export function Avatar({ name, size = 40, path }: { name?: string | null; size?:
   const colors = useColors();
   const [failed, setFailed] = useState(false);
   const uri = failed ? null : avatarUrl(path);
-  const letter = (name ?? '?').charAt(0).toLocaleUpperCase('tr-TR');
+  const letter = (name ?? '?').charAt(0).toLocaleUpperCase(locale());
   const box = { width: size, height: size, borderRadius: size / 2, borderWidth: 1, borderColor: colors.borderStrong } as const;
   if (uri) {
     return <Image source={{ uri }} style={[box, { backgroundColor: colors.surfaceHigh }]} contentFit="cover" transition={150} onError={() => setFailed(true)} />;
@@ -691,7 +680,7 @@ export function Stepper({
         <Icon name={{ ios: 'minus', android: 'remove', web: 'remove' }} size={16} />
       </PressScale>
       <Text style={{ fontFamily: fonts.mono, fontSize: 20, color: colors.text, minWidth: 70, textAlign: 'center' }}>
-        {value.toLocaleString('tr-TR')}
+        {value.toLocaleString(locale())}
         {suffix ? <Text style={{ fontSize: 13, color: colors.textMuted }}>{` ${suffix}`}</Text> : null}
       </Text>
       <PressScale onPress={() => onChange(Math.min(max, Math.round((value + step) * 10) / 10))} style={btn}>
@@ -742,7 +731,7 @@ export function LockedCard({ tier, title, body, onPress }: { tier: Tier; title: 
       <Body muted style={{ fontSize: 14 }}>
         {body}
       </Body>
-      <Button title={`${TIER_INFO[tier].name} ile aç`} arrow onPress={onPress} />
+      <Button title={tx('{0} ile aç', [TIER_INFO[tier].name])} arrow onPress={onPress} />
     </GradientCard>
   );
 }

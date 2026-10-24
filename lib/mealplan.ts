@@ -1,6 +1,7 @@
 import { foodByKey, type Food } from './foods';
 import type { MealSlot } from './daily';
 import type { Macros } from './macros';
+import { locale, tx } from './i18n';
 
 // Hedef makrolara göre günlük menü üretir. Her öğün bir şablondan (protein + karbonhidrat + yağ
 // kaynağı ve sabit sebze/meyve) oluşur; gramlar öğünün makro payını tutacak şekilde çözülür.
@@ -48,12 +49,12 @@ const per = (f: Food) => ({ p: f.per100g.protein / 100, c: f.per100g.carb / 100,
 function label(f: Food, grams: number) {
   if (f.unitGrams && f.unitName === 'adet' && f.unitGrams <= 130) {
     const n = Math.max(1, Math.round(grams / f.unitGrams));
-    return `${n} ${f.unitName} ${f.name.toLocaleLowerCase('tr-TR')}`;
+    return tx('{0} adet {1}', [n, tx(f.name).toLocaleLowerCase(locale())]);
   }
   if (f.unitName === 'ölçek' && f.unitGrams) {
-    return `${Math.max(1, Math.round(grams / f.unitGrams))} ölçek ${f.name.toLocaleLowerCase('tr-TR')}`;
+    return tx('{0} ölçek {1}', [Math.max(1, Math.round(grams / f.unitGrams)), tx(f.name).toLocaleLowerCase(locale())]);
   }
-  return `${grams} g ${f.name.toLocaleLowerCase('tr-TR')}`;
+  return `${grams} g ${tx(f.name).toLocaleLowerCase(locale())}`;
 }
 
 function roundGrams(f: Food, g: number) {
@@ -131,9 +132,9 @@ export function shoppingList(days: PlanDay[]) {
       const f = foodByKey(key)!;
       const amount =
         f.unitGrams && f.unitName === 'adet' && f.unitGrams <= 130
-          ? `${Math.ceil(grams / f.unitGrams)} adet`
+          ? tx('{0} adet', [Math.ceil(grams / f.unitGrams)])
           : grams >= 1000
-            ? `${(Math.ceil(grams / 100) / 10).toLocaleString('tr-TR')} kg`
+            ? tx('{0} kg', [(Math.ceil(grams / 100) / 10).toLocaleString(locale())])
             : `${Math.ceil(grams / 10) * 10} g`;
       return { key, name: f.name, amount, grams };
     })

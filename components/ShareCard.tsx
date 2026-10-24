@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { type ReactNode, type Ref } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/T';
 import Svg, { Defs, Line, Pattern, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { LOGO_BLUE, LogoMark } from '@/components/Logo';
@@ -8,6 +9,7 @@ import { fonts } from '@/constants/theme';
 import { type Macros } from '@/lib/macros';
 import { type WeekSummary } from '@/lib/week';
 import { type WorkoutMeta } from '@/lib/workouts';
+import { locale, tx } from '@/lib/i18n';
 
 // Instagram hikâyesi boyutunda (9:16) paylaşım kartı. Ekranda 360x640 çizilir,
 // paylaşırken 1080x1920 olarak kaydedilir.
@@ -29,12 +31,12 @@ const PALETTE = {
 };
 const MACRO = { protein: '#60A5FA', carb: '#4ADE80', fat: '#FBBF24' };
 
-const num = (n: number) => Math.round(n).toLocaleString('tr-TR');
+const num = (n: number) => Math.round(n).toLocaleString(locale());
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function ShareCard({ data, variant, ref }: { data: CardData; variant: CardStyle; ref?: Ref<any> }) {
   const p = PALETTE[variant];
-  const date = data.kind === 'week' ? data.week.label : data.date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
+  const date = data.kind === 'week' ? data.week.label : data.date.toLocaleDateString(locale(), { day: 'numeric', month: 'long', weekday: 'long' });
 
   return (
     <View ref={ref} collapsable={false} style={[styles.card, { backgroundColor: p.bg }]}>
@@ -48,7 +50,7 @@ export function ShareCard({ data, variant, ref }: { data: CardData; variant: Car
       </View>
 
       <View style={{ flex: 1, justifyContent: 'center', gap: 18 }}>
-        <Text style={[styles.eyebrow, { color: p.muted }]}>{date.toLocaleUpperCase('tr-TR')}</Text>
+        <Text style={[styles.eyebrow, { color: p.muted }]}>{date.toLocaleUpperCase(locale())}</Text>
         {data.kind === 'day' && <DayBody data={data} p={p} />}
         {data.kind === 'workout' && <WorkoutBody data={data} p={p} />}
         {data.kind === 'week' && <WeekBody data={data} p={p} />}
@@ -79,7 +81,7 @@ function Tile({ label, value, p, accent }: { label: string; value: string; p: P;
     <View style={[styles.tile, { backgroundColor: p.tile, borderColor: p.line }]}>
       <Row>
         {accent && <View style={[styles.dot, { backgroundColor: accent }]} />}
-        <Text style={[styles.tileLabel, { color: p.muted }]}>{label.toLocaleUpperCase('tr-TR')}</Text>
+        <Text style={[styles.tileLabel, { color: p.muted }]}>{label.toLocaleUpperCase(locale())}</Text>
       </Row>
       <Text style={[styles.tileValue, { color: p.text }]}>{value}</Text>
     </View>
@@ -111,16 +113,16 @@ function Bar({ label, value, goal, color, p }: { label: string; value: number; g
 function DayBody({ data, p }: { data: Extract<CardData, { kind: 'day' }>; p: P }) {
   return (
     <>
-      <Text style={[styles.title, { color: p.text }]}>GÜNÜMÜ{'\n'}KAPATTIM</Text>
-      <Big value={num(data.totals.kcal)} unit={`/ ${num(data.goals.kcal)} KCAL`} p={p} />
+      <Text style={[styles.title, { color: p.text }]}>{tx('GÜNÜMÜ{0}KAPATTIM', ['\n'])}</Text>
+      <Big value={num(data.totals.kcal)} unit={tx('/ {0} KCAL', [num(data.goals.kcal)])} p={p} />
       <View style={{ gap: 12 }}>
         <Bar label="PROTEİN" value={data.totals.protein} goal={data.goals.protein} color={MACRO.protein} p={p} />
         <Bar label="KARB." value={data.totals.carb} goal={data.goals.carb} color={MACRO.carb} p={p} />
         <Bar label="YAĞ" value={data.totals.fat} goal={data.goals.fat} color={MACRO.fat} p={p} />
       </View>
       <Row gap={8}>
-        <Tile label="Su" value={`${data.water}/${data.waterGoal} bardak`} p={p} />
-        <Tile label="Seri" value={`🔥 ${data.streak} gün`} p={p} />
+        <Tile label="Su" value={tx('{0}/{1} bardak', [data.water, data.waterGoal])} p={p} />
+        <Tile label="Seri" value={tx('🔥 {0} gün', [data.streak])} p={p} />
       </Row>
     </>
   );
@@ -131,11 +133,11 @@ function WorkoutBody({ data, p }: { data: Extract<CardData, { kind: 'workout' }>
   return (
     <>
       <Text style={[styles.title, { color: p.text }]} numberOfLines={2}>
-        {m.title.toLocaleUpperCase('tr-TR')}
+        {m.title.toLocaleUpperCase(locale())}
       </Text>
       <Big value={num(m.volume)} unit="KG TOPLAM" p={p} />
       <Row gap={8}>
-        <Tile label="Süre" value={`${m.minutes} dk`} p={p} />
+        <Tile label="Süre" value={tx('{0} dk', [m.minutes])} p={p} />
         <Tile label="Set" value={`${m.sets}`} p={p} />
         <Tile label="Rekor" value={m.prs.length ? `🏆 ${m.prs.length}` : '–'} p={p} />
       </Row>
@@ -148,7 +150,7 @@ function WorkoutBody({ data, p }: { data: Extract<CardData, { kind: 'workout' }>
             <Text style={[styles.mono, { color: p.muted }]}>{e.best}</Text>
           </View>
         ))}
-        {m.exercises.length > 5 && <Text style={[styles.more, { color: p.muted }]}>+{m.exercises.length - 5} hareket daha</Text>}
+        {m.exercises.length > 5 && <Text style={[styles.more, { color: p.muted }]}>{tx('+{0} hareket daha', [m.exercises.length - 5])}</Text>}
       </View>
     </>
   );
@@ -161,7 +163,7 @@ function WeekBody({ data, p }: { data: Extract<CardData, { kind: 'week' }>; p: P
   const delta = w.weightStart != null && w.weightEnd != null ? Math.round((w.weightEnd - w.weightStart) * 10) / 10 : null;
   return (
     <>
-      <Text style={[styles.title, { color: p.text }]}>HAFTAMIN{'\n'}ÖZETİ</Text>
+      <Text style={[styles.title, { color: p.text }]}>{tx('HAFTAMIN{0}ÖZETİ', ['\n'])}</Text>
       <Big value={`${w.workouts}`} unit={w.workouts === 1 ? 'ANTRENMAN' : 'ANTRENMAN'} p={p} />
       <Row gap={6}>
         {w.days.map((d, i) => (
@@ -183,8 +185,8 @@ function WeekBody({ data, p }: { data: Extract<CardData, { kind: 'week' }>; p: P
         <Tile label="Ort. protein" value={w.avgProtein ? `${num(w.avgProtein)} g` : '–'} p={p} accent={MACRO.protein} />
       </Row>
       <Row gap={8}>
-        <Tile label="Hacim" value={w.volume ? `${num(w.volume)} kg` : '–'} p={p} />
-        <Tile label="Kilo" value={delta == null ? '–' : `${delta > 0 ? '+' : ''}${delta.toLocaleString('tr-TR')} kg`} p={p} />
+        <Tile label="Hacim" value={w.volume ? tx('{0} kg', [num(w.volume)]) : '–'} p={p} />
+        <Tile label="Kilo" value={delta == null ? '–' : tx('{0}{1} kg', [delta > 0 ? '+' : '', delta.toLocaleString(locale())])} p={p} />
         <Tile label="Seri" value={`🔥 ${w.streak}`} p={p} />
       </Row>
     </>
@@ -199,12 +201,10 @@ function BadgeBody({ data, p }: { data: Extract<CardData, { kind: 'badge' }>; p:
         <Text style={{ fontSize: 96, lineHeight: 116 }}>{data.emoji}</Text>
       </View>
       <Text style={[styles.title, { color: p.text, textAlign: 'center' }]} numberOfLines={2}>
-        {data.title.toLocaleUpperCase('tr-TR')}
+        {data.title.toLocaleUpperCase(locale())}
       </Text>
       <Text style={[styles.listName, { color: p.muted, textAlign: 'center' }]}>{data.description}</Text>
-      <Text style={[styles.mono, { color: p.muted }]}>
-        KOLEKSİYON {data.earned}/{data.total}
-      </Text>
+      <Text style={[styles.mono, { color: p.muted }]}>{tx('KOLEKSİYON {0}/{1}', [data.earned, data.total])}</Text>
     </View>
   );
 }

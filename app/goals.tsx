@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/T';
 
 import {
   Body,
@@ -23,6 +24,7 @@ import { useDaily } from '@/lib/daily';
 import { ACTIVITY, calculateGoals, GOALS, tdee, waterGoalGlasses, type Activity, type BodyProfile, type GoalType, type WeightLog } from '@/lib/goals';
 import { dayKey, useStored } from '@/lib/store';
 import { makeStyles, useColors } from '@/lib/theme';
+import { locale, tx } from '@/lib/i18n';
 
 export default function GoalsScreen() {
   const colors = useColors();
@@ -58,9 +60,7 @@ export default function GoalsScreen() {
         <Reveal index={1}>
           <Card style={{ borderColor: colors.accent }}>
             <Label>Koçunun belirlediği hedef</Label>
-            <Body style={{ fontSize: 14.5 }}>
-              {coachGoals.kcal.toLocaleString('tr-TR')} kcal · {coachGoals.protein} g protein · {coachGoals.carb} g karb. · {coachGoals.fat} g yağ
-            </Body>
+            <Body style={{ fontSize: 14.5 }}>{tx('{0} kcal · {1} g protein · {2} g karb. · {3} g yağ', [coachGoals.kcal.toLocaleString(locale()), coachGoals.protein, coachGoals.carb, coachGoals.fat])}</Body>
             {coachGoals.note && <Body muted style={{ fontSize: 13.5 }}>{coachGoals.note}</Body>}
             <Body muted style={{ fontSize: 12.5 }}>
               Koçun hedef atadığı sürece günlük hedefin bu. Aşağıdaki bilgiler su hedefi ve kilo takibi için kullanılır.
@@ -114,7 +114,7 @@ export default function GoalsScreen() {
                 onPress={() => set('goal', g)}
                 style={[styles.goal, p.goal === g && { borderColor: colors.accent, backgroundColor: colors.accentSoft }]}>
                 <Text style={[styles.goalTitle, p.goal === g && { color: colors.accentBright }]}>
-                  {GOALS[g].label.toLocaleUpperCase('tr-TR')}
+                  {GOALS[g].label.toLocaleUpperCase(locale())}
                 </Text>
                 <Text style={styles.goalHint}>{GOALS[g].hint}</Text>
               </PressScale>
@@ -127,10 +127,10 @@ export default function GoalsScreen() {
         <Card glow>
           <Row style={{ justifyContent: 'space-between' }}>
             <Label>Günlük hedefin</Label>
-            <Mono style={{ color: colors.textMuted }}>Harcama ≈ {Math.round(tdee(p))} kcal</Mono>
+            <Mono style={{ color: colors.textMuted }}>{tx('Harcama ≈ {0} kcal', [Math.round(tdee(p))])}</Mono>
           </Row>
           <Text style={styles.kcal}>
-            {goals.kcal.toLocaleString('tr-TR')}
+            {goals.kcal.toLocaleString(locale())}
             <Text style={{ fontSize: 18, color: colors.textMuted }}> kcal</Text>
           </Text>
           <Row gap={spacing.sm}>
@@ -138,9 +138,7 @@ export default function GoalsScreen() {
             <Stat label="Karb." value={`${goals.carb} g`} color={colors.carb} />
             <Stat label="Yağ" value={`${goals.fat} g`} color={colors.fat} />
           </Row>
-          <Body muted style={{ fontSize: 12.5 }}>
-            Su hedefi: {waterGoalGlasses(p.weightKg)} bardak. Mifflin-St Jeor formülü; kilo değişiminde yeniden hesapla.
-          </Body>
+          <Body muted style={{ fontSize: 12.5 }}>{tx('Su hedefi: {0} bardak. Mifflin-St Jeor formülü; kilo değişiminde yeniden hesapla.', [waterGoalGlasses(p.weightKg)])}</Body>
           <Button title="Hedefimi kaydet" arrow onPress={save} />
         </Card>
       </Reveal>
