@@ -1,31 +1,21 @@
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { Tabs } from 'expo-router';
-import { Platform, type ColorValue } from 'react-native';
+import { type ColorValue } from 'react-native';
 
+import { TabBar } from '@/components/TabBar';
 import { tap } from '@/components/ui';
-import { fonts } from '@/constants/theme';
-import { useColors } from '@/lib/theme';
 import { translate } from '@/lib/i18n';
 
 function icon(name: SymbolViewProps['name']) {
-  return ({ color }: { color: ColorValue }) => <SymbolView name={name} tintColor={color} size={24} />;
+  return ({ color }: { color: ColorValue }) => <SymbolView name={name} tintColor={color} size={22} />;
 }
 
 export default function TabLayout() {
-  const colors = useColors();
   return (
     <Tabs
       screenListeners={{ tabPress: tap }}
+      tabBar={(props) => <TabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: colors.text,
-        tabBarInactiveTintColor: colors.textDim,
-        tabBarStyle: {
-          backgroundColor: colors.overlay,
-          borderTopColor: colors.border,
-          height: Platform.OS === 'ios' ? 88 : 68,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: { fontFamily: fonts.bodyBold, fontSize: 9.5, letterSpacing: 0.2, lineHeight: 14 },
         // Her ekranın kendi büyük başlığı var, üst bar gerekmiyor.
         headerShown: false,
       }}>
