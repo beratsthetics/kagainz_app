@@ -74,6 +74,7 @@ export type Equipment = 'Barbell' | 'Dumbbell' | 'Makine' | 'Kablo' | 'Vücut a�
 
 export type Exercise = {
   id: string;
+  // name: Türkçe adı (aramada ve hareket sayfasında alt başlık). trName: uygulamada gösterilen İngilizce adı.
   name: string;
   trName: string;
   primary: Muscle[];
@@ -89,8 +90,8 @@ export const EXERCISES: Exercise[] = [
   // Göğüs
   {
     id: 'bench_press',
-    name: 'Bench press',
-    trName: 'Düz bench press',
+    name: 'Düz bench press',
+    trName: 'Barbell bench press',
     primary: ['chest'],
     secondary: ['front_delts', 'triceps'],
     equipment: 'Barbell',
@@ -106,8 +107,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'incline_smith_press',
-    name: 'Smith machine incline press',
-    trName: 'Smith eğimli press',
+    name: 'Smith eğimli press',
+    trName: 'Smith machine incline press',
     primary: ['chest'],
     secondary: ['front_delts', 'triceps'],
     equipment: 'Smith',
@@ -122,8 +123,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'incline_db_press',
-    name: 'Incline dumbbell press',
-    trName: 'Eğimli dumbbell press',
+    name: 'Eğimli dumbbell press',
+    trName: 'Incline dumbbell press',
     primary: ['chest'],
     secondary: ['front_delts', 'triceps'],
     equipment: 'Dumbbell',
@@ -138,8 +139,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'chest_press',
-    name: 'Chest press',
-    trName: 'Makine göğüs press',
+    name: 'Makine göğüs press',
+    trName: 'Machine chest press',
     primary: ['chest'],
     secondary: ['front_delts', 'triceps'],
     equipment: 'Makine',
@@ -155,8 +156,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'machine_fly',
-    name: 'Machine chest fly',
-    trName: 'Makine fly (pec deck)',
+    name: 'Makine fly (pec deck)',
+    trName: 'Pec deck fly',
     primary: ['chest'],
     secondary: ['front_delts'],
     equipment: 'Makine',
@@ -171,8 +172,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'cable_crossover',
-    name: 'Cable crossover',
-    trName: 'Kablo crossover',
+    name: 'Kablo crossover',
+    trName: 'Cable crossover',
     primary: ['chest'],
     secondary: ['front_delts'],
     equipment: 'Kablo',
@@ -187,8 +188,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'pushup',
-    name: 'Push-up',
-    trName: 'Şınav',
+    name: 'Şınav',
+    trName: 'Push-up',
     primary: ['chest'],
     secondary: ['triceps', 'front_delts', 'abs'],
     equipment: 'Vücut ağırlığı',
@@ -202,8 +203,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'dip',
-    name: 'Dips',
-    trName: 'Paralel bar dips',
+    name: 'Paralel bar dips',
+    trName: 'Parallel bar dips',
     primary: ['triceps', 'chest'],
     secondary: ['front_delts'],
     equipment: 'Vücut ağırlığı',
@@ -235,8 +236,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'pullup',
-    name: 'Pull-up',
-    trName: 'Barfiks',
+    name: 'Barfiks',
+    trName: 'Pull-up',
     primary: ['lats'],
     secondary: ['biceps', 'rear_delts', 'forearms'],
     equipment: 'Vücut ağırlığı',
@@ -251,8 +252,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'seated_row',
-    name: 'Seated cable row',
-    trName: 'Oturarak kablo row',
+    name: 'Oturarak kablo row',
+    trName: 'Seated cable row',
     primary: ['lats', 'traps'],
     secondary: ['biceps', 'rear_delts'],
     equipment: 'Kablo',
@@ -284,8 +285,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'db_row',
-    name: 'One-arm dumbbell row',
-    trName: 'Tek kol dumbbell row',
+    name: 'Tek kol dumbbell row',
+    trName: 'Single-arm dumbbell row',
     primary: ['lats'],
     secondary: ['rear_delts', 'biceps', 'traps'],
     equipment: 'Dumbbell',
@@ -299,8 +300,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'straight_arm_pulldown',
-    name: 'Straight arm pulldown',
-    trName: 'Düz kol pulldown',
+    name: 'Düz kol pulldown',
+    trName: 'Straight-arm pulldown',
     primary: ['lats'],
     secondary: ['triceps'],
     equipment: 'Kablo',
@@ -343,8 +344,8 @@ export const EXERCISES: Exercise[] = [
   // Omuz
   {
     id: 'overhead_press',
-    name: 'Overhead press',
-    trName: 'Ayakta omuz press',
+    name: 'Ayakta omuz press',
+    trName: 'Standing overhead press',
     primary: ['front_delts'],
     secondary: ['side_delts', 'triceps', 'traps'],
     equipment: 'Barbell',
@@ -359,8 +360,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'db_shoulder_press',
-    name: 'Seated dumbbell press',
-    trName: 'Oturarak dumbbell omuz press',
+    name: 'Oturarak dumbbell omuz press',
+    trName: 'Seated dumbbell shoulder press',
     primary: ['front_delts'],
     secondary: ['side_delts', 'triceps'],
     equipment: 'Dumbbell',
@@ -375,8 +376,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'lateral_raise',
-    name: 'Lateral raise',
-    trName: 'Yana açış',
+    name: 'Yana açış',
+    trName: 'Dumbbell lateral raise',
     primary: ['side_delts'],
     secondary: ['traps'],
     equipment: 'Dumbbell',
@@ -392,8 +393,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'cable_lateral',
-    name: 'Cable lateral raise',
-    trName: 'Kablo yana açış',
+    name: 'Kablo yana açış',
+    trName: 'Cable lateral raise',
     primary: ['side_delts'],
     secondary: [],
     equipment: 'Kablo',
@@ -407,8 +408,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'rear_delt_fly',
-    name: 'Reverse pec deck',
-    trName: 'Ters fly (arka omuz)',
+    name: 'Ters fly (arka omuz)',
+    trName: 'Reverse pec deck',
     primary: ['rear_delts'],
     secondary: ['traps'],
     equipment: 'Makine',
@@ -454,8 +455,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'hammer_curl',
-    name: 'Hammer curl',
-    trName: 'Çekiç curl',
+    name: 'Çekiç curl',
+    trName: 'Hammer curl',
     primary: ['biceps', 'forearms'],
     secondary: [],
     equipment: 'Dumbbell',
@@ -469,8 +470,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'incline_curl',
-    name: 'Incline dumbbell curl',
-    trName: 'Eğimli dumbbell curl',
+    name: 'Eğimli dumbbell curl',
+    trName: 'Incline dumbbell curl',
     primary: ['biceps'],
     secondary: [],
     equipment: 'Dumbbell',
@@ -485,7 +486,7 @@ export const EXERCISES: Exercise[] = [
   {
     id: 'triceps_pushdown',
     name: 'Triceps pushdown',
-    trName: 'Triceps pushdown',
+    trName: 'Cable triceps pushdown',
     primary: ['triceps'],
     secondary: [],
     equipment: 'Kablo',
@@ -500,8 +501,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'overhead_extension',
-    name: 'Overhead cable extension',
-    trName: 'Baş üstü triceps extension',
+    name: 'Baş üstü triceps extension',
+    trName: 'Overhead cable triceps extension',
     primary: ['triceps'],
     secondary: [],
     equipment: 'Kablo',
@@ -516,8 +517,8 @@ export const EXERCISES: Exercise[] = [
   // Bacak
   {
     id: 'squat',
-    name: 'Back squat',
-    trName: 'Squat',
+    name: 'Squat',
+    trName: 'Barbell back squat',
     primary: ['quads', 'glutes'],
     secondary: ['adductors', 'hamstrings', 'lower_back'],
     equipment: 'Barbell',
@@ -563,8 +564,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'bulgarian_split_squat',
-    name: 'Bulgarian split squat',
-    trName: 'Bulgar split squat',
+    name: 'Bulgar split squat',
+    trName: 'Bulgarian split squat',
     primary: ['quads', 'glutes'],
     secondary: ['adductors'],
     equipment: 'Dumbbell',
@@ -578,8 +579,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'rdl',
-    name: 'Romanian deadlift',
-    trName: 'Romen deadlift',
+    name: 'Romen deadlift',
+    trName: 'Romanian deadlift',
     primary: ['hamstrings', 'glutes'],
     secondary: ['lower_back'],
     equipment: 'Barbell',
@@ -594,7 +595,7 @@ export const EXERCISES: Exercise[] = [
   {
     id: 'hip_thrust',
     name: 'Hip thrust',
-    trName: 'Hip thrust',
+    trName: 'Barbell hip thrust',
     primary: ['glutes'],
     secondary: ['hamstrings'],
     equipment: 'Barbell',
@@ -624,8 +625,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'lying_leg_curl',
-    name: 'Lying leg curl',
-    trName: 'Yatarak leg curl',
+    name: 'Yatarak leg curl',
+    trName: 'Lying leg curl',
     primary: ['hamstrings'],
     secondary: ['calves'],
     equipment: 'Makine',
@@ -639,8 +640,8 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'standing_calf_raise',
-    name: 'Standing calf raise',
-    trName: 'Ayakta kalf raise',
+    name: 'Ayakta kalf raise',
+    trName: 'Standing calf raise',
     primary: ['calves'],
     secondary: [],
     equipment: 'Makine',
@@ -656,8 +657,8 @@ export const EXERCISES: Exercise[] = [
   // Karın
   {
     id: 'cable_crunch',
-    name: 'Cable crunch',
-    trName: 'Kablo crunch',
+    name: 'Kablo crunch',
+    trName: 'Cable crunch',
     primary: ['abs'],
     secondary: ['obliques'],
     equipment: 'Kablo',

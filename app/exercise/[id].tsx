@@ -59,7 +59,8 @@ export default function ExerciseScreen() {
           <Tag color={colors.textMuted} bg={colors.surfaceAlt}>
             {ex.equipment}
           </Tag>
-          {ex.name !== ex.trName && <Text style={styles.en}>{ex.name}</Text>}
+          {/* Türkçe adı, sadece Türkçe arayüzde. */}
+          {ex.name !== ex.trName && locale() === 'tr-TR' && <Text raw style={styles.en}>{ex.name}</Text>}
         </Row>
       </Reveal>
 
