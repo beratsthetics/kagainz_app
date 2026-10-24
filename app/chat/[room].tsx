@@ -5,6 +5,8 @@ import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, ScrollView
 import { Text } from '@/components/T';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AvatarRing } from '@/components/BadgeMedal';
+import type { Tier } from '@/lib/tiers';
 import {
   Avatar,
   Body,
@@ -50,7 +52,7 @@ type Message = {
   hidden: boolean;
   created_at: string;
   user_id: string;
-  profiles: { username: string | null; role: string | null; avatar_url?: string | null; xp?: number } | null;
+  profiles: { username: string | null; role: string | null; avatar_url?: string | null; xp?: number; tier?: Tier } | null;
   // Max üyelerin sesli mesajı (0009).
   audio_path?: string | null;
   audio_ms?: number | null;
@@ -635,7 +637,11 @@ function MessageBubble({
 
   return (
     <Row gap={spacing.sm} style={{ alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
-      {!mine && <Avatar name={message.profiles?.username} path={message.profiles?.avatar_url} size={32} />}
+      {!mine && (
+        <AvatarRing tier={message.profiles?.tier} xp={xp} size={32} still>
+          <Avatar name={message.profiles?.username} path={message.profiles?.avatar_url} size={32} />
+        </AvatarRing>
+      )}
       <View style={{ maxWidth: '80%', gap: 4, alignItems: mine ? 'flex-end' : 'flex-start' }}>
         <LevelFrame xp={xp} radius={mine ? styles.frameMine : styles.frameOther}>
         <PressScale

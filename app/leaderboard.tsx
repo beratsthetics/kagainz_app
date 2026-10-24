@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { Text } from '@/components/T';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
+import { AvatarRing } from '@/components/BadgeMedal';
 import { Avatar, Body, Button, Card, Chip, EmptyState, Eyebrow, Hero, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, TierBadge } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -128,7 +129,9 @@ function Podium({ rows, unit }: { rows: LeaderRow[]; unit: string }) {
         r ? (
           <Animated.View key={r.user_id} entering={FadeInUp.delay(120 + i * 90).springify()} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
             <PressScale onPress={() => openProfile(r)}>
-              <Avatar name={r.username} path={r.avatar_url} size={i === 1 ? 68 : 54} />
+              <AvatarRing tier={r.tier} size={i === 1 ? 68 : 54}>
+                <Avatar name={r.username} path={r.avatar_url} size={i === 1 ? 68 : 54} />
+              </AvatarRing>
               <Text style={styles.medal}>{MEDAL[r.rank - 1] ?? ''}</Text>
             </PressScale>
             <Text style={[styles.podiumName, r.is_me && { color: colors.accentBright }]} numberOfLines={1}>
@@ -154,7 +157,9 @@ function RowItem({ row, unit }: { row: LeaderRow; unit: string }) {
     <PressScale onPress={() => openProfile(row)}>
       <View style={[styles.row, row.is_me && { borderColor: colors.accent, backgroundColor: colors.accentSoft }]}>
         <Text style={styles.rank}>{row.rank}</Text>
-        <Avatar name={row.username} path={row.avatar_url} size={36} />
+        <AvatarRing tier={row.tier} size={36} still>
+          <Avatar name={row.username} path={row.avatar_url} size={36} />
+        </AvatarRing>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={styles.name} numberOfLines={1}>
             @{row.username}

@@ -15,7 +15,7 @@ import { Text } from '@/components/T';
 import { fonts, radius as radii, tierColors } from '@/constants/theme';
 import type { Badge } from '@/lib/progress';
 import { tx } from '@/lib/i18n';
-import { LEVEL_BANDS, levelOf, type LevelBand } from '@/lib/levels';
+import { bandOf, LEVEL_BANDS, levelOf, type LevelBand } from '@/lib/levels';
 import { useColors } from '@/lib/theme';
 import type { Tier } from '@/lib/tiers';
 
@@ -173,6 +173,34 @@ export function LevelMedals({ xp, size = 46 }: { xp: number | null | undefined; 
           </View>
         );
       })}
+    </View>
+  );
+}
+
+// Profil fotoğrafı halkası. Pro, Plus ve Max'ta paket renginde döner (Plus dalga, Max kıvılcım da ekler);
+// ücretsizde Lv 10 ve üstü seviye renginde sabit halka. still: uzun listelerde (chat) animasyonsuz.
+export function AvatarRing({ tier, xp, size, still, children }: { tier?: Tier | null; xp?: number | null; size: number; still?: boolean; children: ReactNode }) {
+  const band = bandOf(levelOf(xp));
+  const paid = tier != null && tier !== 'free';
+  const ring: Ring | null = paid ? tierColors[tier] : band.glow ? bandRing(band) : null;
+  if (!ring) return <>{children}</>;
+  const fx: MedalFx = paid && !still ? TIER_FX[tier] : 'none';
+  const edge = Math.max(2, Math.round(size * 0.05));
+  const outer = size + edge * 2;
+  const round = { width: outer, height: outer, borderRadius: outer / 2 };
+  const spins = fx === 'spin' || fx === 'royal';
+  return (
+    <View style={round}>
+      {spins && <Halo size={outer} color={ring[0]} delay={0} />}
+      <View style={[round, { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }]}>
+        {fx === 'none' ? (
+          <LinearGradient colors={ring} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        ) : (
+          <Spin width={outer} height={outer} ring={ring} duration={fx === 'shine' ? 5000 : 3600} />
+        )}
+        {children}
+      </View>
+      {fx === 'royal' && <Sparkles size={outer} color={ring[ring.length - 1]} delay={0} />}
     </View>
   );
 }

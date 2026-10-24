@@ -160,19 +160,25 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (!fresh.length) return;
     const now = new Date().toISOString();
     setUnlocked((prev) => ({ ...prev, ...Object.fromEntries(fresh.map((b) => [b.id, now])) }));
-    fresh.forEach((b) => celebrate({ title: tx('Rozet: {0}', [b.title]), subtitle: b.description, emoji: b.emoji }));
+    fresh.forEach((b) => celebrate({ title: tx('Rozet: {0}', [b.title]), subtitle: b.description, emoji: b.emoji, badge: b }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stats, tier, activityLoaded, unlockedLoaded]);
+
+  // Paket rozetleri sadece o paket (ya da üstü) sürerken görünür ve paylaşılır; kayıt silinmez, paket dönünce geri gelir.
+  const owned = useMemo(
+    () => Object.fromEntries(Object.entries(unlocked).filter(([id]) => BADGES.some((b) => b.id === id && TIER_RANK[tier] >= TIER_RANK[b.tier]))),
+    [unlocked, tier],
+  );
 
   const value = useMemo<ProgressState>(
     () => ({
       stats,
       activity,
-      unlocked,
+      unlocked: owned,
       bump: (counter, by = 1) => setCounters((prev) => ({ ...prev, [counter]: (prev[counter] ?? 0) + by })),
       markWorkout: () => patchToday((d) => ({ ...d, w: (d.w ?? 0) + 1 })),
     }),
-    [stats, activity, unlocked, setCounters, patchToday],
+    [stats, activity, owned, setCounters, patchToday],
   );
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;

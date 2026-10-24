@@ -2,7 +2,7 @@ import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Switch, View } from 'react-native';
 import { Text } from '@/components/T';
-import { BadgeMedal, LevelMedals, TierFrame } from '@/components/BadgeMedal';
+import { AvatarRing, BadgeMedal, LevelMedals, TierFrame } from '@/components/BadgeMedal';
 import { LevelBadge, LevelProgress } from '@/components/Level';
 import { shownXp } from '@/lib/levels';
 
@@ -245,7 +245,7 @@ function Goal({ label, value, color }: { label: string; value: string; color?: s
 function ProfilePhoto() {
   const colors = useColors();
   const styles = useStyles();
-  const { session, profile, refreshProfile } = useAuth();
+  const { session, profile, tier, refreshProfile } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const userId = session?.user.id;
@@ -274,7 +274,9 @@ function ProfilePhoto() {
   return (
     <View style={{ alignItems: 'center', gap: 6 }}>
       <PressScale onPress={change}>
-        <Avatar name={profile?.username} path={profile?.avatar_url} size={88} />
+        <AvatarRing tier={tier} xp={shownXp(profile?.xp, profile?.role)} size={88}>
+          <Avatar name={profile?.username} path={profile?.avatar_url} size={88} />
+        </AvatarRing>
         <View style={styles.camera}>
           {busy ? (
             <ActivityIndicator size="small" color={colors.primaryText} />

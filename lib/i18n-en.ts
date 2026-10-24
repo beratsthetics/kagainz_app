@@ -1138,6 +1138,7 @@ export const EN: Record<string, string> = {
   "Hesabın oluşturuldu. {0} adresine gelen onay linkine tıkla, sonra giriş yap.": "Account created. Click the confirmation link sent to {0}, then sign in.",
   "Hesabın oluşturuldu. Şimdi giriş yap.": "Account created. Now sign in.",
   "Pro üyesi ol": "Become a Pro member",
+  "Yeni rozet": "New badge",
   "Plus üyesi ol": "Become a Plus member",
   "Seviye rozetleri": "Level badges",
   "Pro, Plus ve Max'ta rozetlerin parlar, vitrinin canlanır.": "On Pro, Plus and Max your badges shine and your showcase comes alive.",

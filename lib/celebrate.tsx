@@ -1,24 +1,32 @@
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Dimensions, Platform, StyleSheet, View } from 'react-native';
+import { Dimensions, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/T';
 import Animated, {
   Easing,
+  FadeIn,
   FadeInUp,
+  FadeOut,
   FadeOutUp,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { fonts, radius, spacing } from '@/constants/theme';
+import { BadgeMedal } from '@/components/BadgeMedal';
+import { Button, PressScale } from '@/components/ui';
+import { fonts, radius, spacing, tierColors } from '@/constants/theme';
 
 import { useColors } from './theme';
 import { locale, tx } from './i18n';
+import type { Badge } from './progress';
 
-export type Celebration = { title: string; subtitle?: string; emoji?: string };
+// badge verilirse üstteki kart yerine tam ekran madalya açılır.
+export type Celebration = { title: string; subtitle?: string; emoji?: string; badge?: Badge };
 
 const CelebrateContext = createContext<(c: Celebration) => void>(() => {});
 
@@ -35,8 +43,13 @@ export function CelebrateProvider({ children }: { children: ReactNode }) {
     if (!next) return setCurrent(null);
     setCurrent({ ...next, id: Date.now() });
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    timer.current = setTimeout(showNext, 3200);
+    timer.current = setTimeout(showNext, next.badge ? 8000 : 3200);
   }, []);
+
+  const close = useCallback(() => {
+    clearTimeout(timer.current);
+    showNext();
+  }, [showNext]);
 
   const celebrate = useCallback(
     (c: Celebration) => {
@@ -51,7 +64,12 @@ export function CelebrateProvider({ children }: { children: ReactNode }) {
   return (
     <CelebrateContext.Provider value={celebrate}>
       {children}
-      {current && <CelebrationOverlay key={current.id} c={current} />}
+      {current &&
+        (current.badge ? (
+          <BadgeReveal key={current.id} badge={current.badge} onClose={close} />
+        ) : (
+          <CelebrationOverlay key={current.id} c={current} />
+        ))}
     </CelebrateContext.Provider>
   );
 }
@@ -85,6 +103,54 @@ function CelebrationOverlay({ c }: { c: Celebration }) {
         </View>
       </Animated.View>
     </View>
+  );
+}
+
+// Yeni rozet: madalya dönerek büyür, arkasında paket renginde ışık, altında paylaş butonu.
+function BadgeReveal({ badge, onClose }: { badge: Badge; onClose: () => void }) {
+  const colors = useColors();
+  const tint = tierColors[badge.tier];
+  const palette = [tint[0], tint[1], colors.text, colors.accentBright];
+  const s = useSharedValue(0);
+  useEffect(() => {
+    s.value = withSpring(1, { damping: 12, stiffness: 110 });
+  }, [s]);
+  const pop = useAnimatedStyle(() => ({
+    transform: [{ perspective: 800 }, { scale: 0.3 + 0.7 * s.value }, { rotateY: `${(1 - s.value) * 540}deg` }],
+  }));
+  const glow = useAnimatedStyle(() => ({ opacity: 0.2 * Math.min(1, s.value), transform: [{ scale: 0.6 + 0.6 * s.value }] }));
+  return (
+    <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={[StyleSheet.absoluteFill, styles.reveal]}>
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      {Array.from({ length: PIECES }, (_, i) => (
+        <Piece key={i} color={palette[i % palette.length]} />
+      ))}
+      <View style={styles.revealBody} pointerEvents="box-none">
+        <View style={styles.medalBox} pointerEvents="none">
+          <Animated.View style={[styles.glow, { backgroundColor: tint[1] }, glow]} />
+          <Animated.View style={pop}>
+            <BadgeMedal badge={badge} earned size={150} />
+          </Animated.View>
+        </View>
+        <Text style={[styles.eyebrow, { color: tint[0] }]}>{tx('Yeni rozet').toLocaleUpperCase(locale())}</Text>
+        <Text style={styles.revealTitle}>{tx(badge.title).toLocaleUpperCase(locale())}</Text>
+        <Text style={styles.revealText}>{badge.description}</Text>
+        <View style={{ alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.md }}>
+          <Button
+            title="Hikâyede paylaş"
+            arrow
+            icon={{ ios: 'square.and.arrow.up', android: 'share', web: 'share' }}
+            onPress={() => {
+              onClose();
+              router.push({ pathname: '/share', params: { kind: 'badge', id: badge.id } });
+            }}
+          />
+          <PressScale onPress={onClose} style={{ alignSelf: 'center', padding: spacing.sm }}>
+            <Text style={styles.revealClose}>Kapat</Text>
+          </PressScale>
+        </View>
+      </View>
+    </Animated.View>
   );
 }
 
@@ -147,6 +213,14 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   emoji: { fontSize: 34 },
+  reveal: { backgroundColor: 'rgba(5,6,8,0.88)', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
+  revealBody: { width: '100%', maxWidth: 420, alignItems: 'center', paddingHorizontal: spacing.lg, gap: 6 },
+  medalBox: { width: 220, height: 220, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
+  glow: { position: 'absolute', width: 220, height: 220, borderRadius: 110 },
+  eyebrow: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2 },
+  revealTitle: { fontFamily: fonts.display, fontSize: 38, color: '#F4F4F5', textAlign: 'center' },
+  revealText: { fontFamily: fonts.body, fontSize: 15, color: '#A1A1AA', textAlign: 'center' },
+  revealClose: { fontFamily: fonts.bodyBold, fontSize: 14, color: '#A1A1AA' },
   title: { fontFamily: fonts.display, fontSize: 20, letterSpacing: 0.4 },
   subtitle: { fontFamily: fonts.body, fontSize: 13.5, marginTop: 2 },
 });

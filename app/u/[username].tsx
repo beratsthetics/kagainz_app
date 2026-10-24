@@ -5,6 +5,7 @@ import { Text } from '@/components/T';
 import { LevelBadge, LevelName } from '@/components/Level';
 import { shownXp } from '@/lib/levels';
 
+import { AvatarRing } from '@/components/BadgeMedal';
 import { Avatar, Body, Button, Card, EmptyState, Label, PressScale, Reveal, Row, Screen, SkeletonList, Tag, TierBadge } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -65,7 +66,9 @@ export default function UserProfile() {
       <Stack.Screen options={{ title: `@${profile.username}`.toLocaleUpperCase(locale()) }} />
       <Reveal index={0}>
         <View style={{ alignItems: 'center', gap: spacing.sm }}>
-          <Avatar name={profile.username} path={profile.avatar_url} size={96} />
+          <AvatarRing tier={profile.tier} xp={shownXp(profile.xp, profile.role)} size={96}>
+            <Avatar name={profile.username} path={profile.avatar_url} size={96} />
+          </AvatarRing>
           <Row gap={6}>
             <LevelName username={profile.username} xp={shownXp(profile.xp, profile.role)} style={{ fontFamily: fonts.display, fontSize: 28, color: colors.text }} />
             {profile.tier !== 'free' && <TierBadge tier={profile.tier} />}

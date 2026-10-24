@@ -3,6 +3,8 @@ import { View } from 'react-native';
 import { Text } from '@/components/T';
 
 import { MacroBar, StreakPill, ThemeToggle, WaterTracker } from '@/components/bits';
+import { AvatarRing } from '@/components/BadgeMedal';
+import { shownXp } from '@/lib/levels';
 import {
   Avatar,
   Body,
@@ -104,7 +106,9 @@ export default function TodayScreen() {
           <Row gap={spacing.sm}>
             <ThemeToggle />
             <PressScale onPress={() => router.push(session ? '/profile' : '/auth')}>
-              <Avatar name={profile?.username ?? 'K'} path={profile?.avatar_url} size={42} />
+              <AvatarRing tier={session ? tier : null} xp={shownXp(profile?.xp, profile?.role)} size={42}>
+                <Avatar name={profile?.username ?? 'K'} path={profile?.avatar_url} size={42} />
+              </AvatarRing>
             </PressScale>
           </Row>
         </Row>
