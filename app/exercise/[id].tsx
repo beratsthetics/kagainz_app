@@ -26,6 +26,7 @@ export default function ExerciseScreen() {
   const ex = exerciseById(id ?? '');
   // Koçun animasyonu ücretli üyelere ve koça gösterilir; diğerleri çizim animasyonunu görür.
   const { media, url } = useExerciseMedia(ex?.id, isCoach || tier !== 'free');
+  const [animWidth, setAnimWidth] = useState(0);
 
   if (!ex) {
     return (
@@ -67,8 +68,13 @@ export default function ExerciseScreen() {
       ) : (
         <>
           <Reveal index={1}>
-            <View style={styles.anim}>
-              {media && url ? <ExerciseMediaView url={url} kind={media.kind} size={300} /> : <MovementAnim pattern={ex.pattern} size={300} />}
+            <View style={styles.anim} onLayout={(ev) => setAnimWidth(Math.round(ev.nativeEvent.layout.width))}>
+              {/* Koçun videosu kartın tüm genişliğini kullanır. */}
+              {media && url ? (
+                animWidth > 0 && <ExerciseMediaView url={url} kind={media.kind} size={animWidth - 2} height={Math.round(animWidth * 0.8)} />
+              ) : (
+                <MovementAnim pattern={ex.pattern} size={300} />
+              )}
             </View>
             {media && !url && tier === 'free' && !isCoach && (
               <PressLink onPress={() => router.push('/plans')}>Koçun hazırladığı gerçek hareket videosu Pro üyelerde açılır →</PressLink>
@@ -217,6 +223,7 @@ const useStyles = makeStyles((colors) => ({
   en: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted, alignSelf: 'center' },
   anim: {
     alignItems: 'center',
+    overflow: 'hidden',
     paddingVertical: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,

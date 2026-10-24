@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
@@ -39,8 +39,10 @@ export default function TrainingScreen() {
   const colors = useColors();
   const styles = useStyles();
   const { tier } = useAuth();
-  const { program, assigned, active, startDay, startEmpty, history, records, weeklySets } = useWorkouts();
+  const { program, assigned, templates, templateDays, setTemplateDays, active, startDay, startEmpty, history, records, weeklySets } = useWorkouts();
   const [day, setDay] = useState(todaysDayIndex(program));
+  // Şablon değişince bugünün gününe dön.
+  useEffect(() => setDay(todaysDayIndex(program)), [program]);
   const unlocked = hasFeature(tier, 'training_programs');
   const fullHistory = hasFeature(tier, 'full_history');
   const current = program.days[Math.min(day, program.days.length - 1)];
@@ -88,6 +90,25 @@ export default function TrainingScreen() {
               </Row>
             </GradientCard>
           </PressScale>
+        </Reveal>
+      )}
+
+      {/* Koçun hazır şablonları: ücretli üye kaç gün çalışacağını seçer. Koç özel program atadıysa gizli. */}
+      {unlocked && !assigned && templates.length > 0 && (
+        <Reveal index={2}>
+          <Card style={{ gap: spacing.sm }}>
+            <Label>Haftada kaç gün?</Label>
+            <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
+              {templates.map((d) => (
+                <Chip key={d} label={tx('{0} gün', [d])} active={templateDays === d} onPress={() => setTemplateDays(d)} />
+              ))}
+            </Row>
+            {templateDays != null && program.note ? (
+              <Body muted raw style={{ fontSize: 13 }}>
+                {program.note}
+              </Body>
+            ) : null}
+          </Card>
         </Reveal>
       )}
 

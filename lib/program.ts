@@ -59,6 +59,24 @@ export const DEFAULT_PROGRAM: Program = {
   ],
 };
 
+// Koçun hazırladığı şablonların gün sayıları (program_templates, 0010).
+export const TEMPLATE_DAYS = [3, 4, 5, 6];
+
+// Koç yeni şablona başlarken: 3 gün örnek programdan, diğerleri boş günlerle başlar.
+const STARTER_DAYS: Record<number, [number, string][]> = {
+  4: [[1, 'Üst vücut'], [2, 'Alt vücut'], [4, 'Üst vücut'], [5, 'Alt vücut']],
+  5: [[1, 'Göğüs'], [2, 'Sırt'], [3, 'Bacak'], [4, 'Omuz'], [5, 'Kol']],
+  6: [[1, 'İtiş'], [2, 'Çekiş'], [3, 'Bacak'], [4, 'İtiş'], [5, 'Çekiş'], [6, 'Bacak']],
+};
+
+export function starterTemplate(days: number): Program {
+  if (days === 3) return { ...structuredClone(DEFAULT_PROGRAM), name: '3 günlük program' };
+  return {
+    name: `${days} günlük program`,
+    days: STARTER_DAYS[days].map(([weekday, focus]) => ({ ...WEEKDAYS[weekday], weekday, focus, exercises: [] })),
+  };
+}
+
 // Bugünün ya da bir sonraki antrenman gününün indeksi.
 export function todaysDayIndex(program: Program, date = new Date()) {
   const wd = date.getDay();

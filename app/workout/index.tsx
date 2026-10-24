@@ -135,6 +135,7 @@ function ExerciseCard({ index }: { index: number }) {
   const { tier, isCoach } = useAuth();
   const { media, url } = useExerciseMedia(e.exerciseId, isCoach || tier !== 'free');
   const [big, setBig] = useState(false);
+  const [bigWidth, setBigWidth] = useState(0);
 
   function toggle(si: number, set: SetLog) {
     if (set.done) return w.updateSet(index, si, { done: false });
@@ -170,12 +171,16 @@ function ExerciseCard({ index }: { index: number }) {
       </Row>
 
       {big && (
+        // Kartın tüm genişliğini kullanır, hareket rahat görünsün.
         <PressScale onPress={() => setBig(false)} style={styles.bigMedia}>
-          {media && url ? (
-            <ExerciseMediaView url={url} kind={media.kind} size={260} interactive={false} />
-          ) : ex ? (
-            <MovementAnim pattern={ex.pattern} size={260} />
-          ) : null}
+          <View style={{ alignSelf: 'stretch', alignItems: 'center' }} onLayout={(ev) => setBigWidth(Math.round(ev.nativeEvent.layout.width))}>
+            {bigWidth > 0 &&
+              (media && url ? (
+                <ExerciseMediaView url={url} kind={media.kind} size={bigWidth} height={Math.round(bigWidth * 0.8)} interactive={false} />
+              ) : ex ? (
+                <MovementAnim pattern={ex.pattern} size={Math.min(bigWidth, 320)} />
+              ) : null)}
+          </View>
         </PressScale>
       )}
 

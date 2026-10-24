@@ -3,32 +3,13 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
-import {
-  Avatar,
-  Body,
-  Button,
-  Card,
-  Chip,
-  Icon,
-  Input,
-  Label,
-  Mono,
-  PressScale,
-  Reveal,
-  Row,
-  Screen,
-  Segmented,
-  Sheet,
-  SkeletonList,
-  Stepper,
-  TierBadge,
-} from '@/components/ui';
-import { fonts, radius, spacing } from '@/constants/theme';
+import { ProgramDaysEditor } from '@/components/ProgramEditor';
+import { Avatar, Body, Button, Card, Input, Label, Mono, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, TierBadge } from '@/components/ui';
+import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { EXERCISES, exerciseById, GROUPS, MUSCLES, type Muscle } from '@/lib/exercises';
-import { DEFAULT_PROGRAM, WEEKDAYS, type Program, type ProgramDay } from '@/lib/program';
+import { DEFAULT_PROGRAM, type Program } from '@/lib/program';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
-import { makeStyles, useColors } from '@/lib/theme';
+import { useColors } from '@/lib/theme';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
 import { locale, tx } from '@/lib/i18n';
 
@@ -97,9 +78,6 @@ export default function CoachMember() {
       </Screen>
     );
   }
-
-  const patchDay = (i: number, fn: (d: ProgramDay) => ProgramDay) =>
-    setProgram((p) => (p ? { ...p, days: p.days.map((d, j) => (j === i ? fn(d) : d)) } : p));
 
   return (
     <Screen edges={[]}>
@@ -170,127 +148,11 @@ export default function CoachMember() {
         </Card>
       </Reveal>
 
-      {program.days.map((d, i) => (
-        <DayEditor
-          key={`${i}-${d.weekday}`}
-          day={d}
-          onChange={(fn) => patchDay(i, fn)}
-          onRemove={() => setProgram({ ...program, days: program.days.filter((_, j) => j !== i) })}
-          taken={program.days.filter((_, j) => j !== i).map((x) => x.weekday)}
-        />
-      ))}
-
-      <Button
-        title="Gün ekle"
-        variant="outline"
-        icon={{ ios: 'plus', android: 'add', web: 'add' }}
-        disabled={program.days.length >= 7}
-        onPress={() => {
-          const used = program.days.map((x) => x.weekday);
-          const wd = [1, 2, 3, 4, 5, 6, 0].find((w) => !used.includes(w)) ?? 1;
-          setProgram({ ...program, days: [...program.days, { ...WEEKDAYS[wd], weekday: wd, focus: 'Tüm vücut', exercises: [] }] });
-        }}
-      />
+      <ProgramDaysEditor program={program} onChange={setProgram} />
       <Button title="Programı kaydet" arrow onPress={save} />
     </Screen>
   );
 }
-
-function DayEditor({
-  day,
-  onChange,
-  onRemove,
-  taken,
-}: {
-  day: ProgramDay;
-  onChange: (fn: (d: ProgramDay) => ProgramDay) => void;
-  onRemove: () => void;
-  taken: number[];
-}) {
-  const colors = useColors();
-  const styles = useStyles();
-  const [picking, setPicking] = useState(false);
-  const [group, setGroup] = useState<(typeof GROUPS)[number]>(GROUPS[0]);
-  return (
-    <Card>
-      <Row style={{ justifyContent: 'space-between' }}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.text }}>{day.day}</Text>
-        <PressScale onPress={onRemove}>
-          <Icon name={{ ios: 'trash', android: 'delete', web: 'delete' }} size={18} color={colors.danger} />
-        </PressScale>
-      </Row>
-      <Row gap={4} style={{ flexWrap: 'wrap' }}>
-        {[1, 2, 3, 4, 5, 6, 0].map((w) => (
-          <Chip
-            key={w}
-            label={WEEKDAYS[w].short}
-            active={day.weekday === w}
-            onPress={() => !taken.includes(w) && onChange((d) => ({ ...d, weekday: w, ...WEEKDAYS[w] }))}
-          />
-        ))}
-      </Row>
-      <Input value={day.focus} onChangeText={(focus) => onChange((d) => ({ ...d, focus }))} placeholder="Odak (ör. Göğüs)" />
-      {day.exercises.map((e, j) => (
-        <View key={`${e.exerciseId}-${j}`} style={styles.exRow}>
-          <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={{ flex: 1, fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text }}>
-              {exerciseById(e.exerciseId)?.trName ?? e.exerciseId}
-            </Text>
-            <PressScale onPress={() => onChange((d) => ({ ...d, exercises: d.exercises.filter((_, k) => k !== j) }))}>
-              <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={14} color={colors.textMuted} />
-            </PressScale>
-          </Row>
-          <Row gap={spacing.sm} style={{ justifyContent: 'space-between' }}>
-            <Stepper
-              value={e.sets}
-              min={1}
-              max={10}
-              suffix="set"
-              onChange={(sets) => onChange((d) => ({ ...d, exercises: d.exercises.map((x, k) => (k === j ? { ...x, sets } : x)) }))}
-            />
-            <View style={{ width: 96 }}>
-              <Input
-                value={e.reps}
-                onChangeText={(reps) => onChange((d) => ({ ...d, exercises: d.exercises.map((x, k) => (k === j ? { ...x, reps } : x)) }))}
-                placeholder="8-10"
-              />
-            </View>
-          </Row>
-        </View>
-      ))}
-      <Button title="Hareket ekle" variant="ghost" icon={{ ios: 'plus', android: 'add', web: 'add' }} onPress={() => setPicking(true)} />
-
-      <Sheet visible={picking} onClose={() => setPicking(false)} title="Hareket seç">
-        <Row gap={4} style={{ flexWrap: 'wrap' }}>
-          {GROUPS.map((g) => (
-            <Chip key={g} label={g} active={group === g} onPress={() => setGroup(g)} />
-          ))}
-        </Row>
-        {EXERCISES.filter((x) => exerciseGroup(x.primary[0]) === group).map((x) => (
-          <PressScale
-            key={x.id}
-            onPress={() => {
-              onChange((d) => ({ ...d, exercises: [...d.exercises, { exerciseId: x.id, sets: 3, reps: '8-12' }] }));
-              setPicking(false);
-            }}
-            style={styles.pickRow}>
-            <Text style={{ flex: 1, fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text }}>{x.trName}</Text>
-            <Mono style={{ fontSize: 11.5, color: colors.textMuted }}>{x.equipment}</Mono>
-          </PressScale>
-        ))}
-      </Sheet>
-    </Card>
-  );
-}
-
-function exerciseGroup(m: Muscle) {
-  return MUSCLES[m].group;
-}
-
-const useStyles = makeStyles((colors) => ({
-  exRow: { gap: spacing.sm, padding: spacing.sm + 2, borderRadius: radius.md, backgroundColor: colors.surfaceHigh },
-  pickRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 2, borderBottomWidth: 1, borderBottomColor: colors.border },
-}));
 
 // Koçun atadığı günlük makro hedefi; üyenin kendi hesapladığı hedefin yerine geçer (0008).
 function NutritionEditor({ memberId }: { memberId: string }) {

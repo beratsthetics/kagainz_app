@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
-import { Avatar, Body, Card, EmptyState, Input, Label, Mono, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, Tag, TierBadge } from '@/components/ui';
+import { Avatar, Body, Card, EmptyState, Icon, IconBox, Input, Label, Mono, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, Tag, TierBadge } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { exerciseById } from '@/lib/exercises';
@@ -122,6 +122,18 @@ export default function CoachPanel() {
           <StatBox label="Yanıt bekleyen" value={unanswered} color={colors.accentBright} />
           <StatBox label="Bekleyen check-in" value={checkins?.filter((c) => !c.coach_note).length ?? 0} color={colors.success} />
         </Row>
+      </Reveal>
+      <Reveal index={1}>
+        <PressScale onPress={() => router.push('/coach/templates')}>
+          <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <IconBox name={{ ios: 'list.bullet.rectangle.fill', android: 'view_list', web: 'view_list' }} color={colors.accentBright} bg={colors.accentSoft} size={42} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>Antrenman şablonları</Text>
+              <Mono style={{ fontSize: 12, color: colors.textMuted }}>3, 4, 5 ve 6 günlük hazır programlar</Mono>
+            </View>
+            <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={14} color={colors.textDim} />
+          </Card>
+        </PressScale>
       </Reveal>
       <Reveal index={1}>
         <Segmented

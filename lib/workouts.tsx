@@ -70,6 +70,10 @@ type Rest = { endsAt: number; total: number; notificationId: string | null };
 type WorkoutState = {
   program: Program;
   assigned: boolean;
+  // Koçun hazır şablonlarından hangileri var (gün sayısı) ve üyenin seçtiği.
+  templates: number[];
+  templateDays: number | null;
+  setTemplateDays: (days: number | null) => void;
   history: Session[];
   active: Session | null;
   records: Record<string, Record_>;
@@ -98,13 +102,16 @@ function emptySets(n: number): SetLog[] {
 }
 
 export function WorkoutProvider({ children }: { children: ReactNode }) {
-  const { session } = useAuth();
+  const { session, tier, isCoach } = useAuth();
   const { markWorkout, bump } = useProgress();
   const celebrate = useCelebrate();
   const [history, setHistory] = useStored<Session[]>('workouts', []);
   const [active, setActive] = useStored<Session | null>('workout:active', null);
   const [records, setRecords] = useStored<Record<string, Record_>>('records', {});
   const [assignedProgram, setAssignedProgram] = useStored<Program | null>('program:assigned', null);
+  const [templates, setTemplates] = useStored<Record<number, Program>>('device:program-templates', {});
+  const [templateDays, setTemplateDays] = useStored<number | null>('program:template', null);
+  const paid = isCoach || tier !== 'free';
   const [rest, setRest] = useStored<Rest | null>('device:rest', null);
   const [restSeconds, setRestSeconds] = useStored<number>('rest-seconds', 90);
   const restRef = useRef(rest);
@@ -124,6 +131,19 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.id]);
+
+  // Koçun 3-6 günlük şablonları (0010). Sadece ücretli üyeler ve koç okuyabilir.
+  useEffect(() => {
+    if (!session || !isSupabaseConfigured || !paid) return;
+    supabase
+      .from('program_templates')
+      .select('days, program')
+      .then(({ data, error }) => {
+        if (error) return;
+        setTemplates(Object.fromEntries((data ?? []).map((r) => [r.days, r.program as Program])));
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.id, paid]);
 
   const lastSetsFor = useCallback(
     (exerciseId: string) => {
@@ -206,8 +226,11 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<WorkoutState>(
     () => ({
-      program: assignedProgram ?? DEFAULT_PROGRAM,
+      program: assignedProgram ?? (paid && templateDays ? templates[templateDays] : null) ?? DEFAULT_PROGRAM,
       assigned: assignedProgram != null,
+      templates: paid ? Object.keys(templates).map(Number).sort() : [],
+      templateDays,
+      setTemplateDays,
       history,
       active,
       records,
@@ -275,7 +298,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       restSeconds,
       setRestSeconds,
     }),
-    [assignedProgram, history, active, records, rest, setActive, mutate, finish, stopRest, lastSetsFor, startRest, restSeconds, setRestSeconds],
+    [assignedProgram, paid, templates, templateDays, setTemplateDays, history, active, records, rest, setActive, mutate, finish, stopRest, lastSetsFor, startRest, restSeconds, setRestSeconds],
   );
 
   return <WorkoutContext.Provider value={value}>{children}</WorkoutContext.Provider>;

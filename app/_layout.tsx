@@ -131,6 +131,7 @@ function Navigation() {
         <Stack.Screen name="dm/[member]" options={{ title: translate('KOÇUN') }} />
         <Stack.Screen name="coach/index" options={{ title: translate('KOÇ PANELİ') }} />
         <Stack.Screen name="coach/member/[id]" options={{ title: translate('ÜYE') }} />
+        <Stack.Screen name="coach/templates" options={{ title: translate('ŞABLONLAR') }} />
         <Stack.Screen name="week" options={{ title: translate('HAFTALIK ÖZET') }} />
         <Stack.Screen name="share" options={{ title: translate('PAYLAŞ'), presentation: 'modal' }} />
         <Stack.Screen name="leaderboard" options={{ title: translate('SIRALAMA') }} />
