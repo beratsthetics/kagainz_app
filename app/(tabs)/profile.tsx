@@ -140,9 +140,12 @@ export default function ProfileScreen() {
         <Card style={{ gap: 0, paddingVertical: spacing.xs }}>
           {isCoach && <LinkRow icon={{ ios: 'person.badge.key.fill', android: 'shield_person', web: 'shield_person' }} label="Koç paneli" href="/coach" />}
           <LinkRow icon={{ ios: 'chart.xyaxis.line', android: 'monitoring', web: 'monitoring' }} label="İlerleme" href="/progress" />
+          <LinkRow icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} label="Haftalık check-in" href="/checkin" />
           <LinkRow icon={{ ios: 'target', android: 'target', web: 'target' }} label="Hedeflerim" href="/goals" />
           <LinkRow icon={{ ios: 'calendar', android: 'calendar_month', web: 'calendar_month' }} label="Haftalık özet" href="/week" />
           <LinkRow icon={{ ios: 'trophy.fill', android: 'trophy', web: 'trophy' }} label="Sıralama" href="/leaderboard" />
+          <LinkRow icon={{ ios: 'person.2.fill', android: 'group', web: 'group' }} label="Arkadaşlar" href="/friends" />
+          <LinkRow icon={{ ios: 'gift.fill', android: 'redeem', web: 'redeem' }} label="Arkadaşını davet et" href="/invite" />
           <LinkRow icon={{ ios: 'flag.checkered', android: 'flag', web: 'flag' }} label="Haftalık meydan okuma" href="/challenges" />
           {hasFeature(tier, 'form_check') && (
             <LinkRow icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} label="Form kontrol" href="/form-check" />

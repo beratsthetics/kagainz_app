@@ -9,7 +9,7 @@ import { TIER_RANK, type Tier } from './tiers';
 // Seri (streak), rozetler ve sayaçlar. Her gün için ne yapıldığı "activity" anahtarında tutulur:
 // m: girilen öğün sayısı, w: antrenman sayısı, p: protein hedefi doldu, h: su hedefi doldu.
 type DayActivity = { m?: number; w?: number; p?: boolean; h?: boolean };
-type Counters = { prs: number; posts: number; formChecks: number; scans: number; photos: number };
+type Counters = { prs: number; posts: number; formChecks: number; scans: number; photos: number; checkins?: number; kudos?: number };
 
 export type Stats = {
   streak: number;
@@ -38,6 +38,7 @@ export const BADGES: Badge[] = [
   { id: 'water_day', title: 'Susuz kalma', description: 'Günlük su hedefini doldur', emoji: '💧', tier: 'free', earned: (s) => s.waterDays >= 1 },
   { id: 'first_post', title: 'Sahnedesin', description: 'Toplulukta ilk paylaşımını yap', emoji: '📣', tier: 'free', earned: (s) => s.posts >= 1 },
   { id: 'first_scan', title: 'Barkodcu', description: 'İlk barkodunu okut', emoji: '📦', tier: 'free', earned: (s) => s.scans >= 1 },
+  { id: 'first_kudos', title: 'Tebrikçi', description: 'Bir arkadaşını tebrik et', emoji: '👏', tier: 'free', earned: (s) => (s.kudos ?? 0) >= 1 },
   { id: 'streak_30', title: 'Bir ay', description: '30 gün üst üste kayıt', emoji: '🗓️', tier: 'pro', earned: (s) => s.bestStreak >= 30 },
   { id: 'meals_100', title: '100 öğün', description: '100 öğün kaydet', emoji: '💯', tier: 'pro', earned: (s) => s.meals >= 100 },
   { id: 'workouts_10', title: '10 antrenman', description: '10 antrenman bitir', emoji: '💪', tier: 'pro', earned: (s) => s.workouts >= 10 },
@@ -45,6 +46,8 @@ export const BADGES: Badge[] = [
   { id: 'first_pr', title: 'Rekor', description: 'İlk kişisel rekorunu kır', emoji: '🏆', tier: 'pro', earned: (s) => s.prs >= 1 },
   { id: 'prs_10', title: 'Rekor avcısı', description: '10 kişisel rekor', emoji: '🥇', tier: 'pro', earned: (s) => s.prs >= 10 },
   { id: 'protein_7', title: 'Protein haftası', description: '7 gün protein hedefi', emoji: '🍗', tier: 'pro', earned: (s) => s.proteinDays >= 7 },
+  { id: 'first_checkin', title: 'İlk check-in', description: 'İlk haftalık check-in\'ini gönder', emoji: '📏', tier: 'pro', earned: (s) => (s.checkins ?? 0) >= 1 },
+  { id: 'checkins_4', title: 'Bir ay takip', description: '4 haftalık check-in gönder', emoji: '📸', tier: 'pro', earned: (s) => (s.checkins ?? 0) >= 4 },
   { id: 'first_form_check', title: 'Form kontrol', description: 'İlk form check videonu gönder', emoji: '🎥', tier: 'plus', earned: (s) => s.formChecks >= 1 },
   { id: 'photo_meal', title: 'Fotoğrafçı', description: 'Fotoğraftan makro hesapla', emoji: '📸', tier: 'plus', earned: (s) => s.photos >= 1 },
   { id: 'max_member', title: 'Max', description: 'Max üyesi ol', emoji: '👑', tier: 'max', earned: (_s, t) => t === 'max' },

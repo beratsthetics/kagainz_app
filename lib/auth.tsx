@@ -10,7 +10,25 @@ import { isSupabaseConfigured, supabase } from './supabase';
 import type { Tier } from './tiers';
 
 export type Role = 'member' | 'coach';
-export type Profile = { id: string; username: string | null; tier: Tier; role?: Role; muted_until?: string | null; avatar_url?: string | null };
+export type Profile = {
+  id: string;
+  username: string | null;
+  tier: Tier;
+  role?: Role;
+  muted_until?: string | null;
+  avatar_url?: string | null;
+  created_at?: string;
+  // Davet ödülü: ücretsiz üye bu tarihe kadar Pro sayılır (0008).
+  bonus_until?: string | null;
+  invited_by?: string | null;
+};
+
+// Sunucudaki my_tier() ile aynı kural.
+export function effectiveTier(p: Profile | null): Tier {
+  if (!p) return 'free';
+  if (p.tier === 'free' && p.bonus_until && new Date(p.bonus_until).getTime() > Date.now()) return 'pro';
+  return p.tier;
+}
 
 // phone: telefonla giriş/kayıt, email: e-postayla giriş/kayıt,
 // link_phone: e-posta veya Google ile girmiş kullanıcının hesabına numara eklemesi (chat'e yazmak için).
@@ -104,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthState = {
     session,
     profile,
-    tier: profile?.tier ?? 'free',
+    tier: effectiveTier(profile),
     isCoach: profile?.role === 'coach',
     loading,
     hasPhone,

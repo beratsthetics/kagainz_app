@@ -113,6 +113,7 @@ export default function WeekScreen() {
             </Card>
           </Animated.View>
 
+          <Button title="Haftalık check-in" variant="outline" icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} onPress={() => router.push('/checkin')} />
           <Button
             title="Hikâyede paylaş"
             arrow

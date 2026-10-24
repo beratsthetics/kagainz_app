@@ -496,6 +496,17 @@ export default function ChatRoomScreen() {
               {(isCoach || action.user_id === me) && (
                 <ActionRow icon={{ ios: 'trash.fill', android: 'delete', web: 'delete' }} label="Mesajı sil" danger onPress={() => run('delete', action)} />
               )}
+              {action.user_id !== me && action.profiles?.username && (
+                <ActionRow
+                  icon={{ ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' }}
+                  label="Profilini gör"
+                  onPress={() => {
+                    const username = action.profiles!.username!;
+                    setAction(null);
+                    router.push({ pathname: '/u/[username]', params: { username } });
+                  }}
+                />
+              )}
               {action.user_id !== me && (
                 <>
                   <ActionRow icon={{ ios: 'flag.fill', android: 'flag', web: 'flag' }} label="Şikayet et" danger onPress={() => run('report', action)} />

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
-import { Avatar, Body, Button, Card, EmptyState, Eyebrow, Hero, Reveal, Row, Screen, Segmented, SkeletonList, TierBadge } from '@/components/ui';
+import { Avatar, Body, Button, Card, Chip, EmptyState, Eyebrow, Hero, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, TierBadge } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useLeaderboard, useLeaderboardVisible, type Board, type LeaderRow } from '@/lib/leaderboard';
@@ -21,7 +21,8 @@ export default function LeaderboardScreen() {
   const colors = useColors();
   const { session, profile } = useAuth();
   const [board, setBoard] = useState<Board>('streak');
-  const { rows, error } = useLeaderboard(board);
+  const [friends, setFriends] = useState(false);
+  const { rows, error } = useLeaderboard(board, friends);
   const [visible, setVisible] = useLeaderboardVisible();
   const info = BOARDS[board];
 
@@ -54,6 +55,14 @@ export default function LeaderboardScreen() {
           value={board}
           onChange={setBoard}
         />
+        <Row gap={spacing.xs} style={{ marginTop: spacing.sm }}>
+          <Chip label="Herkes" active={!friends} onPress={() => setFriends(false)} />
+          <Chip label="Takip ettiklerim" active={friends} onPress={() => setFriends(true)} />
+          <View style={{ flex: 1 }} />
+          <PressScale onPress={() => router.push('/friends')}>
+            <Text style={styles.link}>Arkadaş bul →</Text>
+          </PressScale>
+        </Row>
         <Body muted style={{ fontSize: 13, marginTop: spacing.sm }}>
           {info.hint}
         </Body>
@@ -74,10 +83,10 @@ export default function LeaderboardScreen() {
         <EmptyState
           icon={{ ios: 'trophy.fill', android: 'trophy', web: 'trophy' }}
           title="Henüz kimse yok"
-          body="İlk sırayı kapmak için bugün bir öğün gir ya da antrenman bitir."
+          body={friends ? 'Takip ettiğin kimse bu listede değil. Arkadaş bul ve takip et.' : 'İlk sırayı kapmak için bugün bir öğün gir ya da antrenman bitir.'}
         />
       ) : (
-        <View key={board} style={{ gap: spacing.md }}>
+        <View key={`${board}-${friends}`} style={{ gap: spacing.md }}>
           {top.length > 0 && <Podium rows={top} unit={info.unit} />}
           <View style={{ gap: spacing.xs }}>
             {rest.map((r, i) => (
@@ -103,6 +112,10 @@ export default function LeaderboardScreen() {
   );
 }
 
+function openProfile(r: LeaderRow) {
+  router.push({ pathname: '/u/[username]', params: { username: r.username } });
+}
+
 function Podium({ rows, unit }: { rows: LeaderRow[]; unit: string }) {
   const styles = useStyles();
   const colors = useColors();
@@ -114,10 +127,10 @@ function Podium({ rows, unit }: { rows: LeaderRow[]; unit: string }) {
       {order.map((r, i) =>
         r ? (
           <Animated.View key={r.user_id} entering={FadeInUp.delay(120 + i * 90).springify()} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
-            <View>
+            <PressScale onPress={() => openProfile(r)}>
               <Avatar name={r.username} path={r.avatar_url} size={i === 1 ? 68 : 54} />
               <Text style={styles.medal}>{MEDAL[r.rank - 1] ?? ''}</Text>
-            </View>
+            </PressScale>
             <Text style={[styles.podiumName, r.is_me && { color: colors.accentBright }]} numberOfLines={1}>
               @{r.username}
             </Text>
@@ -138,25 +151,28 @@ function RowItem({ row, unit }: { row: LeaderRow; unit: string }) {
   const styles = useStyles();
   const colors = useColors();
   return (
-    <View style={[styles.row, row.is_me && { borderColor: colors.accent, backgroundColor: colors.accentSoft }]}>
-      <Text style={styles.rank}>{row.rank}</Text>
-      <Avatar name={row.username} path={row.avatar_url} size={36} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text style={styles.name} numberOfLines={1}>
-          @{row.username}
-          {row.is_me ? ' (sen)' : ''}
+    <PressScale onPress={() => openProfile(row)}>
+      <View style={[styles.row, row.is_me && { borderColor: colors.accent, backgroundColor: colors.accentSoft }]}>
+        <Text style={styles.rank}>{row.rank}</Text>
+        <Avatar name={row.username} path={row.avatar_url} size={36} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={styles.name} numberOfLines={1}>
+            @{row.username}
+            {row.is_me ? ' (sen)' : ''}
+          </Text>
+          {row.tier !== 'free' && <TierBadge tier={row.tier} />}
+        </View>
+        <Text style={styles.value}>
+          {row.value} <Text style={styles.unit}>{unit}</Text>
         </Text>
-        {row.tier !== 'free' && <TierBadge tier={row.tier} />}
       </View>
-      <Text style={styles.value}>
-        {row.value} <Text style={styles.unit}>{unit}</Text>
-      </Text>
-    </View>
+    </PressScale>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
+  link: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
   gap: { fontFamily: fonts.bodyBold, fontSize: 18, color: colors.textMuted, textAlign: 'center' },
   medal: { position: 'absolute', right: -6, bottom: -4, fontSize: 22 },
   podiumName: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.text, maxWidth: '100%' },

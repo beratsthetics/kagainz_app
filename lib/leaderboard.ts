@@ -48,14 +48,15 @@ export function useLeaderboardSync() {
   }, [userId, profile?.username, stats.streak, history, visible]);
 }
 
-export function useLeaderboard(board: Board) {
+// onlyFollowing: sadece takip ettiklerin ve sen (0008 gerekir).
+export function useLeaderboard(board: Board, onlyFollowing = false) {
   const [rows, setRows] = useState<LeaderRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) return setRows([]);
     setError(null);
-    const { data, error: err } = await supabase.rpc('leaderboard_top', { board });
+    const { data, error: err } = await supabase.rpc('leaderboard_top', onlyFollowing ? { board, only_following: true } : { board });
     if (err) {
       setRows([]);
       return setError(
@@ -65,7 +66,7 @@ export function useLeaderboard(board: Board) {
       );
     }
     setRows((data ?? []) as LeaderRow[]);
-  }, [board]);
+  }, [board, onlyFollowing]);
 
   useEffect(() => {
     setRows(null);

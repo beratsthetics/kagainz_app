@@ -126,6 +126,11 @@ function Navigation() {
         <Stack.Screen name="week" options={{ title: 'HAFTALIK ÖZET' }} />
         <Stack.Screen name="share" options={{ title: 'PAYLAŞ', presentation: 'modal' }} />
         <Stack.Screen name="leaderboard" options={{ title: 'SIRALAMA' }} />
+        <Stack.Screen name="checkin/index" options={{ title: 'CHECK-IN' }} />
+        <Stack.Screen name="checkin/[id]" options={{ title: 'CHECK-IN' }} />
+        <Stack.Screen name="u/[username]" options={{ title: '' }} />
+        <Stack.Screen name="friends" options={{ title: 'ARKADAŞLAR' }} />
+        <Stack.Screen name="invite" options={{ title: 'DAVET ET' }} />
       </Stack>
       <AppSplash ready={!loading} />
     </ThemeProvider>

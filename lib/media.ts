@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
 import { isSupabaseConfigured, supabase } from './supabase';
 
 // Özel (private) depolama kovaları: dosyalar sadece imzalı, süreli bağlantıyla görülür.
-export type Bucket = 'chat' | 'form-checks' | 'exercise-media';
+export type Bucket = 'chat' | 'form-checks' | 'exercise-media' | 'checkins';
 
 export async function pickImage(camera: boolean, square = false) {
   const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: square ? 0.5 : 0.6, base64: true, ...(square && { allowsEditing: true, aspect: [1, 1] }) };

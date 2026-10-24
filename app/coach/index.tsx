@@ -6,12 +6,13 @@ import { Avatar, Body, Card, EmptyState, Input, Label, Mono, PressScale, Reveal,
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { exerciseById } from '@/lib/exercises';
+import { CHECKIN_SELECT, fmt, weekTitle, type Checkin } from '@/lib/checkins';
 import { FORM_CHECK_SELECT, type FormCheck } from '@/lib/formcheck';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { TIER_RANK, type Tier } from '@/lib/tiers';
 
-type Tab = 'forms' | 'dms' | 'reports' | 'members';
+type Tab = 'forms' | 'checkins' | 'dms' | 'reports' | 'members';
 type Report = {
   id: number;
   message_id: number | null;
@@ -28,6 +29,7 @@ export default function CoachPanel() {
   const { isCoach, session } = useAuth();
   const [tab, setTab] = useState<Tab>('forms');
   const [forms, setForms] = useState<FormCheck[] | null>(null);
+  const [checkins, setCheckins] = useState<Checkin[] | null>(null);
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [members, setMembers] = useState<Member[] | null>(null);
   const [reports, setReports] = useState<Report[] | null>(null);
@@ -41,6 +43,15 @@ export default function CoachPanel() {
       .order('created_at', { ascending: false })
       .limit(100)
       .then(({ data }) => setForms((data ?? []) as unknown as FormCheck[]));
+    // Koç Plus ve Max üyelerin check-in'lerine yorum yazar.
+    supabase
+      .from('checkins')
+      .select(CHECKIN_SELECT)
+      .order('created_at', { ascending: false })
+      .limit(150)
+      .then(({ data }) =>
+        setCheckins(((data ?? []) as Checkin[]).filter((c) => c.profiles && TIER_RANK[c.profiles.tier] >= TIER_RANK.plus)),
+      );
     supabase
       .from('coach_messages')
       .select('member_id, body, created_at, sender_id, member:profiles!coach_messages_member_id_fkey(*)')
@@ -107,16 +118,17 @@ export default function CoachPanel() {
         <Row gap={spacing.sm}>
           <StatBox label="Bekleyen form" value={pending.length} color={colors.fat} />
           <StatBox label="Yanıt bekleyen" value={unanswered} color={colors.accentBright} />
-          <StatBox label="Üye" value={members?.length ?? 0} color={colors.text} />
+          <StatBox label="Bekleyen check-in" value={checkins?.filter((c) => !c.coach_note).length ?? 0} color={colors.success} />
         </Row>
       </Reveal>
       <Reveal index={1}>
         <Segmented
           options={[
-            { value: 'forms', label: 'Form check' },
-            { value: 'dms', label: 'Mesajlar' },
+            { value: 'forms', label: 'Form' },
+            { value: 'checkins', label: 'Check-in' },
+            { value: 'dms', label: 'Mesaj' },
             { value: 'reports', label: `Şikayet${reports?.length ? ` (${reports.length})` : ''}` },
-            { value: 'members', label: 'Üyeler' },
+            { value: 'members', label: 'Üye' },
           ]}
           value={tab}
           onChange={setTab}
@@ -149,6 +161,38 @@ export default function CoachPanel() {
                   ) : (
                     <Tag color={colors.success} bg={colors.successSoft}>
                       Bitti
+                    </Tag>
+                  )}
+                </Row>
+              </Card>
+            </PressScale>
+          ))
+        ))}
+
+      {tab === 'checkins' &&
+        (checkins == null ? (
+          <SkeletonList />
+        ) : checkins.length === 0 ? (
+          <EmptyState icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} title="Check-in yok" body="Plus ve Max üyeler haftalık check-in gönderince burada görünür." />
+        ) : (
+          [...checkins.filter((c) => !c.coach_note), ...checkins.filter((c) => c.coach_note)].map((c) => (
+            <PressScale key={c.id} onPress={() => router.push({ pathname: '/checkin/[id]', params: { id: c.id } })}>
+              <Card>
+                <Row gap={spacing.sm}>
+                  <Avatar name={c.profiles?.username} path={c.profiles?.avatar_url} size={36} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>@{c.profiles?.username ?? 'üye'}</Text>
+                    <Mono style={{ fontSize: 12, color: colors.textMuted }}>
+                      {weekTitle(c.week_start)} · {fmt(c.weight)} kg{c.photos.length ? ` · ${c.photos.length} foto` : ''}
+                    </Mono>
+                  </View>
+                  {c.coach_note ? (
+                    <Tag color={colors.success} bg={colors.successSoft}>
+                      Bitti
+                    </Tag>
+                  ) : (
+                    <Tag color={colors.fat} bg={colors.surfaceHigh}>
+                      Bekliyor
                     </Tag>
                   )}
                 </Row>

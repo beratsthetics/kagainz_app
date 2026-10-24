@@ -4,12 +4,13 @@ import { Text, View } from 'react-native';
 import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
 
 import { AuthShell } from '@/components/AuthShell';
-import { Body, Button, Eyebrow, Hero, PressScale, Row, Segmented, Stat, Stepper } from '@/components/ui';
+import { Body, Button, Eyebrow, Hero, Input, PressScale, Row, Segmented, Stat, Stepper } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useDaily } from '@/lib/daily';
 import { ACTIVITY, calculateGoals, GOALS, waterGoalGlasses, type Activity, type BodyProfile, type GoalType, type WeightLog } from '@/lib/goals';
 import { dayKey, useStored } from '@/lib/store';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
 
 // Kayıttan hemen sonra 4 adımlık karşılama: hedef, vücut, hareket, kişisel sonuç.
@@ -146,10 +147,42 @@ export default function Onboarding() {
             <Body muted style={{ fontSize: 13.5 }}>
               {GOAL_EMOJI[p.goal]} {GOALS[p.goal].label} · su hedefin {waterGoalGlasses(p.weightKg)} bardak. Öğün girdikçe ana sayfadaki halka dolacak.
             </Body>
+            {isSupabaseConfigured && <InviteCode />}
           </>
         )}
       </Animated.View>
     </AuthShell>
+  );
+}
+
+// Davet kodu (isteğe bağlı). Sonra profilden de girilebilir.
+function InviteCode() {
+  const colors = useColors();
+  const { refreshProfile } = useAuth();
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function apply() {
+    setBusy(true);
+    const { data, error } = await supabase.rpc('redeem_invite', { code });
+    setBusy(false);
+    if (error) return setMsg({ ok: false, text: /redeem_invite|schema cache/.test(error.message) ? 'Davet kodu şu an kullanılamıyor.' : error.message });
+    setMsg({ ok: true, text: `@${data} davetiyle katıldın 🎉` });
+    refreshProfile();
+  }
+
+  if (msg?.ok) return <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.success }}>{msg.text}</Text>;
+  return (
+    <View style={{ gap: spacing.xs }}>
+      <Row gap={spacing.sm}>
+        <View style={{ flex: 1 }}>
+          <Input value={code} onChangeText={setCode} placeholder="Davet kodun varsa" autoCapitalize="none" autoCorrect={false} />
+        </View>
+        <Button title="Uygula" variant="outline" loading={busy} disabled={code.trim().length < 3} onPress={apply} />
+      </Row>
+      {msg && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger }}>{msg.text}</Text>}
+    </View>
   );
 }
 
