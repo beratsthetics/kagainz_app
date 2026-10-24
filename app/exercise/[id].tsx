@@ -25,7 +25,7 @@ export default function ExerciseScreen() {
   const { records, history, active, addExercise } = useWorkouts();
   const ex = exerciseById(id ?? '');
   // Koçun animasyonu ücretli üyelere ve koça gösterilir; diğerleri çizim animasyonunu görür.
-  const { media, url } = useExerciseMedia(ex?.id, isCoach || tier !== 'free');
+  const { media, view, hasVideo } = useExerciseMedia(ex?.id, isCoach || tier !== 'free');
   const [animWidth, setAnimWidth] = useState(0);
 
   if (!ex) {
@@ -53,7 +53,8 @@ export default function ExerciseScreen() {
     <Screen edges={[]}>
       <Stack.Screen options={{ title: '' }} />
       <Reveal index={0}>
-        <Title style={{ fontSize: 34, lineHeight: 38 }}>{ex.trName}</Title>
+        {/* Adlar İngilizce: büyük harfe İngilizce kuralıyla çevir ("LYING", "LYİNG" değil). */}
+        <Title style={{ fontSize: 34, lineHeight: 38 }}>{ex.trName.toLocaleUpperCase('en-US')}</Title>
         <Row gap={6} style={{ marginTop: spacing.xs, flexWrap: 'wrap' }}>
           <Tag>{MUSCLES[ex.primary[0]].group}</Tag>
           <Tag color={colors.textMuted} bg={colors.surfaceAlt}>
@@ -71,13 +72,13 @@ export default function ExerciseScreen() {
           <Reveal index={1}>
             <View style={styles.anim} onLayout={(ev) => setAnimWidth(Math.round(ev.nativeEvent.layout.width))}>
               {/* Koçun videosu kartın tüm genişliğini kullanır. */}
-              {media && url ? (
-                animWidth > 0 && <ExerciseMediaView url={url} kind={media.kind} size={animWidth - 2} height={Math.round(animWidth * 0.8)} />
+              {view ? (
+                animWidth > 0 && <ExerciseMediaView url={view.source} kind={view.kind} size={animWidth - 2} height={Math.round(animWidth * 0.8)} />
               ) : (
                 <MovementAnim pattern={ex.pattern} size={300} />
               )}
             </View>
-            {media && !url && tier === 'free' && !isCoach && (
+            {hasVideo && !view && tier === 'free' && !isCoach && (
               <PressLink onPress={() => router.push('/plans')}>Koçun hazırladığı gerçek hareket videosu Pro üyelerde açılır →</PressLink>
             )}
             {isCoach && <CoachMediaControls exerciseId={ex.id} media={media} />}

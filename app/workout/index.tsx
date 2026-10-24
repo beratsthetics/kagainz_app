@@ -133,7 +133,7 @@ function ExerciseCard({ index }: { index: number }) {
   const prev = w.lastSetsFor(e.exerciseId);
   const rec = w.records[e.exerciseId];
   const { tier, isCoach } = useAuth();
-  const { media, url } = useExerciseMedia(e.exerciseId, isCoach || tier !== 'free');
+  const { view } = useExerciseMedia(e.exerciseId, isCoach || tier !== 'free');
   const [big, setBig] = useState(false);
   const [bigWidth, setBigWidth] = useState(0);
 
@@ -152,14 +152,14 @@ function ExerciseCard({ index }: { index: number }) {
       <Row style={{ justifyContent: 'space-between' }}>
         {/* Hareketin animasyonu: koçun videosu varsa o, yoksa çizim. Dokununca büyür. */}
         <PressScale onPress={() => setBig((b) => !b)} style={styles.thumb}>
-          {media && url ? (
-            <ExerciseMediaView url={url} kind={media.kind} size={64} interactive={false} />
+          {view ? (
+            <ExerciseMediaView url={view.source} kind={view.kind} size={64} interactive={false} />
           ) : ex ? (
             <MovementAnim pattern={ex.pattern} size={64} />
           ) : null}
         </PressScale>
         <PressScale flex onPress={() => router.push(`/exercise/${e.exerciseId}`)}>
-          <Heading style={{ fontSize: 19 }}>{ex?.trName ?? e.exerciseId}</Heading>
+          <Heading style={{ fontSize: 19 }}>{(ex?.trName ?? e.exerciseId).toLocaleUpperCase('en-US')}</Heading>
           <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
             {e.target ? tx('Hedef {0}×{1}', [e.target.sets, e.target.reps]) : 'Serbest'}
             {rec ? tx(' · Rekor {0} kg × {1}', [rec.kg, rec.reps]) : ''}
@@ -175,8 +175,8 @@ function ExerciseCard({ index }: { index: number }) {
         <PressScale onPress={() => setBig(false)} style={styles.bigMedia}>
           <View style={{ alignSelf: 'stretch', alignItems: 'center' }} onLayout={(ev) => setBigWidth(Math.round(ev.nativeEvent.layout.width))}>
             {bigWidth > 0 &&
-              (media && url ? (
-                <ExerciseMediaView url={url} kind={media.kind} size={bigWidth} height={Math.round(bigWidth * 0.8)} interactive={false} />
+              (view ? (
+                <ExerciseMediaView url={view.source} kind={view.kind} size={bigWidth} height={Math.round(bigWidth * 0.8)} interactive={false} />
               ) : ex ? (
                 <MovementAnim pattern={ex.pattern} size={Math.min(bigWidth, 320)} />
               ) : null)}

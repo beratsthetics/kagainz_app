@@ -39,7 +39,7 @@ export default function TrainingScreen() {
   const colors = useColors();
   const styles = useStyles();
   const { tier } = useAuth();
-  const { program, assigned, templates, templateDays, setTemplateDays, active, startDay, startEmpty, history, records, weeklySets } = useWorkouts();
+  const { program, assigned, templates, templateDays, setTemplateDays, ownProgram, active, startDay, startEmpty, history, records, weeklySets } = useWorkouts();
   const [day, setDay] = useState(todaysDayIndex(program));
   // Şablon değişince bugünün gününe dön.
   useEffect(() => setDay(todaysDayIndex(program)), [program]);
@@ -93,17 +93,29 @@ export default function TrainingScreen() {
         </Reveal>
       )}
 
-      {/* Koçun hazır şablonları: ücretli üye kaç gün çalışacağını seçer. Koç özel program atadıysa gizli. */}
-      {unlocked && !assigned && templates.length > 0 && (
+      {/* Ücretli üye programını seçer: koçun hazır şablonları ya da kendi yazdığı. Koç özel program atadıysa gizli. */}
+      {unlocked && !assigned && (
         <Reveal index={2}>
           <Card style={{ gap: spacing.sm }}>
-            <Label>Haftada kaç gün?</Label>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <Label>{templates.length ? 'Haftada kaç gün?' : 'Programın'}</Label>
+              {templateDays === 'own' && (
+                <PressScale onPress={() => router.push('/my-program')}>
+                  <Text style={styles.link}>Düzenle</Text>
+                </PressScale>
+              )}
+            </Row>
             <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
               {templates.map((d) => (
                 <Chip key={d} label={tx('{0} gün', [d])} active={templateDays === d} onPress={() => setTemplateDays(d)} />
               ))}
+              <Chip
+                label="Kendi programım"
+                active={templateDays === 'own'}
+                onPress={() => (ownProgram ? setTemplateDays('own') : router.push('/my-program'))}
+              />
             </Row>
-            {templateDays != null && program.note ? (
+            {typeof templateDays === 'number' && program.note ? (
               <Body muted raw style={{ fontSize: 13 }}>
                 {program.note}
               </Body>

@@ -70,10 +70,13 @@ type Rest = { endsAt: number; total: number; notificationId: string | null };
 type WorkoutState = {
   program: Program;
   assigned: boolean;
-  // Koçun hazır şablonlarından hangileri var (gün sayısı) ve üyenin seçtiği.
+  // Koçun hazır şablonlarından hangileri var (gün sayısı) ve üyenin seçtiği: şablonun gün sayısı ya da 'own'.
   templates: number[];
-  templateDays: number | null;
-  setTemplateDays: (days: number | null) => void;
+  templateDays: ProgramChoice;
+  setTemplateDays: (choice: ProgramChoice) => void;
+  // Üyenin kendi yazdığı program.
+  ownProgram: Program | null;
+  setOwnProgram: (p: Program | null) => void;
   history: Session[];
   active: Session | null;
   records: Record<string, Record_>;
@@ -95,6 +98,8 @@ type WorkoutState = {
   setRestSeconds: (n: number) => void;
 };
 
+export type ProgramChoice = number | 'own' | null;
+
 const WorkoutContext = createContext<WorkoutState | null>(null);
 
 function emptySets(n: number): SetLog[] {
@@ -110,7 +115,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   const [records, setRecords] = useStored<Record<string, Record_>>('records', {});
   const [assignedProgram, setAssignedProgram] = useStored<Program | null>('program:assigned', null);
   const [templates, setTemplates] = useStored<Record<number, Program>>('device:program-templates', {});
-  const [templateDays, setTemplateDays] = useStored<number | null>('program:template', null);
+  const [templateDays, setTemplateDays] = useStored<ProgramChoice>('program:template', null);
+  const [ownProgram, setOwnProgram] = useStored<Program | null>('program:own', null);
   const paid = isCoach || tier !== 'free';
   const [rest, setRest] = useStored<Rest | null>('device:rest', null);
   const [restSeconds, setRestSeconds] = useStored<number>('rest-seconds', 90);
@@ -226,11 +232,16 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<WorkoutState>(
     () => ({
-      program: assignedProgram ?? (paid && templateDays ? templates[templateDays] : null) ?? DEFAULT_PROGRAM,
+      program:
+        assignedProgram ??
+        (!paid || templateDays == null ? null : templateDays === 'own' ? ownProgram : templates[templateDays]) ??
+        DEFAULT_PROGRAM,
       assigned: assignedProgram != null,
       templates: paid ? Object.keys(templates).map(Number).sort() : [],
       templateDays,
       setTemplateDays,
+      ownProgram,
+      setOwnProgram,
       history,
       active,
       records,
@@ -298,7 +309,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       restSeconds,
       setRestSeconds,
     }),
-    [assignedProgram, paid, templates, templateDays, setTemplateDays, history, active, records, rest, setActive, mutate, finish, stopRest, lastSetsFor, startRest, restSeconds, setRestSeconds],
+    [assignedProgram, paid, templates, templateDays, setTemplateDays, ownProgram, setOwnProgram, history, active, records, rest, setActive, mutate, finish, stopRest, lastSetsFor, startRest, restSeconds, setRestSeconds],
   );
 
   return <WorkoutContext.Provider value={value}>{children}</WorkoutContext.Provider>;

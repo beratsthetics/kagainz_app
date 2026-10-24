@@ -1,6 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useEffect, useState } from 'react';
 
+import { BUILTIN_MEDIA } from './exerciseVideos';
 import { signedUrl, uploadFile } from './media';
 import { isSupabaseConfigured, supabase } from './supabase';
 
@@ -51,14 +52,19 @@ export function useExerciseMedia(exerciseId: string | undefined, canView: boolea
   }, [media, canView]);
 
   const reload = useCallback(() => loadAll(true), []);
-  return { media, url, reload };
+  // Gösterilecek olan: koçun yüklediği, yoksa uygulamayla gelen video. Sadece ücretli üye ve koç görür.
+  const builtin = exerciseId ? BUILTIN_MEDIA[exerciseId] : undefined;
+  const view = media && url ? { source: url, kind: media.kind } : !media && builtin && canView ? builtin : null;
+  // Bu hareketin bir videosu var mı (görme izni olmasa da).
+  const hasVideo = Boolean(media || builtin);
+  return { media, url, view, hasVideo, reload };
 }
 
 // Animasyonu olan hareketlerin kimlikleri (kütüphanede "Video" etiketi için).
 export function useExerciseMediaIds() {
-  const [ids, setIds] = useState<Set<string>>(() => new Set(all?.keys() ?? []));
+  const [ids, setIds] = useState<Set<string>>(() => new Set([...Object.keys(BUILTIN_MEDIA), ...(all?.keys() ?? [])]));
   useEffect(() => {
-    const sync = () => setIds(new Set(all?.keys() ?? []));
+    const sync = () => setIds(new Set([...Object.keys(BUILTIN_MEDIA), ...(all?.keys() ?? [])]));
     listeners.add(sync);
     loadAll();
     return () => {
