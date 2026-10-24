@@ -10,7 +10,6 @@ import {
   Body,
   Button,
   Chip,
-  GridBackground,
   Heading,
   Icon,
   IconBox,
@@ -24,6 +23,7 @@ import {
   SkeletonList,
   Tag,
 } from '@/components/ui';
+import { ChatBackdrop } from '@/components/ChatBackdrop';
 import { LevelBadge, LevelFrame, LevelName } from '@/components/Level';
 import { formatMs, VoicePlayer, VoiceRecordButton, voiceMime } from '@/components/Voice';
 import { fonts, radius, spacing } from '@/constants/theme';
@@ -330,7 +330,7 @@ export default function ChatRoomScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <GridBackground glow={false} />
+      <ChatBackdrop room={room ?? ''} />
       <Stack.Screen options={{ title: ROOM_NAMES[room ?? ''] ?? 'CHAT', headerTransparent: false }} />
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
