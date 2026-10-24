@@ -879,12 +879,44 @@ export const EXERCISES: Exercise[] = [
   },
 ];
 
+// Koçun eklediği hareketler ve listeden kaldırdığı hazır hareketler (0011, lib/exerciseCatalog.ts yükler).
+// Kaldırılan hareket geçmişte ve programlarda adıyla görünmeye devam eder, sadece listelerden çıkar.
+let custom: Exercise[] = [];
+let hidden = new Set<string>();
+const listeners = new Set<() => void>();
+
+export function setCatalog(next: { custom: Exercise[]; hidden: string[] }) {
+  custom = next.custom;
+  hidden = new Set(next.hidden);
+  listeners.forEach((l) => l());
+}
+
+export function onCatalogChange(fn: () => void) {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
+  };
+}
+
+export function isHidden(id: string) {
+  return hidden.has(id);
+}
+
+export function isCustom(id: string) {
+  return custom.some((e) => e.id === id);
+}
+
+// Listelerde gösterilecek hareketler; koç kaldırdıklarını da görür (includeHidden).
+export function visibleExercises(includeHidden = false) {
+  return [...EXERCISES, ...custom].filter((e) => includeHidden || !hidden.has(e.id));
+}
+
 export function exerciseById(id: string) {
-  return EXERCISES.find((e) => e.id === id);
+  return EXERCISES.find((e) => e.id === id) ?? custom.find((e) => e.id === id);
 }
 
 export function exercisesForGroup(group: MuscleGroup) {
-  return EXERCISES.filter((e) => e.primary.some((m) => MUSCLES[m].group === group));
+  return visibleExercises().filter((e) => e.primary.some((m) => MUSCLES[m].group === group));
 }
 
 export function isUnlocked(e: Exercise, fullLibrary: boolean) {

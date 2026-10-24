@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, typ
 
 import { useAuth } from './auth';
 import { useCelebrate } from './celebrate';
+import { loadCatalog } from './exerciseCatalog';
 import { exerciseById, MUSCLES, type Muscle } from './exercises';
 import { cancelNotification, scheduleRestDone } from './notifications';
 import { DEFAULT_PROGRAM, type Program, type ProgramDay } from './program';
@@ -137,6 +138,11 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.id]);
+
+  // Koçun eklediği/kaldırdığı hareketler (0011); programlarda adları görünsün diye erkenden yüklenir.
+  useEffect(() => {
+    if (session) loadCatalog();
+  }, [session]);
 
   // Koçun 3-6 günlük şablonları (0010). Sadece ücretli üyeler ve koç okuyabilir.
   useEffect(() => {

@@ -6,12 +6,13 @@ import { Text } from '@/components/T';
 
 import { ExerciseMediaView } from '@/components/ExerciseMediaView';
 import { MovementAnim } from '@/components/MovementAnim';
-import { Body, Chip, Icon, Input, PressScale, Row, Screen, Tag, TierBadge } from '@/components/ui';
+import { Body, Button, Chip, Icon, Input, PressScale, Row, Screen, Tag, TierBadge } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useExerciseMedia, useExerciseMediaIds } from '@/lib/exerciseMedia';
 import { BUILTIN_MEDIA } from '@/lib/exerciseVideos';
-import { EXERCISES, GROUPS, isUnlocked, MUSCLES, type MuscleGroup, type Pattern } from '@/lib/exercises';
+import { useExercises } from '@/lib/exerciseCatalog';
+import { GROUPS, isHidden, isUnlocked, MUSCLES, type MuscleGroup, type Pattern } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature, LIMITS } from '@/lib/tiers';
 import { useWorkouts } from '@/lib/workouts';
@@ -29,13 +30,15 @@ export default function LibraryScreen() {
   const [group, setGroup] = useState<MuscleGroup | null>(null);
   const [q, setQ] = useState('');
   const full = hasFeature(tier, 'full_library');
+  // Koç kaldırdığı hareketleri de görür, geri ekleyebilsin diye.
+  const all = useExercises(isCoach);
 
   const list = useMemo(
     () =>
-      EXERCISES.filter((e) => !group || e.primary.some((m) => MUSCLES[m].group === group))
+      all.filter((e) => !group || e.primary.some((m) => MUSCLES[m].group === group))
         .filter((e) => !q || plain(`${e.trName} ${e.name}`).includes(plain(q)))
         .sort((a, b) => Number(isUnlocked(b, full)) - Number(isUnlocked(a, full))),
-    [group, q, full],
+    [all, group, q, full],
   );
 
   return (
@@ -47,6 +50,9 @@ export default function LibraryScreen() {
             <TierBadge tier="pro" />
           </PressScale>
         </Row>
+      )}
+      {isCoach && !pick && (
+        <Button title="Yeni hareket ekle" variant="outline" icon={{ ios: 'plus', android: 'add', web: 'add' }} onPress={() => router.push('/coach/exercise-new')} />
       )}
       <Input
         value={q}
@@ -74,7 +80,7 @@ export default function LibraryScreen() {
               }
               router.push(`/exercise/${e.id}`);
             }}
-            style={[styles.item, !open && { opacity: 0.55 }]}>
+            style={[styles.item, (!open || isHidden(e.id)) && { opacity: 0.55 }]}>
             <Thumb exerciseId={e.id} pattern={e.pattern} canView={isCoach || tier !== 'free'} />
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={styles.name}>{e.trName}</Text>
@@ -85,6 +91,11 @@ export default function LibraryScreen() {
                 <Tag color={colors.textMuted} bg={colors.surfaceAlt}>
                   {e.equipment}
                 </Tag>
+                {isHidden(e.id) && (
+                  <Tag color={colors.danger} bg={`${colors.danger}1F`}>
+                    Kaldırıldı
+                  </Tag>
+                )}
                 {withMedia.has(e.id) && (
                   <Tag color={colors.accentBright} bg={colors.accentSoft}>
                     Video

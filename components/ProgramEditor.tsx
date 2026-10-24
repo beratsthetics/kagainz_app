@@ -4,7 +4,8 @@ import { Text } from '@/components/T';
 
 import { Button, Card, Chip, Icon, Input, Mono, PressScale, Row, Sheet, Stepper } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
-import { EXERCISES, exerciseById, GROUPS, MUSCLES, type Muscle } from '@/lib/exercises';
+import { useExercises } from '@/lib/exerciseCatalog';
+import { exerciseById, GROUPS, MUSCLES, type Muscle } from '@/lib/exercises';
 import { WEEKDAYS, type Program, type ProgramDay } from '@/lib/program';
 import { makeStyles, useColors } from '@/lib/theme';
 
@@ -52,6 +53,7 @@ function DayEditor({
 }) {
   const colors = useColors();
   const styles = useStyles();
+  const exercises = useExercises();
   const [picking, setPicking] = useState(false);
   const [group, setGroup] = useState<(typeof GROUPS)[number]>(GROUPS[0]);
   return (
@@ -109,7 +111,7 @@ function DayEditor({
             <Chip key={g} label={g} active={group === g} onPress={() => setGroup(g)} />
           ))}
         </Row>
-        {EXERCISES.filter((x) => exerciseGroup(x.primary[0]) === group).map((x) => (
+        {exercises.filter((x) => exerciseGroup(x.primary[0]) === group).map((x) => (
           <PressScale
             key={x.id}
             onPress={() => {

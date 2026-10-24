@@ -25,7 +25,8 @@ import {
 } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { exerciseById, EXERCISES } from '@/lib/exercises';
+import { useExercises } from '@/lib/exerciseCatalog';
+import { exerciseById } from '@/lib/exercises';
 import { FORM_CHECK_SELECT, nextAllowedAt, type FormCheck } from '@/lib/formcheck';
 import { uploadFile } from '@/lib/media';
 import { useProgress } from '@/lib/progress';
@@ -40,7 +41,8 @@ export default function FormCheckList() {
   const { bump } = useProgress();
   const [items, setItems] = useState<FormCheck[] | null>(null);
   const [open, setOpen] = useState(false);
-  const [exerciseId, setExerciseId] = useState(EXERCISES[0].id);
+  const exercises = useExercises();
+  const [exerciseId, setExerciseId] = useState(exercises[0]?.id ?? 'bench_press');
   const [note, setNote] = useState('');
   const [video, setVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [busy, setBusy] = useState(false);
@@ -166,7 +168,7 @@ export default function FormCheckList() {
       <Sheet visible={open} onClose={() => !busy && setOpen(false)} title="Form check gönder">
         <Label>Hareket</Label>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
-          {EXERCISES.map((e) => (
+          {exercises.map((e) => (
             <Chip key={e.id} label={e.trName} active={exerciseId === e.id} onPress={() => setExerciseId(e.id)} />
           ))}
         </View>

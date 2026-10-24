@@ -7,11 +7,12 @@ import { BodyMap } from '@/components/BodyMap';
 import { ExerciseMediaView } from '@/components/ExerciseMediaView';
 import { LineChart } from '@/components/Charts';
 import { MovementAnim } from '@/components/MovementAnim';
-import { Body, Button, Card, EmptyState, Label, LockedCard, Mono, Reveal, Row, Screen, Stat, Tag, Title } from '@/components/ui';
+import { Body, Button, Card, EmptyState, Label, LockedCard, Mono, Reveal, Row, Screen, Sheet, Stat, Tag, Title } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { deleteExerciseMedia, pickExerciseMedia, saveExerciseMedia, useExerciseMedia, type ExerciseMedia as ExerciseMediaRow } from '@/lib/exerciseMedia';
-import { exerciseById, isUnlocked, MUSCLES } from '@/lib/exercises';
+import { removeExercise, restoreExercise, useExercises } from '@/lib/exerciseCatalog';
+import { exerciseById, isCustom, isHidden, isUnlocked, MUSCLES } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
 import { e1rm, useWorkouts } from '@/lib/workouts';
@@ -23,7 +24,9 @@ export default function ExerciseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { tier, isCoach } = useAuth();
   const { records, history, active, addExercise } = useWorkouts();
-  const ex = exerciseById(id ?? '');
+  // Koçun eklediği hareketler sunucudan gelince sayfa yenilensin.
+  const all = useExercises(true);
+  const ex = all.find((e) => e.id === id) ?? exerciseById(id ?? '');
   // Koçun animasyonu ücretli üyelere ve koça gösterilir; diğerleri çizim animasyonunu görür.
   const { media, view, hasVideo } = useExerciseMedia(ex?.id, isCoach || tier !== 'free');
   const [animWidth, setAnimWidth] = useState(0);
@@ -82,6 +85,7 @@ export default function ExerciseScreen() {
               <PressLink onPress={() => router.push('/plans')}>Koçun hazırladığı gerçek hareket videosu Pro üyelerde açılır →</PressLink>
             )}
             {isCoach && <CoachMediaControls exerciseId={ex.id} media={media} />}
+            {isCoach && <CoachCatalogControls exerciseId={ex.id} />}
           </Reveal>
 
           <Reveal index={2}>
@@ -170,6 +174,57 @@ function PressLink({ children, onPress }: { children: string; onPress: () => voi
     <Text onPress={onPress} style={styles.link}>
       {children}
     </Text>
+  );
+}
+
+// Sadece koçta görünür: hareketi kütüphaneden kaldır ya da geri ekle. Koçun eklediği hareket silinir,
+// uygulamayla gelen hareket gizlenir. Üyelerin geçmişi ve programları etkilenmez.
+function CoachCatalogControls({ exerciseId }: { exerciseId: string }) {
+  const styles = useStyles();
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const hidden = isHidden(exerciseId);
+  const custom = isCustom(exerciseId);
+
+  async function run(fn: () => Promise<string | null>, done: string, leave = false) {
+    setBusy(true);
+    const err = await fn();
+    setBusy(false);
+    setConfirm(false);
+    if (err) return setNotice(err);
+    if (leave) return router.back();
+    setNotice(done);
+  }
+
+  return (
+    <View style={styles.coach}>
+      <Text style={styles.coachLabel}>KOÇ · KÜTÜPHANE</Text>
+      {hidden ? (
+        <Button
+          title="Listeye geri ekle"
+          variant="outline"
+          loading={busy}
+          onPress={() => run(() => restoreExercise(exerciseId), 'Hareket tekrar listede.')}
+        />
+      ) : (
+        <Button title="Hareketi kaldır" variant="ghost" onPress={() => setConfirm(true)} />
+      )}
+      {notice && <Text style={styles.notice}>{notice}</Text>}
+      <Sheet visible={confirm} onClose={() => setConfirm(false)} title="Hareketi kaldır">
+        <Body muted>
+          {custom
+            ? 'Bu hareket kütüphaneden silinecek. Üyelerin geçmiş antrenmanları silinmez.'
+            : 'Hareket listelerden kaldırılacak. İstediğin zaman buradan geri ekleyebilirsin.'}
+        </Body>
+        <Button
+          title="Evet, kaldır"
+          loading={busy}
+          onPress={() => run(() => removeExercise(exerciseId, custom), 'Hareket listeden kaldırıldı.', custom)}
+        />
+        <Button title="Vazgeç" variant="ghost" onPress={() => setConfirm(false)} />
+      </Sheet>
+    </View>
   );
 }
 
