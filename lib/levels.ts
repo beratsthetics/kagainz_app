@@ -10,6 +10,11 @@ export function xpFor(level: number) {
   return 10 * (level - 1) ** 2;
 }
 
+// Koçlar her zaman en üst seviyede görünür.
+export function shownXp(xp: number | null | undefined, role: string | null | undefined) {
+  return role === 'coach' ? Math.max(xp ?? 0, xpFor(MAX_LEVEL)) : xp;
+}
+
 // Seviye aralığına göre chatteki isim efekti. Renkler hem koyu hem açık temada okunur.
 export type LevelBand = {
   from: number;

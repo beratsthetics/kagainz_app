@@ -28,7 +28,7 @@ import { LevelBadge, LevelFrame, LevelName } from '@/components/Level';
 import { formatMs, VoicePlayer, VoiceRecordButton, voiceMime } from '@/components/Voice';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth, useJoinStep } from '@/lib/auth';
-import { bandOf, levelOf } from '@/lib/levels';
+import { bandOf, levelOf, shownXp } from '@/lib/levels';
 import { parseMeal, sumMacros, type Macros } from '@/lib/macros';
 import { pickImage, uploadBase64, uploadFile, useSignedUrl } from '@/lib/media';
 import { useProgress } from '@/lib/progress';
@@ -623,7 +623,7 @@ function MessageBubble({
   const styles = useStyles();
   const meta = KINDS.find((k) => k.kind === message.kind);
   const coach = message.profiles?.role === 'coach';
-  const xp = message.profiles?.xp;
+  const xp = shownXp(message.profiles?.xp, message.profiles?.role);
   const framed = bandOf(levelOf(xp)).frame != null;
   const time = new Date(message.created_at).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' });
   const ink = mine ? colors.primaryText : colors.text;

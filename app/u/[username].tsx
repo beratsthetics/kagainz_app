@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 import { LevelBadge, LevelName } from '@/components/Level';
+import { shownXp } from '@/lib/levels';
 
 import { Avatar, Body, Button, Card, EmptyState, Label, PressScale, Reveal, Row, Screen, SkeletonList, Tag, TierBadge } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
@@ -66,9 +67,9 @@ export default function UserProfile() {
         <View style={{ alignItems: 'center', gap: spacing.sm }}>
           <Avatar name={profile.username} path={profile.avatar_url} size={96} />
           <Row gap={6}>
-            <LevelName username={profile.username} xp={profile.xp} style={{ fontFamily: fonts.display, fontSize: 28, color: colors.text }} />
+            <LevelName username={profile.username} xp={shownXp(profile.xp, profile.role)} style={{ fontFamily: fonts.display, fontSize: 28, color: colors.text }} />
             {profile.tier !== 'free' && <TierBadge tier={profile.tier} />}
-            <LevelBadge xp={profile.xp} size="md" />
+            <LevelBadge xp={shownXp(profile.xp, profile.role)} size="md" />
           </Row>
           {profile.role === 'coach' && (
             <Tag color={colors.accentBright} bg={colors.accentSoft}>

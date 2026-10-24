@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Switch, View } from 'react-native';
 import { Text } from '@/components/T';
 import { LevelBadge, LevelProgress } from '@/components/Level';
+import { shownXp } from '@/lib/levels';
 
 import {
   Avatar,
@@ -84,12 +85,12 @@ export default function ProfileScreen() {
           <Text style={styles.username}>@{profile?.username ?? 'kullanıcı adı yok'}</Text>
           <Row gap={6}>
             <TierBadge tier={tier} />
-            <LevelBadge xp={profile?.xp} size="md" />
+            <LevelBadge xp={shownXp(profile?.xp, profile?.role)} size="md" />
           </Row>
           <Mono style={{ color: colors.textMuted }}>
             {session.user.phone ? `+${session.user.phone.replace(/^\+/, '')}` : (session.user.email ?? '')}
           </Mono>
-          <LevelProgress xp={profile?.xp} />
+          <LevelProgress xp={shownXp(profile?.xp, profile?.role)} />
         </View>
       </Reveal>
 
