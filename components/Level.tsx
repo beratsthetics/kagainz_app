@@ -6,7 +6,7 @@ import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withRepea
 import { Text } from '@/components/T';
 import { fonts } from '@/constants/theme';
 import { tx } from '@/lib/i18n';
-import { bandOf, levelOf, xpFor } from '@/lib/levels';
+import { bandOf, levelOf, MAX_LEVEL, xpFor } from '@/lib/levels';
 import { useColors } from '@/lib/theme';
 
 // "LV 12" rozeti; Lv 20 ve üstünde çerçevesiyle aynı degrade.
@@ -80,18 +80,19 @@ export function LevelProgress({ xp }: { xp: number | null | undefined }) {
   const from = xpFor(level);
   const to = xpFor(level + 1);
   const value = Math.max(0, xp ?? 0);
+  const done = level === MAX_LEVEL;
   return (
     <View style={{ alignSelf: 'stretch', gap: 6 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: band.color }}>{tx(band.name)}</Text>
-        <Text style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.textMuted }}>{tx('{0} / {1} XP', [value, to])}</Text>
+        <Text style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.textMuted }}>{done ? tx('En üst seviye · {0} XP', [value]) : tx('{0} / {1} XP', [value, to])}</Text>
       </View>
       <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.surfaceHigh, overflow: 'hidden' }}>
         <LinearGradient
           colors={band.frame ?? [band.color, band.color]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={{ height: 6, width: `${Math.min(100, ((value - from) / (to - from)) * 100)}%` }}
+          style={{ height: 6, width: done ? '100%' : `${Math.min(100, ((value - from) / (to - from)) * 100)}%` }}
         />
       </View>
     </View>

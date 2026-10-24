@@ -1176,4 +1176,5 @@ export const EN: Record<string, string> = {
   "Kayıt başlatılamadı.": "Couldn't start recording.",
   "Kaydetmek için mikrofona basılı tut.": "Hold the microphone to record.",
   "Chat'te sesli mesaj": "Voice messages in chat",
+  "En üst seviye · {0} XP": "Max level · {0} XP",
 };

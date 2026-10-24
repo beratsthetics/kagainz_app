@@ -1,7 +1,9 @@
 // Aktiflik seviyesi. XP'yi sunucu verir (0009): mesaj, antrenman, seri, check-in, meydan okuma,
 // form check ve alınan tebrikler. Seviye n için 10 × (n-1)² XP gerekir: Lv 5 = 160, Lv 10 = 810.
+export const MAX_LEVEL = 30;
+
 export function levelOf(xp: number | null | undefined) {
-  return Math.floor(Math.sqrt(Math.max(0, xp ?? 0) / 10)) + 1;
+  return Math.min(MAX_LEVEL, Math.floor(Math.sqrt(Math.max(0, xp ?? 0) / 10)) + 1);
 }
 
 export function xpFor(level: number) {
@@ -13,7 +15,7 @@ export type LevelBand = {
   from: number;
   name: string;
   color: string;
-  // Lv 10+: isim parlar. Lv 20+: kalın başlık yazısı, işaret ve mesaj çerçevesi. Lv 30+: renk akar.
+  // Lv 10+: isim parlar. Lv 20+: kalın başlık yazısı, işaret ve mesaj çerçevesi. Lv 30 (en üst): renk akar.
   glow?: boolean;
   display?: boolean;
   mark?: string;
