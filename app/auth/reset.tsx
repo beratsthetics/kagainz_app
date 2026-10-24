@@ -45,7 +45,7 @@ export default function ResetPasswordScreen() {
           {error ? (
             <>
               <Body style={{ color: colors.danger, textAlign: 'center' }}>{error}</Body>
-              <Button title="Giriş ekranına dön" onPress={() => router.replace('/auth/email')} />
+              <Button title="Giriş ekranına dön" onPress={() => router.replace('/auth')} />
             </>
           ) : (
             <ActivityIndicator color={colors.text} />
