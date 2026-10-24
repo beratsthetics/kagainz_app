@@ -7,7 +7,7 @@ import { AuthShell } from '@/components/AuthShell';
 import { GoogleLogo, useGoogleSignIn } from '@/components/GoogleSignIn';
 import { Body, Button, Card, Eyebrow, Hero, Icon, Input, Label, PressScale, Reveal, Row } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
-import { nextAfterSignIn, sendPasswordReset, useAuth } from '@/lib/auth';
+import { leaveAuth, sendPasswordReset, useAuth } from '@/lib/auth';
 import { makeStyles, useColors } from '@/lib/theme';
 import { locale, tx } from '@/lib/i18n';
 
@@ -18,7 +18,7 @@ const MIN_PASSWORD = 6;
 export default function EmailScreen() {
   const colors = useColors();
   const styles = useStyles();
-  const { passwordAuth } = useAuth();
+  const { passwordAuth, signOut } = useAuth();
   const params = useLocalSearchParams<{ mode?: string; reason?: string }>();
   const [mode, setMode] = useState<'signup' | 'signin'>(params.mode === 'signin' ? 'signin' : 'signup');
   const [email, setEmail] = useState('');
@@ -27,7 +27,6 @@ export default function EmailScreen() {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const { google, busy: googleBusy } = useGoogleSignIn(setError);
   const signup = mode === 'signup';
@@ -38,19 +37,26 @@ export default function EmailScreen() {
     if (!valid || loading) return;
     setLoading(true);
     setError(null);
+    setInfo(null);
     const { error: err, needsConfirm } = await passwordAuth(mode, email, password);
     if (err) {
       setLoading(false);
       return setError(err);
     }
-    if (needsConfirm) {
+    if (signup) {
+      // Kayıttan sonra form giriş moduna geçer; kişi şifresiyle giriş yapar.
+      if (!needsConfirm) await signOut();
       setLoading(false);
-      return setSent(true);
+      setMode('signin');
+      setRepeat('');
+      return setInfo(
+        needsConfirm
+          ? tx('Hesabın oluşturuldu. {0} adresine gelen onay linkine tıkla, sonra giriş yap.', [email.trim()])
+          : 'Hesabın oluşturuldu. Şimdi giriş yap.',
+      );
     }
-    const next = await nextAfterSignIn();
     setLoading(false);
-    if (next) router.replace(next);
-    else router.dismissAll();
+    leaveAuth();
   }
 
   async function forgot() {
@@ -72,19 +78,6 @@ export default function EmailScreen() {
     </PressScale>
   );
   const lock = <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={18} color={colors.textMuted} />;
-
-  if (sent) {
-    return (
-      <AuthShell step={0} footer={<Button title="Onayladım, giriş yap" arrow onPress={() => (setSent(false), setMode('signin'))} />}>
-        <Reveal index={0}>
-          <Hero lines={['Mailini', 'onayla']} size={48} />
-        </Reveal>
-        <Reveal index={1}>
-          <Body muted>{tx('{0} adresine bir onay linki gönderdik. Linke tıkla, sonra buraya dönüp şifrenle giriş yap. Gelmezse spam klasörüne bak.', [email.trim()])}</Body>
-        </Reveal>
-      </AuthShell>
-    );
-  }
 
   function switchMode() {
     setMode(signup ? 'signin' : 'signup');

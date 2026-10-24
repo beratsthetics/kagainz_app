@@ -1,4 +1,5 @@
 import type { Session } from '@supabase/supabase-js';
+import { router } from 'expo-router';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
@@ -227,6 +228,12 @@ export function useAuth() {
 }
 
 // Girişten sonra: kullanıcı adı yoksa onu sor, varsa uygulamaya dön.
+// Girişten sonra giriş ekranı kapanır, kişi giriş/kayıt butonuna bastığı sayfaya döner.
+export function leaveAuth() {
+  if (router.canDismiss()) router.dismissAll();
+  else router.replace('/');
+}
+
 export async function nextAfterSignIn(): Promise<'/auth/username' | null> {
   const { data: user } = await supabase.auth.getUser();
   const { data } = await supabase

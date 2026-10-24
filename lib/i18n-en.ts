@@ -1135,6 +1135,8 @@ export const EN: Record<string, string> = {
   "KALORİ": "CALORIES",
   "YENİ HAREKET": "NEW EXERCISE",
   "Kaldırılanlar ({0})": "Removed ({0})",
+  "Hesabın oluşturuldu. {0} adresine gelen onay linkine tıkla, sonra giriş yap.": "Account created. Click the confirmation link sent to {0}, then sign in.",
+  "Hesabın oluşturuldu. Şimdi giriş yap.": "Account created. Now sign in.",
   "Ücretsiz hesap": "Free account",
   "E-posta ve şifrenle saniyeler içinde kayıt ol.": "Sign up with your email and password in seconds.",
   "E-posta ve şifrenle hesabına gir.": "Sign in with your email and password.",

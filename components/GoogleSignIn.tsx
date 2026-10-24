@@ -1,8 +1,7 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
 
-import { nextAfterSignIn, useAuth } from '@/lib/auth';
+import { leaveAuth, useAuth } from '@/lib/auth';
 
 export function GoogleLogo({ size = 20 }: { size?: number }) {
   return (
@@ -27,7 +26,7 @@ export function GoogleLogo({ size = 20 }: { size?: number }) {
   );
 }
 
-// Google ile giriş; bitince sıradaki adıma (kullanıcı adı, karşılama) ya da uygulamaya geçer.
+// Google ile giriş; bitince kişi geldiği sayfaya döner.
 export function useGoogleSignIn(setError: (e: string | null) => void) {
   const { signInWithGoogle } = useAuth();
   const [busy, setBusy] = useState(false);
@@ -40,9 +39,7 @@ export function useGoogleSignIn(setError: (e: string | null) => void) {
     if (err === 'cancelled') return;
     if (err) return setError(err);
     // Web'de sayfa Google'a yönlenir; mobilde buraya oturum açılmış olarak döneriz.
-    const next = await nextAfterSignIn();
-    if (next) router.replace(next);
-    else router.dismissAll();
+    leaveAuth();
   }
 
   return { google, busy };
