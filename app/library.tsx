@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -8,6 +9,7 @@ import { Body, Chip, Icon, Input, PressScale, Row, Screen, Tag, TierBadge } from
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useExerciseMediaIds } from '@/lib/exerciseMedia';
+import { BUILTIN_MEDIA } from '@/lib/exerciseVideos';
 import { EXERCISES, GROUPS, isUnlocked, MUSCLES, type MuscleGroup } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature, LIMITS } from '@/lib/tiers';
@@ -72,9 +74,14 @@ export default function LibraryScreen() {
               router.push(`/exercise/${e.id}`);
             }}
             style={[styles.item, !open && { opacity: 0.55 }]}>
-            <View style={styles.thumb}>
-              <MovementAnim pattern={e.pattern} size={86} />
-            </View>
+            {/* Videosu olan hareketin kapağı, yoksa çizim animasyonu. */}
+            {BUILTIN_MEDIA[e.id] ? (
+              <Image source={BUILTIN_MEDIA[e.id].poster} style={styles.poster} contentFit="cover" />
+            ) : (
+              <View style={styles.thumb}>
+                <MovementAnim pattern={e.pattern} size={86} />
+              </View>
+            )}
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={styles.name}>{e.trName}</Text>
               <Text style={styles.muscles} numberOfLines={1}>
@@ -130,6 +137,7 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
+  poster: { width: 86, height: 70, borderRadius: radius.md, backgroundColor: '#FFFFFF' },
   thumb: {
     width: 86,
     height: 70,

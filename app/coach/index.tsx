@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
-import { Avatar, Body, Card, EmptyState, Icon, IconBox, Input, Label, Mono, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, Tag, TierBadge } from '@/components/ui';
+import { Avatar, Body, Card, EmptyState, Icon, IconBox, Input, Label, Mono, PressScale, Reveal, Row, Screen, SkeletonList, Tag, TierBadge, type IconName } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { exerciseById } from '@/lib/exercises';
@@ -113,40 +113,62 @@ export default function CoachPanel() {
   }
 
   const unanswered = threads?.filter((t) => t.sender_id === t.member_id).length ?? 0;
+  const waitingCheckins = checkins?.filter((c) => !c.coach_note).length ?? 0;
+  const paid = members?.filter((m) => m.tier !== 'free').length ?? 0;
+  const todo = pending.length + unanswered + waitingCheckins + (reports?.length ?? 0);
+  const TITLES: Record<Tab, string> = { forms: 'Form check videoları', checkins: "Check-in'ler", dms: 'Mesajlar', reports: 'Şikayetler', members: 'Üyeler' };
 
   return (
     <Screen edges={[]}>
+      {/* Özet: bugün bekleyen işler ve üye sayıları. Kutucuğa dokununca alttaki liste o konuya geçer. */}
       <Reveal index={0}>
-        <Row gap={spacing.sm}>
-          <StatBox label="Bekleyen form" value={pending.length} color={colors.fat} />
-          <StatBox label="Yanıt bekleyen" value={unanswered} color={colors.accentBright} />
-          <StatBox label="Bekleyen check-in" value={checkins?.filter((c) => !c.coach_note).length ?? 0} color={colors.success} />
+        <View style={{ gap: 4, paddingTop: spacing.xs }}>
+          <Label>{new Date().toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' })}</Label>
+          <Text style={{ fontFamily: fonts.display, fontSize: 30, lineHeight: 36, color: colors.text }}>
+            {todo ? tx('{0} iş seni bekliyor', [todo]) : tx('Her şey yolunda')}
+          </Text>
+        </View>
+      </Reveal>
+
+      <Reveal index={1}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 4 }}>
+          <Kpi tab="forms" active={tab} onPress={setTab} icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} label="Bekleyen form" value={pending.length} color={colors.fat} />
+          <Kpi tab="dms" active={tab} onPress={setTab} icon={{ ios: 'bubble.left.fill', android: 'chat', web: 'chat' }} label="Yanıt bekleyen" value={unanswered} color={colors.accentBright} />
+          <Kpi tab="checkins" active={tab} onPress={setTab} icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} label="Bekleyen check-in" value={waitingCheckins} color={colors.success} />
+          <Kpi tab="reports" active={tab} onPress={setTab} icon={{ ios: 'exclamationmark.shield.fill', android: 'report', web: 'report' }} label="Açık şikayet" value={reports?.length ?? 0} color={colors.danger} />
+          <Kpi
+            tab="members"
+            active={tab}
+            onPress={setTab}
+            icon={{ ios: 'person.2.fill', android: 'group', web: 'group' }}
+            label="Üye"
+            value={members?.length ?? 0}
+            sub={tx('{0} ücretli', [paid])}
+            color="#A78BFA"
+            wide
+          />
+        </View>
+      </Reveal>
+
+      <Reveal index={2}>
+        <Row gap={spacing.sm + 4}>
+          <Shortcut
+            icon={{ ios: 'list.bullet.rectangle.fill', android: 'view_list', web: 'view_list' }}
+            title="Şablonlar"
+            sub="3-6 günlük programlar"
+            onPress={() => router.push('/coach/templates')}
+          />
+          <Shortcut
+            icon={{ ios: 'figure.strengthtraining.traditional', android: 'fitness_center', web: 'fitness_center' }}
+            title="Hareketler"
+            sub="Video yükle, düzenle"
+            onPress={() => router.push('/library')}
+          />
         </Row>
       </Reveal>
-      <Reveal index={1}>
-        <PressScale onPress={() => router.push('/coach/templates')}>
-          <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <IconBox name={{ ios: 'list.bullet.rectangle.fill', android: 'view_list', web: 'view_list' }} color={colors.accentBright} bg={colors.accentSoft} size={42} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>Antrenman şablonları</Text>
-              <Mono style={{ fontSize: 12, color: colors.textMuted }}>3, 4, 5 ve 6 günlük hazır programlar</Mono>
-            </View>
-            <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={14} color={colors.textDim} />
-          </Card>
-        </PressScale>
-      </Reveal>
-      <Reveal index={1}>
-        <Segmented
-          options={[
-            { value: 'forms', label: 'Form' },
-            { value: 'checkins', label: 'Check-in' },
-            { value: 'dms', label: 'Mesaj' },
-            { value: 'reports', label: tx('Şikayet{0}', [reports?.length ? ` (${reports.length})` : '']) },
-            { value: 'members', label: 'Üye' },
-          ]}
-          value={tab}
-          onChange={setTab}
-        />
+
+      <Reveal index={3}>
+        <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text, marginTop: spacing.sm }}>{tx(TITLES[tab])}</Text>
       </Reveal>
 
       {tab === 'forms' &&
@@ -297,12 +319,64 @@ export default function CoachPanel() {
   );
 }
 
-function StatBox({ label, value, color }: { label: string; value: number; color: string }) {
+// Özet kutucuğu: sayı, başlık ve dokununca açılan liste.
+function Kpi({
+  tab,
+  active,
+  onPress,
+  icon,
+  label,
+  value,
+  sub,
+  color,
+  wide,
+}: {
+  tab: Tab;
+  active: Tab;
+  onPress: (t: Tab) => void;
+  icon: IconName;
+  label: string;
+  value: number;
+  sub?: string;
+  color: string;
+  wide?: boolean;
+}) {
+  const colors = useColors();
+  const on = tab === active;
   return (
-    <Card style={{ flex: 1, gap: 2, paddingVertical: spacing.sm + 2 }}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 26, color }}>{value}</Text>
-      <Label>{label}</Label>
-    </Card>
+    <View style={{ width: wide ? '100%' : '46%', flexGrow: 1 }}>
+      <PressScale onPress={() => onPress(tab)}>
+      <Card style={[{ gap: spacing.sm, padding: spacing.md }, on && { borderColor: color, backgroundColor: `${color}12` }]}>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <IconBox name={icon} color={color} bg={`${color}22`} size={38} />
+          {value > 0 && tab !== 'members' && <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: color }} />}
+        </Row>
+        <Row gap={spacing.sm} style={{ alignItems: 'baseline' }}>
+          <Text style={{ fontFamily: fonts.display, fontSize: 32, lineHeight: 38, color: colors.text }}>{value}</Text>
+          {sub && <Mono style={{ fontSize: 12, color: colors.textMuted }}>{sub}</Mono>}
+        </Row>
+        <Label>{label}</Label>
+      </Card>
+      </PressScale>
+    </View>
+  );
+}
+
+function Shortcut({ icon, title, sub, onPress }: { icon: IconName; title: string; sub: string; onPress: () => void }) {
+  const colors = useColors();
+  return (
+    <PressScale flex onPress={onPress}>
+      <Card style={{ gap: spacing.sm, padding: spacing.md }}>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <IconBox name={icon} color={colors.accentBright} bg={colors.accentSoft} size={38} />
+          <Icon name={{ ios: 'arrow.up.right', android: 'north_east', web: 'north_east' }} size={14} color={colors.textDim} />
+        </Row>
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>{title}</Text>
+        <Body muted style={{ fontSize: 12.5 }}>
+          {sub}
+        </Body>
+      </Card>
+    </PressScale>
   );
 }
 

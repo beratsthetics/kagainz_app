@@ -2,11 +2,14 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
-import { useEffect, useState, type ReactNode } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, type ColorValue, type DimensionValue, type StyleProp, type TextInputProps, type TextProps, type ViewStyle } from 'react-native';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, PanResponder, Platform, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type ColorValue, type DimensionValue, type StyleProp, type TextInputProps, type TextProps, type ViewStyle } from 'react-native';
 import { Text, translateChildren } from '@/components/T';
 import Animated, {
+  Easing,
   FadeInDown,
+  interpolate,
+  runOnJS,
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
@@ -560,6 +563,7 @@ export function Row({
 
 
 // Alttan açılan panel (seçenekler, ürün detayı, mesaj işlemleri).
+// Alttan açılan pencere. Üstteki tutamaçtan aşağı çekilince ya da arka plana dokununca kayarak kapanır.
 export function Sheet({
   visible,
   onClose,
@@ -573,31 +577,81 @@ export function Sheet({
 }) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const y = useSharedValue(height);
+
+  useEffect(() => {
+    if (visible) {
+      y.value = height;
+      y.value = withSpring(0, { damping: 24, stiffness: 260, mass: 0.9 });
+    }
+  }, [visible, height, y]);
+
+  const close = useMemo(
+    () => () => {
+      y.value = withTiming(height, { duration: 220, easing: Easing.in(Easing.cubic) }, (finished) => {
+        if (finished) runOnJS(onClose)();
+      });
+    },
+    [height, onClose, y],
+  );
+
+  const pan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 4,
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderMove: (_, g) => {
+          y.value = Math.max(0, g.dy);
+        },
+        onPanResponderRelease: (_, g) => {
+          if (g.dy > 110 || g.vy > 0.8) close();
+          else y.value = withSpring(0, { damping: 24, stiffness: 260 });
+        },
+        onPanResponderTerminate: () => {
+          y.value = withSpring(0, { damping: 24, stiffness: 260 });
+        },
+      }),
+    [close, y],
+  );
+
+  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
+  const backdropStyle = useAnimatedStyle(() => ({ opacity: interpolate(y.value, [0, height * 0.6], [1, 0], 'clamp') }));
+
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={close}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' }} onPress={onClose} />
-        <View
-          style={{
-            backgroundColor: colors.surface,
-            borderTopLeftRadius: radius.xl,
-            borderTopRightRadius: radius.xl,
-            borderWidth: 1,
-            borderColor: colors.border,
-            padding: spacing.lg,
-            paddingBottom: spacing.lg + insets.bottom,
-            gap: spacing.md,
-            maxHeight: '88%',
-            width: '100%',
-            maxWidth: 720,
-            alignSelf: 'center',
-          }}>
-          <View style={{ alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrong }} />
-          {title && <Heading>{title}</Heading>}
+        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.55)' }, backdropStyle]} />
+        <Pressable style={{ flex: 1 }} onPress={close} />
+        <Animated.View
+          style={[
+            {
+              backgroundColor: colors.surface,
+              borderTopLeftRadius: radius.xl,
+              borderTopRightRadius: radius.xl,
+              borderWidth: 1,
+              borderColor: colors.border,
+              padding: spacing.lg,
+              paddingTop: 0,
+              paddingBottom: spacing.lg + insets.bottom,
+              gap: spacing.md,
+              maxHeight: '88%',
+              width: '100%',
+              maxWidth: 720,
+              alignSelf: 'center',
+            },
+            sheetStyle,
+          ]}>
+          {/* Tutamaç ve başlık sürüklenebilir alan. */}
+          <View {...pan.panHandlers} style={{ paddingTop: spacing.sm + 2, gap: spacing.md, cursor: 'grab', userSelect: 'none' } as ViewStyle}>
+            <View style={{ alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong }} />
+            {title ? <Heading>{title}</Heading> : <View style={{ height: 4 }} />}
+          </View>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: spacing.md }} showsVerticalScrollIndicator={false}>
             {children}
           </ScrollView>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
