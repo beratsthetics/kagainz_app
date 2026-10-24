@@ -126,7 +126,7 @@ export default function LibraryScreen() {
   );
 }
 
-// Hareketin kapağı: koçun yüklediği video ya da resim (ücretli üye ve koç görür), yoksa uygulamayla gelen
+// Hareketin kapağı: koçun yüklediği video küçük ve sessiz oynar, resim/GIF gösterilir (ücretli üye ve koç görür); yoksa uygulamayla gelen
 // videonun kapak karesi, o da yoksa çizim animasyonu.
 function Thumb({ exerciseId, pattern, canView }: { exerciseId: string; pattern: Pattern; canView: boolean }) {
   const styles = useStyles();
@@ -134,7 +134,7 @@ function Thumb({ exerciseId, pattern, canView }: { exerciseId: string; pattern: 
   if (media && url) {
     return (
       <View style={styles.poster}>
-        <ExerciseMediaView url={url} kind={media.kind} size={86} height={70} interactive={false} still />
+        <ExerciseMediaView url={url} kind={media.kind} size={86} height={70} interactive={false} />
       </View>
     );
   }
