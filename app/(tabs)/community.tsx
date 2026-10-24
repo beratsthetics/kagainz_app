@@ -172,7 +172,7 @@ export default function CommunityScreen() {
       </Reveal>
 
       {ROOMS.map((room, i) => {
-        const open = hasFeature(tier, room.feature);
+        const open = isCoach || hasFeature(tier, room.feature);
         const [c1] = tierColors[room.minTier === 'free' ? 'pro' : room.minTier];
         const content = (
           <>

@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
@@ -68,6 +69,9 @@ export function WaterTracker() {
   const colors = useColors();
   const { water, waterGoal, setWater } = useDaily();
   const glasses = Math.max(waterGoal, water);
+  // Bardaklar ve + düğmesi tek satıra sığsın diye bardak genişliği satıra göre küçülür.
+  const [rowWidth, setRowWidth] = useState(0);
+  const glassWidth = rowWidth ? Math.max(18, Math.min(26, Math.floor((rowWidth - 34 - 6 * glasses) / glasses))) : 26;
   return (
     <View style={{ gap: spacing.sm + 2 }}>
       <Row style={{ justifyContent: 'space-between' }}>
@@ -80,7 +84,7 @@ export function WaterTracker() {
           {((waterGoal * GLASS_ML) / 1000).toLocaleString(locale())} L
         </Text>
       </Row>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }} onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}>
         {Array.from({ length: glasses }, (_, i) => {
           const full = i < water;
           return (
@@ -88,7 +92,7 @@ export function WaterTracker() {
               key={i}
               onPress={() => setWater(full && i === water - 1 ? i : i + 1)}
               style={{
-                width: 26,
+                width: glassWidth,
                 height: 34,
                 borderRadius: 7,
                 borderWidth: 1.5,
@@ -142,8 +146,8 @@ export function MacroLine({ p, c, f, kcal }: { p: number; c: number; f: number; 
   return (
     <Text style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.textMuted }}>
       {kcal != null ? tx('{0} kcal · ', [kcal]) : ''}
-      <Text style={{ color: colors.protein }}>P {p}</Text> · <Text style={{ color: colors.carb }}>K {c}</Text> ·{' '}
-      <Text style={{ color: colors.fat }}>Y {f}</Text>
+      <Text style={{ color: colors.protein }}>P {Math.round(p)}</Text> · <Text style={{ color: colors.carb }}>K {Math.round(c)}</Text> ·{' '}
+      <Text style={{ color: colors.fat }}>Y {Math.round(f)}</Text>
     </Text>
   );
 }

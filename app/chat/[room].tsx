@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, View } from 'react-native';
+import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { Text } from '@/components/T';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -331,7 +331,7 @@ export default function ChatRoomScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ChatBackdrop room={room ?? ''} />
-      <Stack.Screen options={{ title: ROOM_NAMES[room ?? ''] ?? 'CHAT', headerTransparent: false }} />
+      <Stack.Screen options={{ title: tx(ROOM_NAMES[room ?? ''] ?? 'CHAT'), headerTransparent: false }} />
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
           {pinned && (
@@ -442,11 +442,11 @@ export default function ChatRoomScreen() {
                   </PressScale>
                 </Row>
               )}
-              <Row gap={spacing.xs} style={{ flexWrap: 'wrap' }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: spacing.xs }}>
                 {KINDS.map((k) => (
                   <Chip key={k.kind} label={k.label} icon={k.icon} active={kind === k.kind} onPress={() => setKind(k.kind)} />
                 ))}
-              </Row>
+              </ScrollView>
               {kind === 'meal' && preview.kcal > 0 && (
                 <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
                   ≈ {preview.kcal} kcal · <Text style={{ color: colors.protein }}>P {preview.protein}</Text> ·{' '}

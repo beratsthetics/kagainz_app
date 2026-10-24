@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Share, View } from 'react-native';
 import { Text } from '@/components/T';
 
-import { Body, Button, Card, EmptyState, GradientCard, Heading, Input, Label, Mono, Reveal, Row, Screen } from '@/components/ui';
+import { Body, Button, Card, EmptyState, GradientCard, Input, Label, Mono, Reveal, Row, Screen } from '@/components/ui';
 import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';

@@ -53,13 +53,13 @@ export default function ChallengesScreen() {
       <Reveal index={0}>
         <GradientCard colors={ch.done ? [colors.success, colors.success] : tierColors.pro}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Label>{ch.weekId.replace('-W', ' · Hafta ')}</Label>
+            <Label>{tx('{0} · Hafta {1}', ch.weekId.split('-W'))}</Label>
             {ch.done ? (
               <Tag color={colors.success} bg={colors.successSoft}>
                 Tamamlandı
               </Tag>
             ) : (
-              <Mono style={{ color: colors.textMuted }}>{left > 0 ? tx('{0} gün kaldı', [left]) : 'Son gün'}</Mono>
+              <Mono style={{ color: colors.textMuted }}>{left > 1 ? tx('{0} gün kaldı', [left]) : left === 1 ? tx('1 gün kaldı') : tx('Son gün')}</Mono>
             )}
           </Row>
           <Text style={{ fontSize: 56 }}>{ch.challenge.emoji}</Text>
@@ -69,7 +69,7 @@ export default function ChallengesScreen() {
             <Mono>
               {ch.value}/{ch.challenge.target} {ch.challenge.unit}
             </Mono>
-            <Mono style={{ color: colors.textMuted }}>%{Math.round((ch.value / ch.challenge.target) * 100)}</Mono>
+            <Mono style={{ color: colors.textMuted }}>{tx('%{0}', [Math.round((ch.value / ch.challenge.target) * 100)])}</Mono>
           </Row>
           <ProgressBar value={ch.value / ch.challenge.target} color={ch.done ? colors.success : colors.fat} />
           <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>

@@ -104,7 +104,9 @@ export function useWeekSummary(offset = 0): WeekSummary | null {
     };
     const rows = days.map((d) => {
       const a = activity[d.day] ?? {};
-      return { ...d, workouts: a.w ?? 0, active: (a.m ?? 0) > 0 || (a.w ?? 0) > 0, future: d.day > today };
+      // Antrenman geçmişi başka telefondan da gelebilir; o güne ait kayıtlar da sayılır.
+      const workouts = Math.max(a.w ?? 0, sessions.filter((s) => dayKey(new Date(s.startedAt)) === d.day).length);
+      return { ...d, workouts, active: (a.m ?? 0) > 0 || workouts > 0, future: d.day > today };
     });
     const sorted = [...weights].sort((a, b) => a.day.localeCompare(b.day));
     const startKey = dayKey(start);

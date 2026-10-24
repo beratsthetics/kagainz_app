@@ -53,6 +53,7 @@ type AuthState = {
   setUsername: (username: string) => Promise<string | null>;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<string | null>;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -85,6 +86,14 @@ export function formatTarget(method: CodeMethod, target: string) {
 }
 
 const GOOGLE_REDIRECT_PATH = 'auth/callback';
+const RESET_PATH = 'auth/reset';
+
+// Şifre sıfırlama linki gönderir; linke tıklayınca uygulamada yeni şifre ekranı açılır.
+export async function sendPasswordReset(email: string) {
+  const redirectTo = Platform.OS === 'web' ? `${window.location.origin}/${RESET_PATH}` : Linking.createURL(RESET_PATH);
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
+  return error ? passwordError(error.message) : null;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -191,6 +200,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshProfile: () => loadProfile(session?.user.id),
     async signOut() {
       await supabase.auth.signOut();
+    },
+    // Hesabı ve tüm kayıtlarını siler; hata varsa mesajını döner.
+    async deleteAccount() {
+      const uid = session?.user.id;
+      if (!uid) return null;
+      // Fotoğraflar önce silinir; hesap gidince klasöre erişim kalmaz.
+      for (const bucket of ['avatars', 'checkins']) {
+        const { data } = await supabase.storage.from(bucket).list(uid, { limit: 1000 });
+        if (data?.length) await supabase.storage.from(bucket).remove(data.map((f) => `${uid}/${f.name}`));
+      }
+      const { error } = await supabase.rpc('delete_my_account');
+      if (error) return /delete_my_account|schema cache/.test(error.message) ? "Sunucu güncel değil: 0012 SQL dosyasını Supabase'de çalıştır." : error.message;
+      await supabase.auth.signOut();
+      return null;
     },
   };
 

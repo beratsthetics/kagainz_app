@@ -168,7 +168,7 @@ export default function TrainingScreen() {
             </View>
             {unlocked && (
               <Button
-                title={active ? 'Devam eden antrenmana dön' : 'Bu antrenmanı başlat'}
+                title={active ? 'Antrenmana dön' : 'Bu antrenmanı başlat'}
                 icon={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }}
                 onPress={() => begin(() => startDay(current))}
               />

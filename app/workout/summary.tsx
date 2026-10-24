@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
-import { Body, Button, Card, Chip, GradientCard, Hero, Label, Mono, Reveal, Row, Screen, Stat } from '@/components/ui';
+import { Body, Button, Card, Chip, EmptyState, GradientCard, Hero, Label, Mono, Reveal, Row, Screen, Stat } from '@/components/ui';
 import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth, useJoinStep } from '@/lib/auth';
 import { useProgress } from '@/lib/progress';
@@ -17,7 +17,7 @@ export default function SummaryScreen() {
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { history } = useWorkouts();
-  const { session, tier, canPost } = useAuth();
+  const { session, tier, canPost, isCoach } = useAuth();
   const join = useJoinStep();
   const { bump } = useProgress();
   const [room, setRoom] = useState('genel');
@@ -28,6 +28,7 @@ export default function SummaryScreen() {
   if (!s) {
     return (
       <Screen edges={['top', 'bottom']}>
+        <EmptyState icon={{ ios: 'figure.strengthtraining.traditional', android: 'fitness_center', web: 'fitness_center' }} title="Antrenman bulunamadı" body="Bu antrenman kaydı bu telefonda yok." />
         <Button title="Kapat" onPress={() => router.back()} />
       </Screen>
     );
@@ -35,9 +36,9 @@ export default function SummaryScreen() {
   const meta = workoutMeta(s);
   const rooms = [
     { id: 'genel', label: 'Genel', ok: true },
-    { id: 'pro', label: 'Pro', ok: hasFeature(tier, 'pro_chat') },
-    { id: 'plus', label: 'Plus', ok: hasFeature(tier, 'plus_chat') },
-    { id: 'max', label: 'Max', ok: hasFeature(tier, 'max_chat') },
+    { id: 'pro', label: 'Pro', ok: isCoach || hasFeature(tier, 'pro_chat') },
+    { id: 'plus', label: 'Plus', ok: isCoach || hasFeature(tier, 'plus_chat') },
+    { id: 'max', label: 'Max', ok: isCoach || hasFeature(tier, 'max_chat') },
   ].filter((r) => r.ok);
 
   async function share() {

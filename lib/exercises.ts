@@ -27,7 +27,7 @@ export const MUSCLES: Record<Muscle, { name: string; group: MuscleGroup }> = {
   rear_delts: { name: 'Arka omuz', group: 'Omuz' },
   biceps: { name: 'Ön kol (biceps)', group: 'Kol' },
   triceps: { name: 'Arka kol (triceps)', group: 'Kol' },
-  forearms: { name: 'Önkol', group: 'Kol' },
+  forearms: { name: 'Önkol (bilek)', group: 'Kol' },
   abs: { name: 'Karın', group: 'Karın' },
   obliques: { name: 'Yan karın', group: 'Karın' },
   traps: { name: 'Trapez', group: 'Sırt' },

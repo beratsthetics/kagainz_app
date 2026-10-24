@@ -6,7 +6,7 @@ import { Text } from '@/components/T';
 import { AuthShell } from '@/components/AuthShell';
 import { Body, Button, Eyebrow, Hero, Icon, Input, PressScale, Reveal, Row, Segmented } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
-import { nextAfterSignIn, useAuth } from '@/lib/auth';
+import { nextAfterSignIn, sendPasswordReset, useAuth } from '@/lib/auth';
 import { makeStyles, useColors } from '@/lib/theme';
 import { tx } from '@/lib/i18n';
 
@@ -26,6 +26,7 @@ export default function EmailScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
   const signup = mode === 'signup';
   const mismatch = signup && repeat.length > 0 && repeat !== password;
   const valid = EMAIL.test(email.trim()) && password.length >= MIN_PASSWORD && (!signup || repeat === password);
@@ -47,6 +48,15 @@ export default function EmailScreen() {
     setLoading(false);
     if (next) router.replace(next);
     else router.dismissAll();
+  }
+
+  async function forgot() {
+    setError(null);
+    setInfo(null);
+    if (!EMAIL.test(email.trim())) return setError('Önce e-posta adresini yaz.');
+    const err = await sendPasswordReset(email);
+    if (err) return setError(err);
+    setInfo('Şifre sıfırlama linkini e-postana gönderdik. Gelmezse spam klasörüne bak.');
   }
 
   const eye = (
@@ -139,6 +149,11 @@ export default function EmailScreen() {
             />
           )}
           {mismatch && <Text style={styles.error}>Şifreler aynı değil.</Text>}
+          {!signup && (
+            <PressScale onPress={forgot} style={{ alignSelf: 'flex-end', paddingVertical: spacing.xs }}>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright }}>Şifremi unuttum</Text>
+            </PressScale>
+          )}
         </View>
       </Reveal>
       <Reveal index={3}>
@@ -150,6 +165,7 @@ export default function EmailScreen() {
         </Row>
       </Reveal>
       {error && <Text style={styles.error}>{error}</Text>}
+      {info && <Text style={[styles.error, { color: colors.success }]}>{info}</Text>}
     </AuthShell>
   );
 }

@@ -62,7 +62,7 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
       'Günde 3 barkod tarama',
       'Serbest antrenman kaydı (son 7 gün)',
       '10 hareketlik kas animasyonlu kütüphane',
-      'Genel chat (yazmak için numara + kullanıcı adı)',
+      'Genel chat (yazmak için kullanıcı adı)',
       'Seri ve temel rozetler',
     ],
   },

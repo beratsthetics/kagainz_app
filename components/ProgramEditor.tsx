@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
-import { Button, Card, Chip, Icon, Input, Mono, PressScale, Row, Sheet, Stepper } from '@/components/ui';
+import { Button, Card, Chip, Icon, Input, Mono, PressScale, Row, Segmented, Sheet, Stepper } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useExercises } from '@/lib/exerciseCatalog';
 import { exerciseById, GROUPS, MUSCLES, type Muscle } from '@/lib/exercises';
@@ -64,16 +64,14 @@ function DayEditor({
           <Icon name={{ ios: 'trash', android: 'delete', web: 'delete' }} size={18} color={colors.danger} />
         </PressScale>
       </Row>
-      <Row gap={4} style={{ flexWrap: 'wrap' }}>
-        {[1, 2, 3, 4, 5, 6, 0].map((w) => (
-          <Chip
-            key={w}
-            label={WEEKDAYS[w].short}
-            active={day.weekday === w}
-            onPress={() => !taken.includes(w) && onChange((d) => ({ ...d, weekday: w, ...WEEKDAYS[w] }))}
-          />
-        ))}
-      </Row>
+      <Segmented
+        options={[1, 2, 3, 4, 5, 6, 0].map((w) => ({ value: String(w), label: WEEKDAYS[w].short }))}
+        value={String(day.weekday)}
+        onChange={(v) => {
+          const w = Number(v);
+          if (!taken.includes(w)) onChange((d) => ({ ...d, weekday: w, ...WEEKDAYS[w] }));
+        }}
+      />
       <Input value={day.focus} onChangeText={(focus) => onChange((d) => ({ ...d, focus }))} placeholder="Odak (ör. Göğüs)" />
       {day.exercises.map((e, j) => (
         <View key={`${e.exerciseId}-${j}`} style={styles.exRow}>

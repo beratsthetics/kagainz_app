@@ -95,7 +95,7 @@ export default function TodayScreen() {
           <View style={{ flex: 1 }}>
             <Eyebrow>{tx('Bugün · {0}', [tx(WEEKDAYS[new Date().getDay()].day)])}</Eyebrow>
             <Text style={styles.greet}>
-              {greeting().toLocaleUpperCase(locale())}
+              {tx(greeting()).toLocaleUpperCase(locale())}
               {profile?.username ? (
                 <Text style={{ color: colors.silver }}>{`, ${profile.username.toLocaleUpperCase(locale())}`}</Text>
               ) : null}

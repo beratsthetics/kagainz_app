@@ -21,6 +21,7 @@ import {
   Row,
   Screen,
   Segmented,
+  Sheet,
   TierBadge,
   type IconName,
 } from '@/components/ui';
@@ -180,8 +181,44 @@ export default function ProfileScreen() {
           />
           <Text style={styles.signOutText}>{tx('Çıkış yap').toLocaleUpperCase(locale())}</Text>
         </PressScale>
+        <DeleteAccount />
       </Reveal>
     </Screen>
+  );
+}
+
+// Hesabı kalıcı olarak silme (mağaza şartı). Onay penceresiyle korunur.
+function DeleteAccount() {
+  const colors = useColors();
+  const { deleteAccount } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function run() {
+    setBusy(true);
+    setError(null);
+    const err = await deleteAccount();
+    setBusy(false);
+    if (err) return setError(err);
+    setOpen(false);
+  }
+
+  return (
+    <>
+      <PressScale onPress={() => setOpen(true)} style={{ alignSelf: 'center', padding: spacing.sm }}>
+        <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.textDim, textDecorationLine: 'underline' }}>Hesabımı sil</Text>
+      </PressScale>
+      <Sheet visible={open} onClose={() => setOpen(false)} title="Hesabını sil">
+        <Body muted>
+          Hesabın, profilin, öğün ve antrenman kayıtların, check-in fotoğrafların ve mesajların kalıcı olarak silinir. Bu işlem geri
+          alınamaz. Ücretli üyeliğin varsa aboneliğini App Store ya da Google Play'den ayrıca iptal etmelisin.
+        </Body>
+        {error && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger }}>{error}</Text>}
+        <Button title="Evet, hesabımı sil" loading={busy} onPress={run} />
+        <Button title="Vazgeç" variant="ghost" onPress={() => setOpen(false)} />
+      </Sheet>
+    </>
   );
 }
 

@@ -153,6 +153,7 @@ drop trigger if exists rate_limit on public.kudos;
 create trigger rate_limit before insert on public.kudos for each row execute function public.social_rate_limit();
 
 -- Profil sayfası: sıralamadaki seri ve haftalık antrenman (gizli değilse), takip sayıları.
+drop function if exists public.public_profile(text);
 create or replace function public.public_profile(uname text)
 returns table (
   id uuid, username text, avatar_url text, tier public.tier, role text, streak int, week_workouts int,

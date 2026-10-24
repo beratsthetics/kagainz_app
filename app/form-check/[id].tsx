@@ -16,7 +16,6 @@ import { useColors } from '@/lib/theme';
 import { locale, tx } from '@/lib/i18n';
 
 export default function FormCheckDetail() {
-  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [check, setCheck] = useState<FormCheck | null>(null);
   const [comments, setComments] = useState<FormComment[]>([]);

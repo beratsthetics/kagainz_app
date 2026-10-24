@@ -307,9 +307,12 @@ export function PressScale({
 }) {
   const scale = useSharedValue(1);
   const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  // Yüzde genişlik dokunma alanına verilir; içte kalırsa kart içeriği kadar büzülür (ör. %48'lik ızgara).
+  const { width, flexGrow, ...inner } = StyleSheet.flatten(style) ?? {};
+  const percent = typeof width === 'string';
   return (
     <Pressable
-      style={flex ? { flex: 1 } : undefined}
+      style={[flex && { flex: 1 }, percent && { width, flexGrow }]}
       disabled={disabled}
       onPressIn={() => (scale.value = withSpring(0.97, { damping: 20, stiffness: 400 }))}
       onPressOut={() => (scale.value = withSpring(1, { damping: 20, stiffness: 400 }))}
@@ -325,7 +328,7 @@ export function PressScale({
         })
       }
       delayLongPress={delayLongPress}>
-      <Animated.View style={[animated, style]}>{children}</Animated.View>
+      <Animated.View style={[animated, percent ? [inner, { flexGrow: 1 }] : style]}>{children}</Animated.View>
     </Pressable>
   );
 }

@@ -37,18 +37,20 @@ import { tx } from '@/lib/i18n';
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
+const FRESH_SEEDS = [1, 2, 3, 4, 5, 6, 7];
+
 export default function MealPlanScreen() {
   const colors = useColors();
   const { tier, session } = useAuth();
   const { goals, hasCustomGoals, add } = useDaily();
   const week = weekId().id;
-  const [seeds, setSeeds] = useStored<{ week: string; seeds: number[] }>('mealplan', { week, seeds: [1, 2, 3, 4, 5, 6, 7] });
+  const [seeds, setSeeds] = useStored<{ week: string; seeds: number[] }>('mealplan', { week, seeds: FRESH_SEEDS });
   const [day, setDay] = useState((new Date().getDay() + 6) % 7);
   const [tab, setTab] = useState<'menu' | 'list'>('menu');
   const [listDays, setListDays] = useState(7);
   const [sent, setSent] = useState(false);
   const base = Number(week.replace('-W', ''));
-  const daySeeds = seeds.week === week ? seeds.seeds : [1, 2, 3, 4, 5, 6, 7];
+  const daySeeds = seeds.week === week ? seeds.seeds : FRESH_SEEDS;
   const plan = useMemo(() => daySeeds.map((s, i) => generateDay(goals, base + s * 31 + i)), [daySeeds, goals, base]);
   const list = useMemo(() => shoppingList(plan.slice(0, listDays)), [plan, listDays]);
   const current = plan[day];
@@ -74,7 +76,7 @@ export default function MealPlanScreen() {
     const text =
       tx('Yemek planım ({0}) için onayını rica ediyorum:\n', [tx(WEEKDAYS[ORDER[day]].day)]) +
       current.meals.map((m) => `${MEALS[m.slot].label}: ${m.items.map((i) => i.label).join(', ')}`).join('\n') +
-      tx('\nToplam: {0} kcal, P {1} / K {2} / Y {3}', [current.totals.kcal, current.totals.protein, current.totals.carb, current.totals.fat]);
+      tx('\nToplam: {0} kcal, P {1} / K {2} / Y {3}', [current.totals.kcal, Math.round(current.totals.protein), Math.round(current.totals.carb), Math.round(current.totals.fat)]);
     await supabase.from('coach_messages').insert({ member_id: session.user.id, sender_id: session.user.id, body: text });
     setSent(true);
   }

@@ -81,7 +81,7 @@ function Tile({ label, value, p, accent }: { label: string; value: string; p: P;
     <View style={[styles.tile, { backgroundColor: p.tile, borderColor: p.line }]}>
       <Row>
         {accent && <View style={[styles.dot, { backgroundColor: accent }]} />}
-        <Text style={[styles.tileLabel, { color: p.muted }]}>{label.toLocaleUpperCase(locale())}</Text>
+        <Text style={[styles.tileLabel, { color: p.muted }]}>{tx(label).toLocaleUpperCase(locale())}</Text>
       </Row>
       <Text style={[styles.tileValue, { color: p.text }]}>{value}</Text>
     </View>

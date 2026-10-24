@@ -103,6 +103,18 @@ function solveMeal(slot: MealSlot, t: Template, goals: Macros): PlanMeal {
     xb = Math.max(0, (target.c - a.c * xa - c.c * xc) / Math.max(b.c, 0.01));
     xc = Math.max(0, (target.f - a.fat * xa - b.fat * xb) / Math.max(c.fat, 0.01));
   }
+  // Kaynaklar birbirinin makrosunu taşıyınca (ör. mercimekteki karbonhidrat) öğün şişer. Fazla kalori önce
+  // karbonhidrat ve yağ kaynağından, yetmezse protein kaynağından düşülür.
+  const kcalOf = (f: Food, g: number) => (f.per100g.kcal * g) / 100;
+  let excess = kcalOf(A, xa) + kcalOf(B, xb) + kcalOf(C, xc) + extraM.kcal - goals.kcal * SHARE[slot];
+  const side = kcalOf(B, xb) + kcalOf(C, xc);
+  if (excess > 0 && side > 0) {
+    const k = Math.max(0, 1 - excess / side);
+    excess -= side * (1 - k);
+    xb *= k;
+    xc *= k;
+  }
+  if (excess > 0 && kcalOf(A, xa) > 0) xa *= Math.max(0.6, 1 - excess / kcalOf(A, xa));
   const raw: [Food, number][] = [
     [A, roundGrams(A, xa)],
     [B, roundGrams(B, xb)],

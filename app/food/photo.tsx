@@ -112,7 +112,7 @@ export default function PhotoMacrosScreen() {
       <Reveal index={1}>
         <Row gap={spacing.sm}>
           <View style={{ flex: 1 }}>
-            <Button title="Fotoğraf çek" icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} onPress={() => pick(true)} />
+            <Button title="Kamera" icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} onPress={() => pick(true)} />
           </View>
           <View style={{ flex: 1 }}>
             <Button title="Galeriden" variant="outline" icon={{ ios: 'photo', android: 'image', web: 'image' }} onPress={() => pick(false)} />

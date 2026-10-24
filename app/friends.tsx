@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
-import { Avatar, Body, Button, Card, EmptyState, Input, Label, PressScale, Reveal, Row, Screen, Segmented, SkeletonList, TierBadge } from '@/components/ui';
+import { Avatar, Body, Button, Card, EmptyState, Input, Label, PressScale, Reveal, Screen, Segmented, SkeletonList, TierBadge } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { searchUsers, setFollowing, useFollowingIds, useFollowList, type UserRow } from '@/lib/social';

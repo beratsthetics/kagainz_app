@@ -150,7 +150,7 @@ export default function ExerciseScreen() {
               )}
               {active && !active.exercises.some((e) => e.exerciseId === ex.id) && (
                 <Button
-                  title="Devam eden antrenmana ekle"
+                  title="Antrenmana ekle"
                   variant="outline"
                   icon={{ ios: 'plus', android: 'add', web: 'add' }}
                   onPress={() => {

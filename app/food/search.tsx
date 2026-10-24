@@ -55,7 +55,7 @@ export default function FoodSearchScreen() {
             value={query}
             onChangeText={setQuery}
             autoFocus
-            placeholder="ör. lahmacun, süzme yoğurt, Ülker"
+            placeholder="ör. lahmacun, yoğurt, Ülker"
             returnKeyType="search"
             prefix={<Icon name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }} size={18} color={colors.textMuted} />}
           />

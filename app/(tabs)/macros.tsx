@@ -129,7 +129,7 @@ function MacroCalculator() {
     <Screen>
       <Reveal index={0}>
         <ScreenHeader
-          eyebrow="Ücretsiz"
+          eyebrow="Beslenme"
           title="Makro"
           right={
             <PressScale onPress={() => router.push('/goals')} style={styles.goalBtn}>
