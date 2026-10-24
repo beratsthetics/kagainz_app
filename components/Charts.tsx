@@ -37,6 +37,9 @@ export function BarChart({
   const y = (v: number) => plotH - (v / max) * plotH;
   const barColor = color ?? c.accent;
   const active = selected ?? values.length - 1;
+  // 30 günlük grafikte her gün yazılınca sayılar üst üste biner; bugünden geriye birkaç günde bir ve seçili gün yazılır.
+  const step = Math.max(1, Math.ceil((labels.length * 22) / Math.max(1, width)));
+  const showLabel = (i: number) => i === active || ((labels.length - 1 - i) % step === 0 && Math.abs(i - active) >= step);
 
   return (
     <View>
@@ -71,20 +74,25 @@ export function BarChart({
             <Pressable key={i} style={{ flex: 1 }} onPress={() => setSelected(i)} />
           ))}
         </View>
-        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row' }}>
-          {labels.map((l, i) => (
-            <Text
-              key={i}
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                fontFamily: fonts.bodyBold,
-                fontSize: 10,
-                color: i === active ? c.text : c.textDim,
-              }}>
-              {l}
-            </Text>
-          ))}
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 14 }}>
+          {labels.map((l, i) =>
+            showLabel(i) ? (
+              <Text
+                key={i}
+                numberOfLines={1}
+                style={{
+                  position: 'absolute',
+                  left: i * slot + slot / 2 - 16,
+                  width: 32,
+                  textAlign: 'center',
+                  fontFamily: fonts.bodyBold,
+                  fontSize: 10,
+                  color: i === active ? c.text : c.textDim,
+                }}>
+                {l}
+              </Text>
+            ) : null,
+          )}
         </View>
       </View>
     </View>

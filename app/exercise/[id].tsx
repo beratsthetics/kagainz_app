@@ -7,11 +7,11 @@ import { BodyMap } from '@/components/BodyMap';
 import { ExerciseMediaView } from '@/components/ExerciseMediaView';
 import { LineChart } from '@/components/Charts';
 import { MovementAnim } from '@/components/MovementAnim';
-import { Body, Button, Card, EmptyState, Label, LockedCard, Mono, Reveal, Row, Screen, Sheet, Stat, Tag, Title } from '@/components/ui';
+import { Body, Button, Card, EmptyState, Input, Label, LockedCard, Mono, Reveal, Row, Screen, Sheet, Stat, Tag, Title } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { deleteExerciseMedia, pickExerciseMedia, saveExerciseMedia, useExerciseMedia, type ExerciseMedia as ExerciseMediaRow } from '@/lib/exerciseMedia';
-import { removeExercise, restoreExercise, useExercises } from '@/lib/exerciseCatalog';
+import { removeExercise, renameExercise, restoreExercise, useExercises } from '@/lib/exerciseCatalog';
 import { exerciseById, isCustom, isHidden, isUnlocked, MUSCLES } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
@@ -184,8 +184,28 @@ function CoachCatalogControls({ exerciseId }: { exerciseId: string }) {
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
+  const [trName, setTrName] = useState('');
+  const [name, setName] = useState('');
   const hidden = isHidden(exerciseId);
   const custom = isCustom(exerciseId);
+
+  function openRename() {
+    const ex = exerciseById(exerciseId);
+    setTrName(ex?.trName ?? '');
+    setName(ex?.name ?? '');
+    setNotice(null);
+    setRenaming(true);
+  }
+
+  async function saveName() {
+    if (trName.trim().length < 2) return setNotice('Hareketin adını yaz.');
+    setBusy(true);
+    const err = await renameExercise(exerciseId, custom, trName.trim(), name.trim());
+    setBusy(false);
+    setRenaming(false);
+    setNotice(err ?? 'Hareketin adı değişti.');
+  }
 
   async function run(fn: () => Promise<string | null>, done: string, leave = false) {
     setBusy(true);
@@ -200,6 +220,7 @@ function CoachCatalogControls({ exerciseId }: { exerciseId: string }) {
   return (
     <View style={styles.coach}>
       <Text style={styles.coachLabel}>KOÇ · KÜTÜPHANE</Text>
+      <Button title="Adını değiştir" variant="outline" onPress={openRename} />
       {hidden ? (
         <Button
           title="Listeye geri ekle"
@@ -223,6 +244,15 @@ function CoachCatalogControls({ exerciseId }: { exerciseId: string }) {
           onPress={() => run(() => removeExercise(exerciseId, custom), 'Hareket listeden kaldırıldı.', custom)}
         />
         <Button title="Vazgeç" variant="ghost" onPress={() => setConfirm(false)} />
+      </Sheet>
+      <Sheet visible={renaming} onClose={() => setRenaming(false)} title="Adını değiştir">
+        <Label>Adı (uygulamada görünen)</Label>
+        <Input value={trName} onChangeText={setTrName} placeholder="ör. Cable fly" maxLength={80} />
+        <Label>Türkçe adı (aramada bulunsun)</Label>
+        <Input value={name} onChangeText={setName} placeholder="ör. Kablo fly" maxLength={80} />
+        {notice && <Text style={styles.notice}>{notice}</Text>}
+        <Button title="Kaydet" loading={busy} onPress={saveName} />
+        <Button title="Vazgeç" variant="ghost" onPress={() => setRenaming(false)} />
       </Sheet>
     </View>
   );

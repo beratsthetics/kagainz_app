@@ -881,14 +881,27 @@ export const EXERCISES: Exercise[] = [
 
 // Koçun eklediği hareketler ve listeden kaldırdığı hazır hareketler (0011, lib/exerciseCatalog.ts yükler).
 // Kaldırılan hareket geçmişte ve programlarda adıyla görünmeye devam eder, sadece listelerden çıkar.
+// Koçun yeni adını verdiği hazır hareketler de burada (0013); ad değişince her ekranda yeni ad görünür.
+export type ExerciseName = { id: string; trName: string; name: string };
 let custom: Exercise[] = [];
 let hidden = new Set<string>();
+let builtins = EXERCISES;
 const listeners = new Set<() => void>();
 
-export function setCatalog(next: { custom: Exercise[]; hidden: string[] }) {
+export function setCatalog(next: { custom: Exercise[]; hidden: string[]; names?: ExerciseName[] }) {
   custom = next.custom;
   hidden = new Set(next.hidden);
+  const names = new Map((next.names ?? []).map((n) => [n.id, n]));
+  builtins = EXERCISES.map((e) => {
+    const n = names.get(e.id);
+    return n ? { ...e, trName: n.trName, name: n.name } : e;
+  });
   listeners.forEach((l) => l());
+}
+
+// Uygulamayla gelen ilk ad; koç adı bununla aynı yaparsa değişiklik silinir.
+export function originalName(id: string) {
+  return EXERCISES.find((e) => e.id === id);
 }
 
 export function onCatalogChange(fn: () => void) {
@@ -908,11 +921,11 @@ export function isCustom(id: string) {
 
 // Listelerde gösterilecek hareketler; koç kaldırdıklarını da görür (includeHidden).
 export function visibleExercises(includeHidden = false) {
-  return [...EXERCISES, ...custom].filter((e) => includeHidden || !hidden.has(e.id));
+  return [...builtins, ...custom].filter((e) => includeHidden || !hidden.has(e.id));
 }
 
 export function exerciseById(id: string) {
-  return EXERCISES.find((e) => e.id === id) ?? custom.find((e) => e.id === id);
+  return builtins.find((e) => e.id === id) ?? custom.find((e) => e.id === id);
 }
 
 export function exercisesForGroup(group: MuscleGroup) {

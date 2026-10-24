@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { onCatalogChange, setCatalog, visibleExercises, type Equipment, type Exercise, type Muscle, type Pattern } from './exercises';
+import { onCatalogChange, originalName, setCatalog, visibleExercises, type Equipment, type Exercise, type ExerciseName, type Muscle, type Pattern } from './exercises';
 import { readItem, writeItem } from './store';
 import { isSupabaseConfigured, supabase } from './supabase';
 
@@ -17,7 +17,7 @@ type Row = {
   tip: string | null;
   free: boolean;
 };
-type Cached = { custom: Exercise[]; hidden: string[] };
+type Cached = { custom: Exercise[]; hidden: string[]; names?: ExerciseName[] };
 
 const KEY = 'device:exercise-catalog';
 let loading: Promise<void> | null = null;
@@ -43,13 +43,19 @@ export function loadCatalog(force = false) {
     const cached = await readItem<Cached | null>(KEY, null);
     if (cached) setCatalog(cached);
     if (!isSupabaseConfigured) return;
-    const [c, h] = await Promise.all([
+    const [c, h, n] = await Promise.all([
       supabase.from('custom_exercises').select('*').order('created_at'),
       supabase.from('hidden_exercises').select('id'),
+      supabase.from('exercise_names').select('id, name, tr_name'),
     ]);
-    // Tablolar yoksa (0011 çalıştırılmadı) hazır liste olduğu gibi kalır.
+    // Tablolar yoksa (0011 çalıştırılmadı) hazır liste olduğu gibi kalır; 0013 yoksa sadece adlar değişmez.
     if (c.error || h.error) return;
-    const next = { custom: (c.data as Row[]).map(toExercise), hidden: (h.data as { id: string }[]).map((x) => x.id) };
+    const names = n.error ? [] : (n.data as { id: string; name: string; tr_name: string | null }[]);
+    const next = {
+      custom: (c.data as Row[]).map(toExercise),
+      hidden: (h.data as { id: string }[]).map((x) => x.id),
+      names: names.map((x) => ({ id: x.id, trName: x.name, name: x.tr_name || x.name })),
+    };
     writeItem(KEY, next, false);
     setCatalog(next);
   })();
@@ -70,6 +76,7 @@ export function useExercises(includeHidden = false) {
 }
 
 function serverError(message: string) {
+  if (/exercise_names/.test(message)) return "Sunucu güncel değil: 0013 SQL dosyasını Supabase'de çalıştır.";
   return /custom_exercises|hidden_exercises|schema cache/.test(message) ? "Sunucu güncel değil: 0011 SQL dosyasını Supabase'de çalıştır." : message;
 }
 
@@ -117,6 +124,25 @@ export async function removeExercise(id: string, custom: boolean) {
 
 export async function restoreExercise(id: string) {
   const { error } = await supabase.from('hidden_exercises').delete().eq('id', id);
+  if (error) return serverError(error.message);
+  await loadCatalog(true);
+  return null;
+}
+
+// Hareketin adını değiştirir. Koçun eklediği hareket kendi kaydında, hazır hareket 0013 tablosunda güncellenir;
+// hazır hareket ilk adına döndürülürse değişiklik kaydı silinir.
+export async function renameExercise(id: string, custom: boolean, trName: string, name: string) {
+  const tr = name.trim() || trName;
+  let error;
+  if (custom) {
+    ({ error } = await supabase.from('custom_exercises').update({ name: trName, tr_name: tr !== trName ? tr : null }).eq('id', id));
+  } else {
+    const first = originalName(id);
+    ({ error } =
+      first && first.trName === trName && first.name === tr
+        ? await supabase.from('exercise_names').delete().eq('id', id)
+        : await supabase.from('exercise_names').upsert({ id, name: trName, tr_name: tr !== trName ? tr : null, updated_at: new Date().toISOString() }));
+  }
   if (error) return serverError(error.message);
   await loadCatalog(true);
   return null;
