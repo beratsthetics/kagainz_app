@@ -1,8 +1,11 @@
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react';
+
+import { useAuth } from './auth';
 
 import { waterGoalGlasses, type BodyProfile } from './goals';
 import type { Macros } from './macros';
 import { dayKey, daysAgo, readItem, useStored } from './store';
+import { isSupabaseConfigured, supabase } from './supabase';
 
 export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 export type EntrySource = 'text' | 'search' | 'barcode' | 'photo' | 'plan' | 'favorite';
@@ -60,6 +63,8 @@ type DailyState = {
   totals: Macros;
   goals: Goals;
   hasCustomGoals: boolean;
+  // Koç makro hedefi atadıysa günlük hedef odur (0008, assigned_nutrition).
+  coachGoals: CoachGoals | null;
   body: BodyProfile | null;
   setBody: (b: BodyProfile, goals: Goals) => void;
   add: (text: string, macros: Macros, opts?: { meal?: MealSlot; source?: EntrySource }) => void;
@@ -73,6 +78,8 @@ type DailyState = {
   recent: SavedMeal[];
 };
 
+export type CoachGoals = Goals & { note: string | null };
+
 const DailyContext = createContext<DailyState | null>(null);
 
 export function DailyProvider({ children }: { children: ReactNode }) {
@@ -83,6 +90,22 @@ export function DailyProvider({ children }: { children: ReactNode }) {
   const [body, setBodyState] = useStored<BodyProfile | null>('body', null);
   const [favorites, setFavorites] = useStored<SavedMeal[]>('favorites', []);
   const [recent, setRecent] = useStored<SavedMeal[]>('recent', []);
+  const [coachGoals, setCoachGoals] = useStored<CoachGoals | null>('nutrition:assigned', null);
+  const { session } = useAuth();
+
+  useEffect(() => {
+    if (!session || !isSupabaseConfigured) return;
+    supabase
+      .from('assigned_nutrition')
+      .select('kcal, protein, carbs, fat, note')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) return;
+        setCoachGoals(data ? { kcal: data.kcal, protein: data.protein, carb: data.carbs, fat: data.fat, note: data.note } : null);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.id]);
 
   const add = useCallback<DailyState['add']>(
     (text, macros, opts) => {
@@ -106,8 +129,9 @@ export function DailyProvider({ children }: { children: ReactNode }) {
       day,
       entries,
       totals: totalOf(entries),
-      goals: goals ?? DEFAULT_GOALS,
-      hasCustomGoals: goals != null,
+      goals: coachGoals ? { kcal: coachGoals.kcal, protein: coachGoals.protein, carb: coachGoals.carb, fat: coachGoals.fat } : (goals ?? DEFAULT_GOALS),
+      hasCustomGoals: goals != null || coachGoals != null,
+      coachGoals,
       body,
       setBody: (b, g) => {
         setBodyState(b);
@@ -128,7 +152,7 @@ export function DailyProvider({ children }: { children: ReactNode }) {
         ),
       recent,
     }),
-    [day, entries, goals, body, add, water, favorites, recent, setBodyState, setGoals, setEntries, setWaterState, setFavorites],
+    [day, entries, goals, coachGoals, body, add, water, favorites, recent, setBodyState, setGoals, setEntries, setWaterState, setFavorites],
   );
 
   return <DailyContext.Provider value={value}>{children}</DailyContext.Provider>;

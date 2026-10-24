@@ -27,7 +27,7 @@ import { makeStyles, useColors } from '@/lib/theme';
 export default function GoalsScreen() {
   const colors = useColors();
   const styles = useStyles();
-  const { body, setBody } = useDaily();
+  const { body, setBody, coachGoals } = useDaily();
   const [, setWeights] = useStored<WeightLog[]>('weights', []);
   const [p, setP] = useState<BodyProfile>(
     body ?? { sex: 'male', age: 25, heightCm: 178, weightKg: 75, activity: 'moderate', goal: 'recomp' },
@@ -54,6 +54,20 @@ export default function GoalsScreen() {
       <Reveal index={1}>
         <Body muted>Bilgilerine göre günlük kalori ve makro hedefini hesaplıyoruz. İstediğin zaman değiştirebilirsin.</Body>
       </Reveal>
+      {coachGoals && (
+        <Reveal index={1}>
+          <Card style={{ borderColor: colors.accent }}>
+            <Label>Koçunun belirlediği hedef</Label>
+            <Body style={{ fontSize: 14.5 }}>
+              {coachGoals.kcal.toLocaleString('tr-TR')} kcal · {coachGoals.protein} g protein · {coachGoals.carb} g karb. · {coachGoals.fat} g yağ
+            </Body>
+            {coachGoals.note && <Body muted style={{ fontSize: 13.5 }}>{coachGoals.note}</Body>}
+            <Body muted style={{ fontSize: 12.5 }}>
+              Koçun hedef atadığı sürece günlük hedefin bu. Aşağıdaki bilgiler su hedefi ve kilo takibi için kullanılır.
+            </Body>
+          </Card>
+        </Reveal>
+      )}
 
       <Reveal index={2}>
         <Card>

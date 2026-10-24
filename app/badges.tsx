@@ -59,9 +59,21 @@ export default function BadgesScreen() {
               {open.description}
             </Body>
             {unlocked[open.id] ? (
-              <Mono style={{ color: colors.success }}>
-                Kazanıldı · {new Date(unlocked[open.id]).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-              </Mono>
+              <>
+                <Mono style={{ color: colors.success }}>
+                  Kazanıldı · {new Date(unlocked[open.id]).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </Mono>
+                <Button
+                  title="Hikâyede paylaş"
+                  arrow
+                  icon={{ ios: 'square.and.arrow.up', android: 'share', web: 'share' }}
+                  onPress={() => {
+                    const id = open.id;
+                    setOpen(null);
+                    router.push({ pathname: '/share', params: { kind: 'badge', id } });
+                  }}
+                />
+              </>
             ) : TIER_RANK[tier] < TIER_RANK[open.tier] ? (
               <Button
                 title={`${TIER_INFO[open.tier].name} ile aç`}

@@ -19,7 +19,8 @@ export type CardStyle = 'dark' | 'blue' | 'light';
 export type CardData =
   | { kind: 'day'; date: Date; totals: Macros; goals: Macros; water: number; waterGoal: number; streak: number; username?: string | null }
   | { kind: 'workout'; date: Date; meta: WorkoutMeta; streak: number; username?: string | null }
-  | { kind: 'week'; week: WeekSummary; username?: string | null };
+  | { kind: 'week'; week: WeekSummary; username?: string | null }
+  | { kind: 'badge'; date: Date; emoji: string; title: string; description: string; earned: number; total: number; username?: string | null };
 
 const PALETTE = {
   dark: { bg: '#08090B', text: '#F4F4F5', muted: '#8B8D98', line: 'rgba(255,255,255,0.10)', tile: 'rgba(255,255,255,0.05)', logo: '#F4F4F5' },
@@ -51,6 +52,7 @@ export function ShareCard({ data, variant, ref }: { data: CardData; variant: Car
         {data.kind === 'day' && <DayBody data={data} p={p} />}
         {data.kind === 'workout' && <WorkoutBody data={data} p={p} />}
         {data.kind === 'week' && <WeekBody data={data} p={p} />}
+        {data.kind === 'badge' && <BadgeBody data={data} p={p} />}
       </View>
 
       <View style={[styles.footer, { borderTopColor: p.line }]}>
@@ -189,6 +191,24 @@ function WeekBody({ data, p }: { data: Extract<CardData, { kind: 'week' }>; p: P
   );
 }
 
+function BadgeBody({ data, p }: { data: Extract<CardData, { kind: 'badge' }>; p: P }) {
+  return (
+    <View style={{ alignItems: 'center', gap: 16 }}>
+      <Text style={[styles.tileLabel, { color: p.muted }]}>YENİ ROZET</Text>
+      <View style={[styles.badgeRing, { borderColor: LOGO_BLUE, backgroundColor: p.tile }]}>
+        <Text style={{ fontSize: 96, lineHeight: 116 }}>{data.emoji}</Text>
+      </View>
+      <Text style={[styles.title, { color: p.text, textAlign: 'center' }]} numberOfLines={2}>
+        {data.title.toLocaleUpperCase('tr-TR')}
+      </Text>
+      <Text style={[styles.listName, { color: p.muted, textAlign: 'center' }]}>{data.description}</Text>
+      <Text style={[styles.mono, { color: p.muted }]}>
+        KOLEKSİYON {data.earned}/{data.total}
+      </Text>
+    </View>
+  );
+}
+
 function Backdrop({ variant }: { variant: CardStyle }) {
   const lineColor = variant === 'light' ? '#000000' : '#FFFFFF';
   return (
@@ -215,6 +235,7 @@ function Backdrop({ variant }: { variant: CardStyle }) {
 }
 
 const styles = StyleSheet.create({
+  badgeRing: { width: 180, height: 180, borderRadius: 90, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   card: { width: CARD_W, height: CARD_H, padding: 26, overflow: 'hidden' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   brand: { fontFamily: fonts.display, fontSize: 20, letterSpacing: 2, lineHeight: 22 },

@@ -1,6 +1,6 @@
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Switch, Text, View } from 'react-native';
 
 import {
   Avatar,
@@ -26,9 +26,7 @@ import { useAuth } from '@/lib/auth';
 import { useDaily } from '@/lib/daily';
 import { useLeaderboardVisible } from '@/lib/leaderboard';
 import { pickImage, removeAvatar, uploadAvatar } from '@/lib/media';
-import { setDailyReminder } from '@/lib/notifications';
 import { BADGES, useProgress } from '@/lib/progress';
-import { useStored } from '@/lib/store';
 import { hasFeature, TIER_INFO } from '@/lib/tiers';
 import { makeStyles, useColors, useTheme } from '@/lib/theme';
 
@@ -146,6 +144,7 @@ export default function ProfileScreen() {
           <LinkRow icon={{ ios: 'trophy.fill', android: 'trophy', web: 'trophy' }} label="Sıralama" href="/leaderboard" />
           <LinkRow icon={{ ios: 'person.2.fill', android: 'group', web: 'group' }} label="Arkadaşlar" href="/friends" />
           <LinkRow icon={{ ios: 'gift.fill', android: 'redeem', web: 'redeem' }} label="Arkadaşını davet et" href="/invite" />
+          <LinkRow icon={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }} label="Hatırlatmalar" href="/reminders" />
           <LinkRow icon={{ ios: 'flag.checkered', android: 'flag', web: 'flag' }} label="Haftalık meydan okuma" href="/challenges" />
           {hasFeature(tier, 'form_check') && (
             <LinkRow icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} label="Form kontrol" href="/form-check" />
@@ -256,7 +255,6 @@ function LinkRow({ icon, label, href, last }: { icon: IconName; label: string; h
 function Settings() {
   const colors = useColors();
   const { pref, setPref } = useTheme();
-  const [reminder, setReminder] = useStored<boolean>('device:reminder', false);
   const [leaderboardVisible, setLeaderboardVisible] = useLeaderboardVisible();
   return (
     <Card>
@@ -279,24 +277,6 @@ function Settings() {
         </View>
         <Switch value={leaderboardVisible} trackColor={{ true: colors.accent, false: colors.surfaceHigh }} onValueChange={setLeaderboardVisible} />
       </Row>
-      {Platform.OS !== 'web' && (
-        <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>
-          <View style={{ flex: 1 }}>
-            <Body style={{ fontSize: 14.5 }}>Akşam hatırlatması</Body>
-            <Body muted style={{ fontSize: 12.5 }}>
-              Her gün 20:30'da öğünlerini girmeyi hatırlatır.
-            </Body>
-          </View>
-          <Switch
-            value={reminder}
-            trackColor={{ true: colors.accent, false: colors.surfaceHigh }}
-            onValueChange={async (v) => {
-              const ok = await setDailyReminder(v);
-              setReminder(v && ok);
-            }}
-          />
-        </Row>
-      )}
     </Card>
   );
 }

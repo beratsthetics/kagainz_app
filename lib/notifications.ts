@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 
 import { isSupabaseConfigured, supabase } from './supabase';
 
-// Yerel bildirimler (dinlenme bitti, günlük hatırlatma) ve uzak bildirimler (yanıt / tepki geldi).
+// Yerel bildirimler (dinlenme bitti; hatırlatmalar lib/reminders.ts) ve uzak bildirimler (yanıt / tepki geldi).
 // Uzak bildirim için EAS proje kimliği gerekir: `npx eas init` sonrası app.json'a eklenir.
 
 const supported = Platform.OS !== 'web';
@@ -41,22 +41,6 @@ export async function scheduleRestDone(seconds: number): Promise<string | null> 
 
 export async function cancelNotification(id: string | null | undefined) {
   if (supported && id) await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
-}
-
-const REMINDER_ID = 'kagainz-daily-reminder';
-
-// Her akşam 20:30'da günlüğü hatırlatır.
-export async function setDailyReminder(enabled: boolean, hour = 20, minute = 30) {
-  if (!supported) return false;
-  await Notifications.cancelScheduledNotificationAsync(REMINDER_ID).catch(() => {});
-  if (!enabled) return true;
-  if (!(await ensurePermission())) return false;
-  await Notifications.scheduleNotificationAsync({
-    identifier: REMINDER_ID,
-    content: { title: 'Bugünü kaydettin mi?', body: 'Öğünlerini gir, serini koru 🔥' },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute },
-  });
-  return true;
 }
 
 function projectId(): string | undefined {

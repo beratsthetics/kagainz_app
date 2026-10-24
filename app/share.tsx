@@ -9,7 +9,7 @@ import { Body, Button, Segmented } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useDaily } from '@/lib/daily';
-import { useProgress } from '@/lib/progress';
+import { BADGES, useProgress } from '@/lib/progress';
 import { makeStyles } from '@/lib/theme';
 import { useWeekSummary } from '@/lib/week';
 import { useWorkouts, workoutMeta } from '@/lib/workouts';
@@ -17,11 +17,11 @@ import { useWorkouts, workoutMeta } from '@/lib/workouts';
 // Hikâye kartı: kind=day (bugün), kind=workout&id=..., kind=week&offset=0|-1.
 export default function ShareScreen() {
   const styles = useStyles();
-  const { kind = 'day', id, offset } = useLocalSearchParams<{ kind?: 'day' | 'workout' | 'week'; id?: string; offset?: string }>();
+  const { kind = 'day', id, offset } = useLocalSearchParams<{ kind?: 'day' | 'workout' | 'week' | 'badge'; id?: string; offset?: string }>();
   const { width, height } = useWindowDimensions();
   const { profile } = useAuth();
   const { totals, goals, water, waterGoal } = useDaily();
-  const { stats } = useProgress();
+  const { stats, unlocked } = useProgress();
   const { history } = useWorkouts();
   const week = useWeekSummary(Number(offset ?? 0) || 0);
   const [variant, setVariant] = useState<CardStyle>('dark');
@@ -37,8 +37,14 @@ export default function ShareScreen() {
       return s ? { kind, date: new Date(s.startedAt), meta: workoutMeta(s), streak: stats.streak, username } : null;
     }
     if (kind === 'week') return week ? { kind, week, username } : null;
+    if (kind === 'badge') {
+      const b = BADGES.find((x) => x.id === id);
+      return b && unlocked[b.id]
+        ? { kind, date: new Date(unlocked[b.id]), emoji: b.emoji, title: b.title, description: b.description, earned: BADGES.filter((x) => unlocked[x.id]).length, total: BADGES.length, username }
+        : null;
+    }
     return { kind: 'day', date: new Date(), totals, goals, water, waterGoal, streak: stats.streak, username };
-  }, [kind, id, history, week, totals, goals, water, waterGoal, stats.streak, profile?.username]);
+  }, [kind, id, history, week, totals, goals, water, waterGoal, stats.streak, unlocked, profile?.username]);
 
   const scale = Math.min((width - spacing.lg * 2) / CARD_W, (height - 300) / CARD_H, 1.2);
 
@@ -67,7 +73,7 @@ export default function ShareScreen() {
             </View>
           </View>
         ) : (
-          <Body muted>{kind === 'workout' ? 'Paylaşılacak antrenman bulunamadı.' : 'Hazırlanıyor...'}</Body>
+          <Body muted>{kind === 'workout' ? 'Paylaşılacak antrenman bulunamadı.' : kind === 'badge' ? 'Bu rozet henüz kazanılmadı.' : 'Hazırlanıyor...'}</Body>
         )}
       </View>
       <View style={styles.controls}>

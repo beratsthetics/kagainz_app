@@ -141,6 +141,10 @@ export default function CoachMember() {
         </Card>
       </Reveal>
 
+      <Reveal index={2}>
+        <NutritionEditor memberId={member.id} />
+      </Reveal>
+
       {notice && (
         <PressScale onPress={() => setNotice(null)}>
           <Card style={{ borderColor: colors.accent }}>
@@ -287,3 +291,78 @@ const useStyles = makeStyles((colors) => ({
   exRow: { gap: spacing.sm, padding: spacing.sm + 2, borderRadius: radius.md, backgroundColor: colors.surfaceHigh },
   pickRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 2, borderBottomWidth: 1, borderBottomColor: colors.border },
 }));
+
+// Koçun atadığı günlük makro hedefi; üyenin kendi hesapladığı hedefin yerine geçer (0008).
+function NutritionEditor({ memberId }: { memberId: string }) {
+  const colors = useColors();
+  const [form, setForm] = useState({ kcal: '', protein: '', carbs: '', fat: '', note: '' });
+  const [has, setHas] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from('assigned_nutrition')
+      .select('kcal, protein, carbs, fat, note')
+      .eq('user_id', memberId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        setHas(true);
+        setForm({ kcal: String(data.kcal), protein: String(data.protein), carbs: String(data.carbs), fat: String(data.fat), note: data.note ?? '' });
+      });
+  }, [memberId]);
+
+  const n = (v: string) => Math.round(Number(v.replace(',', '.')));
+  const fromMacros = n(form.protein) * 4 + n(form.carbs) * 4 + n(form.fat) * 9;
+
+  async function save() {
+    const row = { user_id: memberId, kcal: n(form.kcal), protein: n(form.protein), carbs: n(form.carbs), fat: n(form.fat), note: form.note.trim() || null, updated_at: new Date().toISOString() };
+    if ([row.kcal, row.protein, row.carbs, row.fat].some((v) => !Number.isFinite(v))) return setMsg({ ok: false, text: 'Dört alanı da sayı olarak gir.' });
+    const { error } = await supabase.from('assigned_nutrition').upsert(row, { onConflict: 'user_id' });
+    if (error) {
+      return setMsg({ ok: false, text: /assigned_nutrition|schema cache/.test(error.message) ? "Sunucu güncel değil: 0008 SQL dosyasını Supabase'de çalıştır." : error.message });
+    }
+    setHas(true);
+    setMsg({ ok: true, text: 'Makro hedefi kaydedildi. Üye uygulamayı açınca hedefi bu olur.' });
+  }
+
+  async function remove() {
+    const { error } = await supabase.from('assigned_nutrition').delete().eq('user_id', memberId);
+    if (error) return setMsg({ ok: false, text: error.message });
+    setHas(false);
+    setForm({ kcal: '', protein: '', carbs: '', fat: '', note: '' });
+    setMsg({ ok: true, text: 'Makro hedefi kaldırıldı; üye kendi hesapladığı hedefe döner.' });
+  }
+
+  const field = (key: 'kcal' | 'protein' | 'carbs' | 'fat', label: string) => (
+    <View style={{ width: '48%', gap: 4 }}>
+      <Mono style={{ fontSize: 12, color: colors.textMuted }}>{label}</Mono>
+      <Input value={form[key]} onChangeText={(v) => setForm({ ...form, [key]: v })} keyboardType="number-pad" placeholder="–" />
+    </View>
+  );
+
+  return (
+    <Card>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Label>Makro hedefi</Label>
+        {has && (
+          <PressScale onPress={remove}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger }}>Kaldır</Text>
+          </PressScale>
+        )}
+      </Row>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+        {field('kcal', 'Kalori')}
+        {field('protein', 'Protein (g)')}
+        {field('carbs', 'Karbonhidrat (g)')}
+        {field('fat', 'Yağ (g)')}
+      </View>
+      {fromMacros > 0 && (
+        <Mono style={{ fontSize: 12, color: colors.textMuted }}>Makrolardan: {fromMacros.toLocaleString('tr-TR')} kcal</Mono>
+      )}
+      <Input value={form.note} onChangeText={(note) => setForm({ ...form, note })} placeholder="Not (ör. Kesim, haftada 0,5 kg)" multiline maxLength={500} />
+      {msg && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: msg.ok ? colors.success : colors.danger }}>{msg.text}</Text>}
+      <Button title={has ? 'Hedefi güncelle' : 'Hedef ata'} variant="outline" onPress={save} />
+    </Card>
+  );
+}

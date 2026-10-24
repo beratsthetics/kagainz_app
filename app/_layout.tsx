@@ -17,6 +17,7 @@ import { useLeaderboardSync } from '@/lib/leaderboard';
 import { useNotificationRouting } from '@/lib/notifications';
 import { ProgressProvider } from '@/lib/progress';
 import { ThemeModeProvider, useTheme } from '@/lib/theme';
+import { useReminderSync } from '@/lib/reminders';
 import { useWidgetSync } from '@/lib/widget';
 import { WorkoutProvider } from '@/lib/workouts';
 
@@ -72,6 +73,7 @@ function Navigation() {
   const { loading } = useAuth();
   useLeaderboardSync();
   useWidgetSync();
+  useReminderSync();
   useNotificationRouting((route) => router.push(route as Href));
   const navTheme = useMemo(() => {
     const base = mode === 'dark' ? DarkTheme : DefaultTheme;
@@ -131,6 +133,7 @@ function Navigation() {
         <Stack.Screen name="u/[username]" options={{ title: '' }} />
         <Stack.Screen name="friends" options={{ title: 'ARKADAŞLAR' }} />
         <Stack.Screen name="invite" options={{ title: 'DAVET ET' }} />
+        <Stack.Screen name="reminders" options={{ title: 'HATIRLATMALAR' }} />
       </Stack>
       <AppSplash ready={!loading} />
     </ThemeProvider>
