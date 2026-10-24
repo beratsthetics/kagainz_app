@@ -4,13 +4,14 @@ import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Text } from '@/components/T';
 
+import { ExerciseMediaView } from '@/components/ExerciseMediaView';
 import { MovementAnim } from '@/components/MovementAnim';
 import { Body, Chip, Icon, Input, PressScale, Row, Screen, Tag, TierBadge } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { useExerciseMediaIds } from '@/lib/exerciseMedia';
+import { useExerciseMedia, useExerciseMediaIds } from '@/lib/exerciseMedia';
 import { BUILTIN_MEDIA } from '@/lib/exerciseVideos';
-import { EXERCISES, GROUPS, isUnlocked, MUSCLES, type MuscleGroup } from '@/lib/exercises';
+import { EXERCISES, GROUPS, isUnlocked, MUSCLES, type MuscleGroup, type Pattern } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature, LIMITS } from '@/lib/tiers';
 import { useWorkouts } from '@/lib/workouts';
@@ -22,7 +23,7 @@ export default function LibraryScreen() {
   const colors = useColors();
   const withMedia = useExerciseMediaIds();
   const styles = useStyles();
-  const { tier } = useAuth();
+  const { tier, isCoach } = useAuth();
   const { addExercise } = useWorkouts();
   const { pick } = useLocalSearchParams<{ pick?: string }>();
   const [group, setGroup] = useState<MuscleGroup | null>(null);
@@ -74,14 +75,7 @@ export default function LibraryScreen() {
               router.push(`/exercise/${e.id}`);
             }}
             style={[styles.item, !open && { opacity: 0.55 }]}>
-            {/* Videosu olan hareketin kapağı, yoksa çizim animasyonu. */}
-            {BUILTIN_MEDIA[e.id] ? (
-              <Image source={BUILTIN_MEDIA[e.id].poster} style={styles.poster} contentFit="cover" />
-            ) : (
-              <View style={styles.thumb}>
-                <MovementAnim pattern={e.pattern} size={86} />
-              </View>
-            )}
+            <Thumb exerciseId={e.id} pattern={e.pattern} canView={isCoach || tier !== 'free'} />
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={styles.name}>{e.trName}</Text>
               <Text style={styles.muscles} numberOfLines={1}>
@@ -121,6 +115,26 @@ export default function LibraryScreen() {
   );
 }
 
+// Hareketin kapağı: koçun yüklediği video ya da resim (ücretli üye ve koç görür), yoksa uygulamayla gelen
+// videonun kapak karesi, o da yoksa çizim animasyonu.
+function Thumb({ exerciseId, pattern, canView }: { exerciseId: string; pattern: Pattern; canView: boolean }) {
+  const styles = useStyles();
+  const { media, url } = useExerciseMedia(exerciseId, canView);
+  if (media && url) {
+    return (
+      <View style={styles.poster}>
+        <ExerciseMediaView url={url} kind={media.kind} size={86} height={70} interactive={false} still />
+      </View>
+    );
+  }
+  if (BUILTIN_MEDIA[exerciseId]) return <Image source={BUILTIN_MEDIA[exerciseId].poster} style={styles.poster} contentFit="cover" />;
+  return (
+    <View style={styles.thumb}>
+      <MovementAnim pattern={pattern} size={86} />
+    </View>
+  );
+}
+
 const useStyles = makeStyles((colors) => ({
   banner: {
     padding: spacing.sm + 4,
@@ -137,7 +151,7 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  poster: { width: 86, height: 70, borderRadius: radius.md, backgroundColor: '#FFFFFF' },
+  poster: { width: 86, height: 70, borderRadius: radius.md, backgroundColor: '#FFFFFF', overflow: 'hidden' },
   thumb: {
     width: 86,
     height: 70,

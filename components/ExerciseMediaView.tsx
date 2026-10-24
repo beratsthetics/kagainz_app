@@ -11,12 +11,26 @@ import { useColors } from '@/lib/theme';
 // Koçun yüklediği hareket animasyonu: video sessiz ve döngüde oynar, GIF/resim doğrudan gösterilir.
 // interactive: dokununca durdur/oynat. Küçük önizlemede kapalı, dokunuş dış bileşene gider.
 // height verilmezse kare gösterilir.
-// url: imzalı adres ya da uygulamayla gelen dosya (require).
-export function ExerciseMediaView({ url, kind, size, height = size, interactive = true }: { url: string | number; kind: 'video' | 'image'; size: number; height?: number; interactive?: boolean }) {
+// url: imzalı adres ya da uygulamayla gelen dosya (require). still: video oynamaz, kapak gibi tek kare gösterir.
+export function ExerciseMediaView({
+  url,
+  kind,
+  size,
+  height = size,
+  interactive = true,
+  still = false,
+}: {
+  url: string | number;
+  kind: 'video' | 'image';
+  size: number;
+  height?: number;
+  interactive?: boolean;
+  still?: boolean;
+}) {
   const [failed, setFailed] = useState<string | null>(null);
   if (failed) return size < 120 ? <View style={{ width: size, height }} /> : <Failed size={size} message={failed} />;
   return kind === 'video' ? (
-    <LoopVideo url={url} size={size} height={height} onError={setFailed} interactive={interactive} />
+    <LoopVideo url={url} size={size} height={height} onError={setFailed} interactive={interactive} still={still} />
   ) : (
     <Image
       source={typeof url === 'string' ? { uri: url } : url}
@@ -28,15 +42,30 @@ export function ExerciseMediaView({ url, kind, size, height = size, interactive 
   );
 }
 
-function LoopVideo({ url, size, height, onError, interactive }: { url: string | number; size: number; height: number; onError: (m: string) => void; interactive: boolean }) {
+function LoopVideo({
+  url,
+  size,
+  height,
+  onError,
+  interactive,
+  still,
+}: {
+  url: string | number;
+  size: number;
+  height: number;
+  onError: (m: string) => void;
+  interactive: boolean;
+  still: boolean;
+}) {
   const player = useVideoPlayer(url, (p) => {
     p.loop = true;
     p.muted = true;
     p.audioMixingMode = 'mixWithOthers';
-    p.play();
+    if (!still) p.play();
   });
   // Yedek: ilk birkaç saniye video hazır olup durmuşsa yeniden başlat.
   useEffect(() => {
+    if (still) return;
     let tries = 0;
     const id = setInterval(() => {
       tries++;
@@ -44,10 +73,12 @@ function LoopVideo({ url, size, height, onError, interactive }: { url: string | 
       if (tries >= 6) clearInterval(id);
     }, 800);
     return () => clearInterval(id);
-  }, [player]);
+  }, [player, still]);
   // Bazı cihazlarda ilk play() yükleme bitmeden çağrılıp yutuluyor; hazır olunca tekrar başlat.
   useEventListener(player, 'statusChange', ({ status, error }) => {
-    if (status === 'readyToPlay' && !player.playing) player.play();
+    // Kapakta 1. saniyedeki kareye atlar; boş siyah ilk kare yerine hareket görünür.
+    if (status === 'readyToPlay' && still) player.currentTime = 1;
+    else if (status === 'readyToPlay' && !player.playing) player.play();
     if (status === 'error') onError(error?.message ?? 'Video oynatılamadı.');
   });
   // Dokununca durdur / oynat.
