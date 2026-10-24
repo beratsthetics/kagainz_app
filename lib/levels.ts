@@ -1,11 +1,11 @@
 // Aktiflik seviyesi. XP'yi sunucu verir (0009): mesaj, antrenman, seri, check-in, meydan okuma,
-// form check ve alınan tebrikler. Seviye n için 25 × (n-1)² XP gerekir: Lv 5 = 400, Lv 10 = 2025.
+// form check ve alınan tebrikler. Seviye n için 10 × (n-1)² XP gerekir: Lv 5 = 160, Lv 10 = 810.
 export function levelOf(xp: number | null | undefined) {
-  return Math.floor(Math.sqrt(Math.max(0, xp ?? 0) / 25)) + 1;
+  return Math.floor(Math.sqrt(Math.max(0, xp ?? 0) / 10)) + 1;
 }
 
 export function xpFor(level: number) {
-  return 25 * (level - 1) ** 2;
+  return 10 * (level - 1) ** 2;
 }
 
 // Seviye aralığına göre chatteki isim efekti. Renkler hem koyu hem açık temada okunur.

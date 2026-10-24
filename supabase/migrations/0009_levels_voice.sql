@@ -3,7 +3,7 @@
 
 -- ───────────────────────── Seviye (XP) ─────────────────────────
 -- XP'yi sadece sunucu yazar (istemcinin profiles üzerinde sadece username ve avatar_url yetkisi var).
--- Seviye uygulamada hesaplanır: seviye n için 25 × (n-1)² XP gerekir (Lv 5 = 400, Lv 10 = 2025).
+-- Seviye uygulamada hesaplanır: seviye n için 10 × (n-1)² XP gerekir (Lv 5 = 160, Lv 10 = 810).
 alter table public.profiles add column if not exists xp int not null default 0;
 
 create or replace function public.add_xp(member uuid, amount int) returns void
