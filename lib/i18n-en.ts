@@ -154,7 +154,7 @@ export const EN: Record<string, string> = {
   "İlk antrenmanını bitirdiğinde burada görünecek.": "Your first finished workout will show up here.",
   "{0} hareket · {1} set · {2} kg {3}": "{0} exercises · {1} sets · {2} kg {3}",
   "{0} eski antrenman Pro ile görünür": "{0} older workouts are visible with Pro",
-  "Videonu gönder, koçun zaman damgalı yorum yazsın.": "Send your video and your coach writes timestamped comments.",
+  "Önden, yandan, arkadan fotoğrafını gönder, koçun yorumlasın.": "Send front, side and back photos for your coach to review.",
   "BULUNAMADI": "NOT FOUND",
   "Sayfa yok": "Page not found",
   "Ana sayfaya dön →": "Back to home →",

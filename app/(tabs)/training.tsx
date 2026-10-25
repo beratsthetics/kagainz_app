@@ -283,11 +283,11 @@ export default function TrainingScreen() {
       <Reveal index={8}>
         <PressScale onPress={() => router.push('/form-check')}>
           <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <IconBox name={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} color="#C4B5FD" bg="rgba(196,181,253,0.16)" size={46} />
+            <IconBox name={{ ios: 'figure.stand', android: 'accessibility_new', web: 'accessibility_new' }} color="#C4B5FD" bg="rgba(196,181,253,0.16)" size={46} />
             <View style={{ flex: 1 }}>
               <Heading style={{ fontSize: 18 }}>Form check</Heading>
               <Body muted style={{ fontSize: 13 }}>
-                Videonu gönder, koçun zaman damgalı yorum yazsın.
+                Önden, yandan, arkadan fotoğrafını gönder, koçun yorumlasın.
               </Body>
             </View>
             {!hasFeature(tier, 'form_check') && <TierBadge tier="plus" />}
