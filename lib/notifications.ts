@@ -14,12 +14,11 @@ const supported = Platform.OS !== 'web';
 
 if (supported) {
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
+    // Uygulama açıkken dinlenme bildirimi gösterilmez; antrenman ekranı kendi sesini çalar.
+    handleNotification: async (n) => {
+      const rest = n.request.content.data?.kind === 'rest';
+      return { shouldShowBanner: !rest, shouldShowList: !rest, shouldPlaySound: !rest, shouldSetBadge: false };
+    },
   });
 }
 
@@ -35,7 +34,7 @@ export async function ensurePermission(ask = true): Promise<boolean> {
 export async function scheduleRestDone(seconds: number): Promise<string | null> {
   if (!supported || !(await ensurePermission(false))) return null;
   return Notifications.scheduleNotificationAsync({
-    content: { title: tx('Dinlenme bitti'), body: tx('Sıradaki sete geç 💪'), sound: true },
+    content: { title: tx('Dinlenme bitti'), body: tx('Sıradaki sete geç 💪'), sound: true, data: { kind: 'rest' } },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: Math.max(1, seconds) },
   });
 }

@@ -4,6 +4,7 @@ import { Text } from '@/components/T';
 
 import { MacroBar, StreakPill, ThemeToggle, WaterTracker } from '@/components/bits';
 import { AvatarRing } from '@/components/BadgeMedal';
+import { TodayRings } from '@/components/TodayRings';
 import { WelcomeTasks } from '@/components/WelcomeTasks';
 import { shownXp } from '@/lib/levels';
 import {
@@ -146,6 +147,10 @@ export default function TodayScreen() {
       </Reveal>
 
       <WeekBanner />
+
+      <Reveal index={2}>
+        <TodayRings />
+      </Reveal>
 
       {/* Beslenme özeti */}
       <Reveal index={2}>

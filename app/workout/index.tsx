@@ -1,12 +1,13 @@
+import { useAudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, TextInput, View } from 'react-native';
+import { Modal, Platform, TextInput, View } from 'react-native';
 import { Text } from '@/components/T';
 
 import { ExerciseMediaView } from '@/components/ExerciseMediaView';
 import { MovementAnim } from '@/components/MovementAnim';
-import { Body, Button, Card, Chip, EmptyState, Heading, Icon, Label, Mono, PressScale, ProgressBar, Row, Screen, Sheet } from '@/components/ui';
+import { Body, Button, Card, Chip, EmptyState, Heading, Icon, Label, Mono, PressScale, ProgressBar, Ring, Row, Screen, Sheet } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useExerciseMedia } from '@/lib/exerciseMedia';
@@ -260,23 +261,61 @@ function NumberCell({
   );
 }
 
-// Altta dinlenme sayacı: set işaretlenince başlar, bitince titreşir.
+// Dinlenme sayacı: set işaretlenince tam ekran geri sayım açılır (küçültülünce altta çubuk olur).
+// Son 3 saniyede hafif titreşir, bitince titreşim ve ses gelir.
 function RestBar() {
   const colors = useColors();
   const styles = useStyles();
   const { rest, stopRest, startRest, restSeconds, setRestSeconds } = useWorkouts();
   const now = useNow(250);
   const left = rest ? Math.max(0, (rest.endsAt - now) / 1000) : 0;
+  const secs = Math.ceil(left);
+  const [minimized, setMinimized] = useState(false);
+  const beep = useAudioPlayer(require('@/assets/sounds/rest-done.wav'));
+  const resting = rest != null;
+
+  // Yeni dinlenme başlayınca tekrar tam ekran açılır.
+  useEffect(() => {
+    if (resting) setMinimized(false);
+  }, [resting]);
+
+  useEffect(() => {
+    if (rest && secs > 0 && secs <= 3 && Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [rest, secs]);
 
   useEffect(() => {
     if (rest && left <= 0) {
       if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      beep.seekTo(0);
+      beep.play();
       stopRest();
     }
-  }, [rest, left, stopRest]);
+  }, [rest, left, stopRest, beep]);
 
   return (
     <View style={[styles.restBar, { backgroundColor: colors.overlay }]}>
+      <Modal visible={resting && !minimized} transparent animationType="fade" onRequestClose={() => setMinimized(true)}>
+        <View style={[styles.restFull, { backgroundColor: colors.background }]}>
+          <View style={{ alignItems: 'center', gap: spacing.md }}>
+            <Label>Dinlen</Label>
+            <Ring value={rest ? left / rest.total : 0} size={260} stroke={16} color={secs <= 3 ? colors.fat : colors.accent}>
+              <Text style={[styles.restBig, { color: secs <= 3 ? colors.fat : colors.text }]}>{fmt(secs)}</Text>
+            </Ring>
+          </View>
+          <Row gap={spacing.sm}>
+            <View style={{ flex: 1 }}>
+              <Button title="-15 sn" variant="outline" onPress={() => startRest(Math.max(5, Math.round(left) - 15))} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button title="+15 sn" variant="outline" onPress={() => startRest(Math.round(left) + 15)} />
+            </View>
+          </Row>
+          <Button title="Sıradaki sete geç" arrow onPress={stopRest} />
+          <PressScale onPress={() => setMinimized(true)} style={{ alignSelf: 'center' }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14, color: colors.textMuted }}>Küçült</Text>
+          </PressScale>
+        </View>
+      </Modal>
       {rest ? (
         <>
           <Row style={{ justifyContent: 'space-between' }}>
@@ -380,4 +419,6 @@ const useStyles = makeStyles((colors) => ({
     borderTopColor: colors.border,
   },
   restClock: { fontFamily: fonts.mono, fontSize: 24, color: colors.text },
+  restFull: { flex: 1, justifyContent: 'center', gap: spacing.lg, paddingHorizontal: spacing.lg },
+  restBig: { fontFamily: fonts.display, fontSize: 72, lineHeight: 80 },
 }));
