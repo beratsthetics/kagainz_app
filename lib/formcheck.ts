@@ -1,3 +1,4 @@
+import { exerciseById } from './exercises';
 import { LIMITS, type Tier } from './tiers';
 
 export type FormCheck = {
@@ -5,7 +6,8 @@ export type FormCheck = {
   user_id: string;
   exercise_id: string;
   note: string | null;
-  video_path: string;
+  photos: string[];
+  video_path: string | null;
   status: 'pending' | 'reviewed';
   created_at: string;
   reviewed_at: string | null;
@@ -22,7 +24,21 @@ export type FormComment = {
   profiles?: { username: string | null; role: string | null; avatar_url?: string | null } | null;
 };
 
-export const FORM_CHECK_SELECT = 'id, user_id, exercise_id, note, video_path, status, created_at, reviewed_at, profiles:profiles!form_checks_user_id_fkey(*)';
+export const FORM_CHECK_SELECT = 'id, user_id, exercise_id, note, photos, video_path, status, created_at, reviewed_at, profiles:profiles!form_checks_user_id_fkey(*)';
+
+// Form check = vücut formu: önden, yandan, arkadan birer fotoğraf (0015). Eski kayıtlar hareket videosuydu.
+export const POSES = [
+  { key: 'front', label: 'Önden' },
+  { key: 'side', label: 'Yandan' },
+  { key: 'back', label: 'Arkadan' },
+] as const;
+
+export const PHYSIQUE = 'physique';
+
+export function formCheckTitle(f: Pick<FormCheck, 'exercise_id'>) {
+  if (f.exercise_id === PHYSIQUE) return 'Vücut formu';
+  return exerciseById(f.exercise_id)?.trName ?? f.exercise_id;
+}
 
 // Bir sonraki form check ne zaman gönderilebilir? Plus 14, Max 7 günde bir. Sunucu da aynı kuralı uygular.
 export function nextAllowedAt(tier: Tier, last: FormCheck | undefined): Date | null {

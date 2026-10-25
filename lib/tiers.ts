@@ -83,7 +83,7 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
     tagline: 'Koç gözüyle gelişim',
     perks: [
       "Pro'daki her şey",
-      '2 haftada bir video form check ve yorum',
+      '2 haftada bir form check (ön, yan, arka fotoğraf) ve koç yorumu',
       'Fotoğraftan makro tahmini (ayda 30)',
       'Plus üyelere özel chat',
     ],

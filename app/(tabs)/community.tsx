@@ -155,7 +155,7 @@ export default function CommunityScreen() {
                 <Heading style={{ fontSize: 18 }}>{isCoach ? 'Koç paneli' : 'Koçuna yaz'}</Heading>
                 <Body muted style={{ fontSize: 13 }}>
                   {isCoach
-                    ? 'Form check videoları, mesajlar ve üyeler.'
+                    ? 'Form check, mesajlar ve üyeler.'
                     : dmOpen
                       ? 'Birebir mesajlaş, programını ve öğünlerini sor.'
                       : 'Max üyelere koçla birebir mesajlaşma.'}

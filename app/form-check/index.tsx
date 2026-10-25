@@ -4,11 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 
+import { CheckinPhoto } from '@/components/CheckinPhoto';
+
 import {
   Body,
   Button,
   Card,
-  Chip,
   EmptyState,
   Heading,
   Input,
@@ -25,10 +26,8 @@ import {
 } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { useExercises } from '@/lib/exerciseCatalog';
-import { exerciseById } from '@/lib/exercises';
-import { FORM_CHECK_SELECT, nextAllowedAt, type FormCheck } from '@/lib/formcheck';
-import { uploadFile } from '@/lib/media';
+import { FORM_CHECK_SELECT, formCheckTitle, nextAllowedAt, PHYSIQUE, POSES, type FormCheck } from '@/lib/formcheck';
+import { pickImage, uploadBase64, uploadFile } from '@/lib/media';
 import { useProgress } from '@/lib/progress';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
@@ -41,8 +40,7 @@ export default function FormCheckList() {
   const { bump } = useProgress();
   const [items, setItems] = useState<FormCheck[] | null>(null);
   const [open, setOpen] = useState(false);
-  const exercises = useExercises();
-  const [exerciseId, setExerciseId] = useState(exercises[0]?.id ?? 'bench_press');
+  const [photos, setPhotos] = useState<(ImagePicker.ImagePickerAsset | null)[]>([null, null, null]);
   const [note, setNote] = useState('');
   const [video, setVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [busy, setBusy] = useState(false);
@@ -66,8 +64,8 @@ export default function FormCheckList() {
       <Screen edges={[]}>
         <LockedCard
           tier="plus"
-          title="Video form check"
-          body={tx('Hareketini çek, koç videonun üzerine saniye saniye yorum yazsın. Plus\'ta {0} günde bir, Max\'ta haftada bir.', [LIMITS.formCheckDays.plus])}
+          title="Form check"
+          body={tx('Önden, yandan ve arkadan fotoğrafını gönder; koç formuna, yağ ve kas durumuna bakıp yorum yazsın. Plus\'ta {0} günde bir, Max\'ta haftada bir.', [LIMITS.formCheckDays.plus])}
           onPress={() => router.push('/plans')}
         />
       </Screen>
@@ -77,6 +75,12 @@ export default function FormCheckList() {
   const next = nextAllowedAt(tier, items?.[0]);
   const ready = next != null && next <= new Date();
   const daysLeft = next ? Math.ceil((next.getTime() - Date.now()) / 86400000) : 0;
+
+  async function pickPose(i: number, camera: boolean) {
+    const a = await pickImage(camera);
+    if (!a) return;
+    setPhotos((prev) => prev.map((p, j) => (j === i ? a : p)));
+  }
 
   async function pick(camera: boolean) {
     const opts: ImagePicker.ImagePickerOptions = {
@@ -95,22 +99,35 @@ export default function FormCheckList() {
   }
 
   async function submit() {
-    if (!session || !video) return;
+    if (!session || photos.some((p) => !p)) return;
     setBusy(true);
     setError(null);
+    const uploaded: string[] = [];
     try {
-      const ext = video.mimeType?.includes('quicktime') ? 'mov' : 'mp4';
-      const path = await uploadFile('form-checks', `${session.user.id}/${Date.now()}.${ext}`, video.uri, video.mimeType ?? 'video/mp4');
+      const ts = Date.now();
+      for (const [i, p] of photos.entries()) {
+        const type = p!.mimeType === 'image/png' || p!.mimeType === 'image/webp' ? p!.mimeType : 'image/jpeg';
+        const ext = type.split('/')[1].replace('jpeg', 'jpg');
+        uploaded.push(await uploadBase64('form-checks', `${session.user.id}/${ts}-${POSES[i].key}.${ext}`, p!.base64!, type));
+      }
+      let videoPath: string | null = null;
+      if (video) {
+        const ext = video.mimeType?.includes('quicktime') ? 'mov' : 'mp4';
+        videoPath = await uploadFile('form-checks', `${session.user.id}/${ts}-pose.${ext}`, video.uri, video.mimeType ?? 'video/mp4');
+        uploaded.push(videoPath);
+      }
       const { error: err } = await supabase
         .from('form_checks')
-        .insert({ user_id: session.user.id, exercise_id: exerciseId, note: note.trim() || null, video_path: path });
+        .insert({ user_id: session.user.id, exercise_id: PHYSIQUE, note: note.trim() || null, photos: uploaded.slice(0, 3), video_path: videoPath });
       if (err) throw err;
       bump('formChecks');
       setOpen(false);
+      setPhotos([null, null, null]);
       setVideo(null);
       setNote('');
       load();
     } catch (e) {
+      if (uploaded.length) await supabase.storage.from('form-checks').remove(uploaded);
       setError(e instanceof Error ? e.message : 'Yüklenemedi');
     } finally {
       setBusy(false);
@@ -124,7 +141,7 @@ export default function FormCheckList() {
           <Label>Sıradaki hakkın</Label>
           <Heading style={{ fontSize: 24 }}>{ready ? 'Şimdi gönderebilirsin' : tx('{0} gün sonra', [daysLeft])}</Heading>
           <Body muted style={{ fontSize: 13.5 }}>
-            60 saniyeye kadar video. Yandan, tüm vücut görünecek şekilde çek. Koç videonun ilgili saniyelerine yorum bırakır.
+            Önden, yandan ve arkadan birer fotoğraf. Aynı ışıkta, tüm vücut görünecek şekilde çek. Koç formuna, yağ ve kas durumuna bakıp yorum yazar.
           </Body>
           <Button title="Yeni form check" arrow disabled={!ready} onPress={() => setOpen(true)} />
         </Card>
@@ -136,16 +153,23 @@ export default function FormCheckList() {
       {items == null ? (
         <SkeletonList count={3} />
       ) : items.length === 0 ? (
-        <EmptyState icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} title="Henüz video yok" body="İlk form check'ini gönder, koçun yorumları burada görünsün." />
+        <EmptyState icon={{ ios: 'figure.stand', android: 'accessibility_new', web: 'accessibility_new' }} title="Henüz form check yok" body="İlk form check'ini gönder, koçun yorumları burada görünsün." />
       ) : (
         items.map((f, i) => (
           <Reveal key={f.id} index={2 + i}>
             <PressScale onPress={() => router.push({ pathname: '/form-check/[id]', params: { id: f.id } })}>
               <Card>
+                {f.photos.length > 0 && (
+                  <Row gap={spacing.xs}>
+                    {f.photos.map((p) => (
+                      <View key={p} style={{ flex: 1 }}>
+                        <CheckinPhoto bucket="form-checks" path={p} width="100%" />
+                      </View>
+                    ))}
+                  </Row>
+                )}
                 <Row style={{ justifyContent: 'space-between' }}>
-                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15.5, color: colors.text }}>
-                    {exerciseById(f.exercise_id)?.trName ?? f.exercise_id}
-                  </Text>
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15.5, color: colors.text }}>{formCheckTitle(f)}</Text>
                   {f.status === 'reviewed' ? (
                     <Tag color={colors.success} bg={colors.successSoft}>
                       Yorumlandı
@@ -166,14 +190,42 @@ export default function FormCheckList() {
       )}
 
       <Sheet visible={open} onClose={() => !busy && setOpen(false)} title="Form check gönder">
-        <Label>Hareket</Label>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
-          {exercises.map((e) => (
-            <Chip key={e.id} label={e.trName} active={exerciseId === e.id} onPress={() => setExerciseId(e.id)} />
+        <Label>Fotoğraflar</Label>
+        <Row gap={spacing.sm} style={{ alignItems: 'flex-start' }}>
+          {POSES.map((pose, i) => (
+            <View key={pose.key} style={{ flex: 1, gap: 6 }}>
+              {photos[i] ? (
+                <CheckinPhoto uri={photos[i]!.uri} width="100%" />
+              ) : (
+                <View
+                  style={{
+                    width: '100%',
+                    aspectRatio: 3 / 4,
+                    borderRadius: 12,
+                    borderWidth: 1.5,
+                    borderStyle: 'dashed',
+                    borderColor: colors.border,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <Text style={{ fontSize: 28, opacity: 0.5 }}>🧍</Text>
+                </View>
+              )}
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, textAlign: 'center', color: photos[i] ? colors.success : colors.text }}>{pose.label}</Text>
+              <Row gap={4}>
+                <View style={{ flex: 1 }}>
+                  <Button title="📷" variant="outline" onPress={() => pickPose(i, true)} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button title="🖼️" variant="outline" onPress={() => pickPose(i, false)} />
+                </View>
+              </Row>
+            </View>
           ))}
-        </View>
+        </Row>
         <Label>Not (isteğe bağlı)</Label>
-        <Input value={note} onChangeText={setNote} placeholder="ör. Belimde ağrı oluyor, 80 kg 5 tekrar" multiline maxLength={500} />
+        <Input value={note} onChangeText={setNote} placeholder="ör. Son 2 haftada 1 kg verdim, karın bölgesi zor iniyor" multiline maxLength={500} />
+        <Label>Poz videosu (isteğe bağlı)</Label>
         <Row gap={spacing.sm}>
           <View style={{ flex: 1 }}>
             <Button title="Çek" variant="outline" icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} onPress={() => pick(true)} />
@@ -186,7 +238,7 @@ export default function FormCheckList() {
           <Mono style={{ color: colors.success }}>{tx('Video seçildi{0}', [video.duration ? ` · ${Math.round(video.duration / 1000)} sn` : ''])}</Mono>
         )}
         {error && <Text style={{ fontFamily: fonts.bodyBold, color: colors.danger }}>{error}</Text>}
-        <Button title={busy ? 'Yükleniyor...' : 'Gönder'} arrow disabled={!video || busy} onPress={submit} />
+        <Button title={busy ? 'Yükleniyor...' : 'Gönder'} arrow disabled={photos.some((p) => !p) || busy} onPress={submit} />
       </Sheet>
     </Screen>
   );

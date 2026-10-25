@@ -5,11 +5,12 @@ import { View } from 'react-native';
 import { Text } from '@/components/T';
 
 import { BodyMap } from '@/components/BodyMap';
+import { CheckinPhoto } from '@/components/CheckinPhoto';
 import { Avatar, Body, Button, Card, Input, Label, Mono, PressScale, Reveal, Row, Screen, SkeletonList, Tag } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { exerciseById } from '@/lib/exercises';
-import { FORM_CHECK_SELECT, formatClock, type FormCheck, type FormComment } from '@/lib/formcheck';
+import { FORM_CHECK_SELECT, formatClock, formCheckTitle, POSES, type FormCheck, type FormComment } from '@/lib/formcheck';
 import { useSignedUrl } from '@/lib/media';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
@@ -57,7 +58,8 @@ export default function FormCheckDetail() {
     );
   }
 
-  return url ? (
+  // Videosuz (sadece fotoğraf) form check beklemeden açılır.
+  return url || !check.video_path ? (
     <Detail check={check} url={url} comments={comments} onComment={loadComments} onReviewed={() => setCheck({ ...check, status: 'reviewed' })} />
   ) : (
     <Screen edges={[]}>
@@ -74,7 +76,7 @@ function Detail({
   onReviewed,
 }: {
   check: FormCheck;
-  url: string;
+  url: string | null;
   comments: FormComment[];
   onComment: () => void;
   onReviewed: () => void;
@@ -89,7 +91,9 @@ function Detail({
   const [text, setText] = useState('');
   const [stamp, setStamp] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pose, setPose] = useState(0);
   const exercise = exerciseById(check.exercise_id);
+  const hasVideo = url != null;
 
   useEffect(() => {
     const sub = player.addListener('timeUpdate', (e) => setNow(e.currentTime));
@@ -105,7 +109,7 @@ function Detail({
     const body = text.trim();
     if (!body || !session) return;
     setError(null);
-    const at = isCoach && stamp ? Math.round(player.currentTime * 10) / 10 : null;
+    const at = isCoach && stamp && hasVideo ? Math.round(player.currentTime * 10) / 10 : null;
     const { error: err } = await supabase
       .from('form_check_comments')
       .insert({ form_check_id: check.id, author_id: session.user.id, body, at_seconds: at });
@@ -120,17 +124,37 @@ function Detail({
 
   return (
     <Screen edges={[]}>
-      <Reveal index={0}>
-        <View style={{ borderRadius: radius.lg, overflow: 'hidden', backgroundColor: '#000', aspectRatio: 9 / 12, maxHeight: 520 }}>
-          <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls fullscreenOptions={{ enable: true }} />
-        </View>
-      </Reveal>
+      {check.photos.length > 0 && (
+        <Reveal index={0}>
+          <View style={{ gap: spacing.sm }}>
+            <CheckinPhoto key={check.photos[pose]} bucket="form-checks" path={check.photos[pose]} width="100%" />
+            <Row gap={spacing.sm} style={{ alignItems: 'flex-start' }}>
+              {check.photos.map((p, i) => (
+                <PressScale key={p} flex onPress={() => setPose(i)} style={{ gap: 4, opacity: i === pose ? 1 : 0.55 }}>
+                  <CheckinPhoto bucket="form-checks" path={p} width="100%" />
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, textAlign: 'center', color: i === pose ? colors.accentBright : colors.textMuted }}>
+                    {POSES[i]?.label ?? ''}
+                  </Text>
+                </PressScale>
+              ))}
+            </Row>
+          </View>
+        </Reveal>
+      )}
+
+      {hasVideo && (
+        <Reveal index={0}>
+          <View style={{ borderRadius: radius.lg, overflow: 'hidden', backgroundColor: '#000', aspectRatio: 9 / 12, maxHeight: 520 }}>
+            <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls fullscreenOptions={{ enable: true }} />
+          </View>
+        </Reveal>
+      )}
 
       <Reveal index={1}>
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text }}>{exercise?.trName ?? check.exercise_id}</Text>
+              <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text }}>{formCheckTitle(check)}</Text>
               <Mono style={{ color: colors.textMuted }}>
                 @{check.profiles?.username ?? 'üye'} · {new Date(check.created_at).toLocaleDateString(locale(), { day: 'numeric', month: 'long' })}
               </Mono>
@@ -157,7 +181,11 @@ function Detail({
           </Row>
           {comments.length === 0 && (
             <Body muted style={{ fontSize: 13.5 }}>
-              {isCoach ? 'Videoyu durdur, o saniyeye yorum yaz.' : 'Koçun yorumları burada saniyeleriyle görünecek.'}
+              {isCoach
+                ? hasVideo
+                  ? 'Fotoğraflara ve videoya bak; formu, yağ ve kas durumu hakkında yorum yaz.'
+                  : 'Fotoğraflara bak; formu, yağ ve kas durumu hakkında yorum yaz.'
+                : 'Koçun yorumları burada görünecek.'}
             </Body>
           )}
           {comments.map((c) => {
@@ -198,7 +226,7 @@ function Detail({
 
       <Reveal index={3}>
         <Card>
-          {isCoach && (
+          {isCoach && hasVideo && (
             <PressScale onPress={() => setStamp((s) => !s)}>
               <Row gap={spacing.sm}>
                 <View
@@ -215,7 +243,7 @@ function Detail({
               </Row>
             </PressScale>
           )}
-          <Input value={text} onChangeText={setText} placeholder={isCoach ? 'ör. Dizler içe kaçıyor, kalçayı geri it' : 'Koça soru sor...'} multiline maxLength={1000} />
+          <Input value={text} onChangeText={setText} placeholder={isCoach ? 'ör. Bel incelmiş, omuzlar dolmuş. Yağ biraz daha düşmeli.' : 'Koça soru sor...'} multiline maxLength={1000} />
           {error && <Text style={{ fontFamily: fonts.bodyBold, color: colors.danger }}>{error}</Text>}
           <Button title="Yorum gönder" arrow disabled={!text.trim()} onPress={send} />
         </Card>

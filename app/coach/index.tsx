@@ -6,9 +6,8 @@ import { Text } from '@/components/T';
 import { Avatar, Body, Card, EmptyState, Icon, IconBox, Input, Label, Mono, PressScale, Reveal, Row, Screen, SkeletonList, Tag, TierBadge, type IconName } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { exerciseById } from '@/lib/exercises';
 import { CHECKIN_SELECT, fmt, weekTitle, type Checkin } from '@/lib/checkins';
-import { FORM_CHECK_SELECT, type FormCheck } from '@/lib/formcheck';
+import { FORM_CHECK_SELECT, formCheckTitle, type FormCheck } from '@/lib/formcheck';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { TIER_RANK, type Tier } from '@/lib/tiers';
@@ -116,7 +115,7 @@ export default function CoachPanel() {
   const waitingCheckins = checkins?.filter((c) => !c.coach_note).length ?? 0;
   const paid = members?.filter((m) => m.tier !== 'free').length ?? 0;
   const todo = pending.length + unanswered + waitingCheckins + (reports?.length ?? 0);
-  const TITLES: Record<Tab, string> = { forms: 'Form check videoları', checkins: "Check-in'ler", dms: 'Mesajlar', reports: 'Şikayetler', members: 'Üyeler' };
+  const TITLES: Record<Tab, string> = { forms: 'Form check', checkins: "Check-in'ler", dms: 'Mesajlar', reports: 'Şikayetler', members: 'Üyeler' };
 
   return (
     <Screen edges={[]}>
@@ -132,7 +131,7 @@ export default function CoachPanel() {
 
       <Reveal index={1}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 4 }}>
-          <Kpi tab="forms" active={tab} onPress={setTab} icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} label="Bekleyen form" value={pending.length} color={colors.fat} />
+          <Kpi tab="forms" active={tab} onPress={setTab} icon={{ ios: 'figure.stand', android: 'accessibility_new', web: 'accessibility_new' }} label="Bekleyen form" value={pending.length} color={colors.fat} />
           <Kpi tab="dms" active={tab} onPress={setTab} icon={{ ios: 'bubble.left.fill', android: 'chat', web: 'chat' }} label="Yanıt bekleyen" value={unanswered} color={colors.accentBright} />
           <Kpi tab="checkins" active={tab} onPress={setTab} icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} label="Bekleyen check-in" value={waitingCheckins} color={colors.success} />
           <Kpi tab="reports" active={tab} onPress={setTab} icon={{ ios: 'exclamationmark.shield.fill', android: 'report', web: 'report' }} label="Açık şikayet" value={reports?.length ?? 0} color={colors.danger} />
@@ -184,7 +183,7 @@ export default function CoachPanel() {
         (forms == null ? (
           <SkeletonList />
         ) : forms.length === 0 ? (
-          <EmptyState icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} title="Video yok" />
+          <EmptyState icon={{ ios: 'figure.stand', android: 'accessibility_new', web: 'accessibility_new' }} title="Form check yok" />
         ) : (
           [...pending, ...forms.filter((f) => f.status !== 'pending')].map((f) => (
             <PressScale key={f.id} onPress={() => router.push({ pathname: '/form-check/[id]', params: { id: f.id } })}>
@@ -193,7 +192,7 @@ export default function CoachPanel() {
                   <Avatar name={f.profiles?.username} path={f.profiles?.avatar_url} size={36} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>
-                      {exerciseById(f.exercise_id)?.trName ?? f.exercise_id}
+                      {formCheckTitle(f)}
                     </Text>
                     <Mono style={{ fontSize: 12, color: colors.textMuted }}>
                       @{f.profiles?.username ?? ''} · {new Date(f.created_at).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })}
