@@ -1139,6 +1139,7 @@ export const EN: Record<string, string> = {
   "Hesabın oluşturuldu. Şimdi giriş yap.": "Account created. Now sign in.",
   "Pro üyesi ol": "Become a Pro member",
   "Yeni rozet": "New badge",
+  "{0}/4 tamam": "{0}/4 closed",
   "Sıradaki sete geç": "Next set",
   "Küçült": "Minimize",
   "Dinlenme günü": "Rest day",
