@@ -101,10 +101,12 @@ export default function EmailScreen() {
         <Body muted style={{ marginTop: spacing.sm }}>
           {signup ? 'E-posta ve şifrenle saniyeler içinde kayıt ol.' : 'E-posta ve şifrenle hesabına gir.'}
         </Body>
-        {params.reason === 'macros' && (
+        {(params.reason === 'macros' || params.reason === 'workout') && (
           <Row gap={spacing.sm} style={styles.reason}>
             <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={16} color={colors.accentBright} />
-            <Body style={{ flex: 1, fontSize: 14 }}>Makro hesaplamayı kullanmak için ücretsiz hesap oluştur.</Body>
+            <Body style={{ flex: 1, fontSize: 14 }}>
+              {params.reason === 'macros' ? 'Makro hesaplamayı kullanmak için ücretsiz hesap oluştur.' : 'Antrenmanını kaydetmek için ücretsiz hesap oluştur.'}
+            </Body>
           </Row>
         )}
       </Reveal>

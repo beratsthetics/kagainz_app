@@ -38,7 +38,7 @@ import { locale, tx } from '@/lib/i18n';
 export default function TrainingScreen() {
   const colors = useColors();
   const styles = useStyles();
-  const { tier } = useAuth();
+  const { session, tier } = useAuth();
   const { program, assigned, templates, templateDays, setTemplateDays, ownProgram, active, startDay, startEmpty, history, records, weeklySets } = useWorkouts();
   const [day, setDay] = useState(todaysDayIndex(program));
   // Şablon değişince bugünün gününe dön.
@@ -56,6 +56,8 @@ export default function TrainingScreen() {
     .slice(0, 5);
 
   function begin(fn: () => void) {
+    // Antrenman kaydı hesaba bağlı: giriş yapmamış kişi önce kayıt olur.
+    if (!session) return router.push('/auth?reason=workout');
     if (active) return router.push('/workout');
     fn();
     router.push('/workout');
