@@ -1139,6 +1139,7 @@ export const EN: Record<string, string> = {
   "Hesabın oluşturuldu. Şimdi giriş yap.": "Account created. Now sign in.",
   "Pro üyesi ol": "Become a Pro member",
   "Yeni rozet": "New badge",
+  "Google, e-posta ya da telefonla saniyeler içinde kayıt ol.": "Sign up in seconds with Google, email or phone.",
   "Antrenmanını kaydetmek için ücretsiz hesap oluştur.": "Create a free account to log your workout.",
   "3 gün Pro senin!": "3 days of Pro are yours!",
   "Programlar, yemek planı ve Pro chat açıldı.": "Programs, meal plans and Pro chat are unlocked.",

@@ -73,7 +73,7 @@ function MacrosLocked() {
       </Reveal>
       <Reveal index={2}>
         <Body muted style={{ textAlign: 'center', fontSize: 13 }}>
-          Google, e-posta ya da telefonla. Şifre yok.
+          Google, e-posta ya da telefonla saniyeler içinde kayıt ol.
         </Body>
       </Reveal>
     </Screen>
