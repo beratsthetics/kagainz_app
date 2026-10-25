@@ -93,6 +93,23 @@ const BASICS = make('temel', [
   ['kefir', 'Kefir', ['kefir'], [55, 3.3, 3, 4], 200, 'bardak'],
 ]);
 
+// Çiğ (pişmemiş) değerler: tartıp pişirenler için. Pişince su çektiği için 100 g çiğ pirinç yaklaşık 300 g pilav eder.
+const RAW = make('temel', [
+  ['pirinc_cig', 'Pirinç (çiğ)', ['çiğ pirinç', 'cig pirinc', 'pirinç çiğ', 'pirinc cig', 'kuru pirinç'], [365, 7.1, 0.7, 80]],
+  ['esmer_pirinc_cig', 'Esmer pirinç (çiğ)', ['çiğ esmer pirinç', 'esmer pirinç', 'esmer pirinc', 'esmer pirinç çiğ'], [367, 7.5, 2.7, 76]],
+  ['bulgur_cig', 'Bulgur (çiğ)', ['çiğ bulgur', 'cig bulgur', 'bulgur çiğ', 'bulgur cig', 'kuru bulgur'], [342, 12.3, 1.3, 76]],
+  ['makarna_cig', 'Makarna (çiğ)', ['çiğ makarna', 'cig makarna', 'makarna çiğ', 'makarna cig', 'kuru makarna'], [371, 13, 1.5, 75]],
+  ['tam_makarna_cig', 'Tam buğday makarna (çiğ)', ['tam buğday makarna', 'tam bugday makarna', 'çiğ tam buğday makarna'], [352, 14, 2.5, 72]],
+  ['eriste_cig', 'Erişte (çiğ)', ['çiğ erişte', 'cig eriste', 'erişte çiğ', 'eriste cig'], [384, 14, 4.4, 71]],
+  ['kinoa_cig', 'Kinoa (çiğ)', ['çiğ kinoa', 'cig kinoa', 'kinoa çiğ', 'kinoa cig'], [368, 14, 6, 64]],
+  ['mercimek_cig', 'Kırmızı mercimek (çiğ)', ['çiğ mercimek', 'cig mercimek', 'mercimek çiğ', 'kuru mercimek', 'kırmızı mercimek', 'kirmizi mercimek'], [358, 24, 2.2, 63]],
+  ['nohut_cig', 'Nohut (kuru, çiğ)', ['çiğ nohut', 'cig nohut', 'nohut çiğ', 'kuru nohut'], [378, 20.5, 6, 63]],
+  ['fasulye_cig', 'Kuru fasulye (çiğ)', ['çiğ kuru fasulye', 'cig kuru fasulye', 'kuru fasulye çiğ', 'çiğ fasulye'], [333, 23.4, 0.9, 60]],
+  ['patates_cig', 'Patates (çiğ)', ['çiğ patates', 'cig patates', 'patates çiğ'], [77, 2, 0.1, 17], 170, 'adet'],
+  ['tavuk_gogsu_cig', 'Tavuk göğsü (çiğ)', ['çiğ tavuk göğsü', 'cig tavuk gogsu', 'tavuk göğsü çiğ', 'çiğ tavuk', 'cig tavuk'], [120, 22.5, 2.6, 0]],
+  ['kiyma_cig', 'Dana kıyma (çiğ, %20 yağlı)', ['çiğ kıyma', 'cig kiyma', 'kıyma çiğ', 'çiğ dana kıyma'], [254, 17.2, 20, 0]],
+]);
+
 const SNACKS = make('atıştırmalık', [
   ['findik', 'Fındık', ['fındık', 'findik'], [628, 15, 61, 17]],
   ['yer_fistigi', 'Yer fıstığı', ['yer fıstığı', 'fıstık'], [567, 26, 49, 16]],
@@ -109,4 +126,4 @@ const DRINKS = make('içecek', [
   ['cay_sekerli', 'Şekerli çay', ['şekerli çay'], [16, 0, 0, 4], 100, 'bardak'],
 ]);
 
-export const MORE_FOODS: Food[] = [...DISHES, ...BASICS, ...SNACKS, ...DRINKS];
+export const MORE_FOODS: Food[] = [...DISHES, ...BASICS, ...RAW, ...SNACKS, ...DRINKS];
