@@ -25,6 +25,8 @@ export type Profile = {
   invited_by?: string | null;
   // Influencer kodu (0014).
   ref_code?: string | null;
+  // Hoş geldin görevlerinin ödülü alındı mı (0017).
+  welcome_claimed?: boolean;
   // Aktiflik puanı; seviye lib/levels.ts ile hesaplanır (0009).
   xp?: number;
 };

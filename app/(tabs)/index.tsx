@@ -4,6 +4,7 @@ import { Text } from '@/components/T';
 
 import { MacroBar, StreakPill, ThemeToggle, WaterTracker } from '@/components/bits';
 import { AvatarRing } from '@/components/BadgeMedal';
+import { WelcomeTasks } from '@/components/WelcomeTasks';
 import { shownXp } from '@/lib/levels';
 import {
   Avatar,
@@ -299,6 +300,8 @@ export default function TodayScreen() {
           </Card>
         </PressScale>
       </Reveal>
+
+      <WelcomeTasks />
     </Screen>
   );
 }
