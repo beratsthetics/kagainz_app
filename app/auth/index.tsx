@@ -31,7 +31,6 @@ export default function EmailScreen() {
   const [info, setInfo] = useState<string | null>(null);
   // Influencer linkinden gelince kod dolu gelir; kayıtta elle de girilebilir.
   const [ref, setRef] = useState(params.ref ?? '');
-  const [showRef, setShowRef] = useState(Boolean(params.ref));
   const { google, busy: googleBusy } = useGoogleSignIn(setError);
   const signup = mode === 'signup';
   const mismatch = signup && repeat.length > 0 && repeat !== password;
@@ -160,17 +159,12 @@ export default function EmailScreen() {
             </View>
           )}
           {mismatch && <Text style={styles.error}>Şifreler aynı değil.</Text>}
-          {signup &&
-            (showRef ? (
-              <View style={styles.field}>
-                <Label>Davet kodu (isteğe bağlı)</Label>
-                <Input value={ref} onChangeText={setRef} placeholder="ör. ahmet" autoCapitalize="none" autoCorrect={false} />
-              </View>
-            ) : (
-              <PressScale onPress={() => setShowRef(true)} style={{ alignSelf: 'flex-start' }}>
-                <Text style={styles.link}>Davet kodun var mı?</Text>
-              </PressScale>
-            ))}
+          {signup && (
+            <View style={styles.field}>
+              <Label>Davet kodu (isteğe bağlı)</Label>
+              <Input value={ref} onChangeText={setRef} placeholder="ör. ahmet" autoCapitalize="none" autoCorrect={false} />
+            </View>
+          )}
           {!signup && (
             <PressScale onPress={forgot} style={{ alignSelf: 'flex-end' }}>
               <Text style={styles.link}>Şifremi unuttum</Text>
