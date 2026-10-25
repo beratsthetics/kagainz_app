@@ -51,8 +51,7 @@ export default function PhotoMacrosScreen() {
 
   if (!hasFeature(tier, 'photo_macros')) {
     return (
-      <Screen edges={['top', 'bottom']}>
-        <Close />
+      <Screen edges={['top', 'bottom']} header={<Close />}>
         <Hero lines={['Fotoğraf', 'çek, bitti']} size={44} />
         <Body muted>Tabağın fotoğrafını çek; yapay zekâ yiyecekleri ve gramlarını tahmin etsin, sen sadece onayla.</Body>
         <LockedCard tier="plus" title="Fotoğraftan makro" body="Plus ile ayda 30, Max ile sınırsız tahmin." onPress={() => router.push('/plans')} />
@@ -103,8 +102,7 @@ export default function PhotoMacrosScreen() {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, scale: Math.max(0, Math.round(scale * 100) / 100) } : it)));
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <Close />
+    <Screen edges={['top', 'bottom']} header={<Close />}>
       <Reveal index={0}>
         <Hero lines={['Fotoğraftan', 'makro']} size={44} />
       </Reveal>

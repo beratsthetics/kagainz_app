@@ -56,20 +56,22 @@ export default function WorkoutScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <Screen edges={['top']}>
-        <Row style={{ justifyContent: 'space-between' }}>
-          <PressScale onPress={() => router.back()} style={styles.round}>
-            <Icon name={{ ios: 'chevron.down', android: 'expand_more', web: 'expand_more' }} size={20} />
-          </PressScale>
-          <View style={{ alignItems: 'center' }}>
-            <Label>{active.title}</Label>
-            <Text style={styles.clock}>{fmt(elapsed)}</Text>
-          </View>
-          <PressScale onPress={() => setConfirm('finish')} style={styles.finish}>
-            <Text style={styles.finishText}>BİTİR</Text>
-          </PressScale>
-        </Row>
-
+      <Screen
+        edges={['top']}
+        header={
+          <Row style={{ justifyContent: 'space-between' }}>
+            <PressScale onPress={() => router.back()} style={styles.round}>
+              <Icon name={{ ios: 'chevron.down', android: 'expand_more', web: 'expand_more' }} size={20} />
+            </PressScale>
+            <View style={{ alignItems: 'center' }}>
+              <Label>{active.title}</Label>
+              <Text style={styles.clock}>{fmt(elapsed)}</Text>
+            </View>
+            <PressScale onPress={() => setConfirm('finish')} style={styles.finish}>
+              <Text style={styles.finishText}>BİTİR</Text>
+            </PressScale>
+          </Row>
+        }>
         <Row gap={spacing.sm}>
           <Mini label="Set" value={`${totalDone}`} />
           <Mini label="Hacim" value={tx('{0} kg', [Math.round(sessionVolume(active)).toLocaleString(locale())])} />

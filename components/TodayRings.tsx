@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, { Easing, useAnimatedProps, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
-import Svg, { Circle, Defs, G, LinearGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Text } from '@/components/T';
 
 import { Card, Icon, Label, Row, type IconName } from '@/components/ui';
@@ -18,14 +18,13 @@ import { doneSets, useWorkouts } from '@/lib/workouts';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const SIZE = 156;
-const STROKE = 13;
-const GAP = 4;
+const SIZE = 66;
+const STROKE = 7;
 
 type RingData = { key: string; label: string; value: number; text: string; icon: IconName; from: string; to: string };
 
-// Ana sayfadaki günlük halkalar: kalori, protein, antrenman ve su. Her halka kendi renk geçişiyle dolar,
-// başında ikonu durur. Dördü dolunca günde bir kez konfeti.
+// Ana sayfadaki günlük halkalar: kalori, protein, antrenman ve su yan yana; altında adı ve değeri.
+// Her halka kendi renk geçişiyle dolar. Dördü dolunca günde bir kez konfeti.
 export function TodayRings() {
   const colors = useColors();
   const celebrate = useCelebrate();
@@ -45,7 +44,7 @@ export function TodayRings() {
       key: 'kcal',
       label: 'Kalori',
       value: totals.kcal / goals.kcal,
-      text: tx('{0} / {1} kcal', [n(totals.kcal), n(goals.kcal)]),
+      text: `${n(totals.kcal)}/${n(goals.kcal)}`,
       icon: { ios: 'flame.fill', android: 'local_fire_department', web: 'local_fire_department' },
       from: '#F43F5E',
       to: '#FB923C',
@@ -54,7 +53,7 @@ export function TodayRings() {
       key: 'protein',
       label: 'Protein',
       value: totals.protein / goals.protein,
-      text: `${n(Math.round(totals.protein))} / ${n(goals.protein)} g`,
+      text: `${n(Math.round(totals.protein))}/${n(goals.protein)} g`,
       icon: { ios: 'bolt.fill', android: 'bolt', web: 'bolt' },
       from: '#6366F1',
       to: '#38BDF8',
@@ -72,7 +71,7 @@ export function TodayRings() {
       key: 'water',
       label: 'Su',
       value: water / waterGoal,
-      text: `${n((water * GLASS_ML) / 1000)} / ${n((waterGoal * GLASS_ML) / 1000)} L`,
+      text: `${n((water * GLASS_ML) / 1000)}/${n((waterGoal * GLASS_ML) / 1000)} L`,
       icon: { ios: 'drop.fill', android: 'water_drop', web: 'water_drop' },
       from: '#06B6D4',
       to: '#5EEAD4',
@@ -80,7 +79,6 @@ export function TodayRings() {
   ];
   const closed = rings.filter((r) => r.value >= 1).length;
   const allClosed = closed === rings.length;
-  const overall = Math.round((rings.reduce((sum, r) => sum + Math.min(1, Math.max(0, r.value)), 0) / rings.length) * 100);
 
   useEffect(() => {
     if (!session || !allClosed || celebrated === today) return;
@@ -96,79 +94,37 @@ export function TodayRings() {
           {tx('{0}/4 tamam', [closed])}
         </Text>
       </Row>
-      <Row gap={spacing.lg} style={{ marginTop: spacing.sm }}>
-        <View style={{ width: SIZE, height: SIZE }}>
-          <Svg width={SIZE} height={SIZE} style={{ transform: [{ rotate: '-90deg' }] }}>
-            <Defs>
-              {rings.map((r) => (
-                <LinearGradient key={r.key} id={`ring-${r.key}`} x1="0" y1="0" x2="1" y2="1">
-                  <Stop offset="0" stopColor={r.from} />
-                  <Stop offset="1" stopColor={r.to} />
-                </LinearGradient>
-              ))}
-            </Defs>
-            {rings.map((r, i) => (
-              <Arc key={r.key} ring={r} radius={radiusOf(i)} delay={i * 120} />
-            ))}
-          </Svg>
-          {/* Her halkanın başında (en üstte) küçük ikonu */}
-          {rings.map((r, i) => (
-            <View
-              key={r.key}
-              pointerEvents="none"
-              style={{
-                position: 'absolute',
-                left: SIZE / 2 - STROKE / 2,
-                top: SIZE / 2 - radiusOf(i) - STROKE / 2,
-                width: STROKE,
-                height: STROKE,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Icon name={r.icon} size={STROKE - 4} color="rgba(0,0,0,0.7)" />
-            </View>
-          ))}
-          <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
-            <Text raw style={{ fontFamily: fonts.display, fontSize: 17, color: colors.text }}>
-              {overall}%
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flex: 1, gap: spacing.sm }}>
-          {rings.map((r) => {
-            const pct = Math.round(Math.max(0, r.value) * 100);
-            return (
-              <View key={r.key} style={{ gap: 2 }}>
-                <Row style={{ justifyContent: 'space-between' }}>
-                  <Row gap={6}>
-                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: r.from }} />
-                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.2, color: colors.textMuted }}>
-                      {tx(r.label).toLocaleUpperCase(locale())}
-                    </Text>
-                  </Row>
-                  <Text raw style={{ fontFamily: fonts.display, fontSize: 14, color: r.value >= 1 ? r.from : colors.text }}>
+      <Row style={{ marginTop: spacing.sm, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {rings.map((r, i) => {
+          const pct = Math.round(Math.max(0, r.value) * 100);
+          return (
+            <View key={r.key} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+              <View style={{ width: SIZE, height: SIZE }}>
+                <Arc ring={r} delay={i * 120} />
+                <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                  <Icon name={r.icon} size={15} color={r.from} />
+                  <Text raw style={{ fontFamily: fonts.display, fontSize: 13, color: colors.text }}>
                     {pct >= 100 ? '✓' : `${pct}%`}
                   </Text>
-                </Row>
-                <Text raw numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.textMuted }}>
-                  {r.text}
-                </Text>
+                </View>
               </View>
-            );
-          })}
-        </View>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.4, color: colors.text }}>
+                {tx(r.label).toLocaleUpperCase(locale())}
+              </Text>
+              <Text raw numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: fonts.mono, fontSize: 10.5, color: colors.textMuted, marginTop: -4 }}>
+                {r.text}
+              </Text>
+            </View>
+          );
+        })}
       </Row>
     </Card>
   );
 }
 
-function radiusOf(i: number) {
-  return (SIZE - STROKE) / 2 - i * (STROKE + GAP);
-}
-
 // Bir halka: soluk iz + renk geçişli dolum. Değer değişince yumuşakça dolar.
-function Arc({ ring, radius, delay }: { ring: RingData; radius: number; delay: number }) {
+function Arc({ ring, delay }: { ring: RingData; delay: number }) {
+  const radius = (SIZE - STROKE) / 2;
   const c = 2 * Math.PI * radius;
   const progress = useSharedValue(0);
   useEffect(() => {
@@ -176,7 +132,13 @@ function Arc({ ring, radius, delay }: { ring: RingData; radius: number; delay: n
   }, [ring.value, delay, progress]);
   const animatedProps = useAnimatedProps(() => ({ strokeDashoffset: c * (1 - progress.value) }));
   return (
-    <G>
+    <Svg width={SIZE} height={SIZE} style={{ transform: [{ rotate: '-90deg' }] }}>
+      <Defs>
+        <LinearGradient id={`ring-${ring.key}`} x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor={ring.from} />
+          <Stop offset="1" stopColor={ring.to} />
+        </LinearGradient>
+      </Defs>
       <Circle cx={SIZE / 2} cy={SIZE / 2} r={radius} stroke={ring.from} strokeOpacity={0.16} strokeWidth={STROKE} fill="none" />
       <AnimatedCircle
         cx={SIZE / 2}
@@ -189,6 +151,6 @@ function Arc({ ring, radius, delay }: { ring: RingData; radius: number; delay: n
         strokeDasharray={`${c} ${c}`}
         animatedProps={animatedProps}
       />
-    </G>
+    </Svg>
   );
 }

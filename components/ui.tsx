@@ -78,16 +78,20 @@ export function Screen({
   children,
   scroll = true,
   edges = ['top'],
+  header,
 }: {
   children: ReactNode;
   scroll?: boolean;
   edges?: ('top' | 'bottom')[];
+  // Kaymayan üst satır (ör. kapat düğmesi): içerik kaydırılınca da yerinde kalır, hep basılabilir.
+  header?: ReactNode;
 }) {
   const styles = useStyles();
   return (
     <View style={styles.screen}>
       <GridBackground />
       <SafeAreaView style={{ flex: 1 }} edges={edges}>
+        {header && <View style={styles.screenHeader}>{header}</View>}
         {scroll ? (
           <ScrollView
             contentContainerStyle={styles.screenContent}
@@ -796,6 +800,7 @@ export function LockedCard({ tier, title, body, onPress }: { tier: Tier; title: 
 
 const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
+  screenHeader: { paddingHorizontal: spacing.md + 4, paddingTop: spacing.sm, width: '100%', maxWidth: 720, alignSelf: 'center' },
   screenContent: {
     padding: spacing.md + 4,
     paddingBottom: spacing.xl * 2,

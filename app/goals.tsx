@@ -44,12 +44,15 @@ export default function GoalsScreen() {
   }
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <Row style={{ justifyContent: 'flex-end' }}>
-        <PressScale onPress={() => router.back()} style={styles.close}>
-          <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={18} />
-        </PressScale>
-      </Row>
+    <Screen
+      edges={['top', 'bottom']}
+      header={
+        <Row style={{ justifyContent: 'flex-end' }}>
+          <PressScale onPress={() => router.back()} style={styles.close}>
+            <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={18} />
+          </PressScale>
+        </Row>
+      }>
       <Reveal index={0}>
         <Hero lines={['Hedefini', 'hesapla']} size={46} />
       </Reveal>

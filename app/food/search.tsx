@@ -42,13 +42,16 @@ export default function FoodSearchScreen() {
   }, [query]);
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <Row style={{ justifyContent: 'space-between' }}>
-        <Title style={{ fontSize: 32 }}>Yiyecek ara</Title>
-        <PressScale onPress={() => router.back()} style={styles.close}>
-          <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={18} />
-        </PressScale>
-      </Row>
+    <Screen
+      edges={['top', 'bottom']}
+      header={
+        <Row style={{ justifyContent: 'space-between' }}>
+          <Title style={{ fontSize: 32 }}>Yiyecek ara</Title>
+          <PressScale onPress={() => router.back()} style={styles.close}>
+            <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={18} />
+          </PressScale>
+        </Row>
+      }>
       <Row gap={spacing.sm}>
         <View style={{ flex: 1 }}>
           <Input
