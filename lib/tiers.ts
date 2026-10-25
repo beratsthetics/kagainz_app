@@ -94,6 +94,7 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
     perks: [
       "Plus'taki her şey",
       'Koçla birebir mesajlaşma',
+      'Haftalık check-in (kilo, ölçü, fotoğraf) ve koç yorumu',
       'Haftada bir form check',
       'Sınırsız fotoğraftan makro tahmini',
       'Koç onaylı yemek planı',

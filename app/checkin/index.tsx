@@ -64,13 +64,13 @@ export default function CheckinScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (TIER_RANK[tier] < TIER_RANK.pro) {
+  if (TIER_RANK[tier] < TIER_RANK.max) {
     return (
       <Screen edges={[]}>
         <LockedCard
-          tier="pro"
+          tier="max"
           title="Haftalık check-in"
-          body="Her hafta kilonu, ölçülerini ve fotoğrafını kaydet; ilk haftayla bugünü yan yana gör. Plus ve Max'ta koçun check-in'ine yorum yazar."
+          body="Her hafta kilonu, ölçülerini ve fotoğrafını kaydet; ilk haftayla bugünü yan yana gör. Koçun her check-in'ine yorum yazar. Sadece Max'ta."
           onPress={() => router.push('/plans')}
         />
       </Screen>

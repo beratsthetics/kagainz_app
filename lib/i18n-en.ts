@@ -1139,6 +1139,8 @@ export const EN: Record<string, string> = {
   "Hesabın oluşturuldu. Şimdi giriş yap.": "Account created. Now sign in.",
   "Pro üyesi ol": "Become a Pro member",
   "Yeni rozet": "New badge",
+  "Her hafta kilonu, ölçülerini ve fotoğrafını kaydet; ilk haftayla bugünü yan yana gör. Koçun her check-in'ine yorum yazar. Sadece Max'ta.": "Log your weight, measurements and photo every week; see week one next to today. Your coach comments on every check-in. Max only.",
+  "Haftalık check-in (kilo, ölçü, fotoğraf) ve koç yorumu": "Weekly check-in (weight, measurements, photo) with coach feedback",
   "Pirinç (çiğ)": "Rice (raw)",
   "Esmer pirinç (çiğ)": "Brown rice (raw)",
   "Bulgur (çiğ)": "Bulgur (raw)",
