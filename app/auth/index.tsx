@@ -8,6 +8,7 @@ import { GoogleLogo, useGoogleSignIn } from '@/components/GoogleSignIn';
 import { Body, Button, Card, Eyebrow, Hero, Icon, Input, Label, PressScale, Reveal, Row } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { leaveAuth, sendPasswordReset, useAuth } from '@/lib/auth';
+import { rememberRef } from '@/lib/refcode';
 import { makeStyles, useColors } from '@/lib/theme';
 import { locale, tx } from '@/lib/i18n';
 
@@ -19,7 +20,7 @@ export default function EmailScreen() {
   const colors = useColors();
   const styles = useStyles();
   const { passwordAuth, signOut } = useAuth();
-  const params = useLocalSearchParams<{ mode?: string; reason?: string }>();
+  const params = useLocalSearchParams<{ mode?: string; reason?: string; ref?: string }>();
   const [mode, setMode] = useState<'signup' | 'signin'>(params.mode === 'signin' ? 'signin' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,6 +29,9 @@ export default function EmailScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  // Influencer linkinden gelince kod dolu gelir; kayıtta elle de girilebilir.
+  const [ref, setRef] = useState(params.ref ?? '');
+  const [showRef, setShowRef] = useState(Boolean(params.ref));
   const { google, busy: googleBusy } = useGoogleSignIn(setError);
   const signup = mode === 'signup';
   const mismatch = signup && repeat.length > 0 && repeat !== password;
@@ -38,6 +42,7 @@ export default function EmailScreen() {
     setLoading(true);
     setError(null);
     setInfo(null);
+    keepRef();
     const { error: err, needsConfirm } = await passwordAuth(mode, email, password);
     if (err) {
       setLoading(false);
@@ -57,6 +62,10 @@ export default function EmailScreen() {
     }
     setLoading(false);
     leaveAuth();
+  }
+
+  function keepRef() {
+    if (signup && ref.trim()) rememberRef(ref);
   }
 
   async function forgot() {
@@ -151,6 +160,17 @@ export default function EmailScreen() {
             </View>
           )}
           {mismatch && <Text style={styles.error}>Şifreler aynı değil.</Text>}
+          {signup &&
+            (showRef ? (
+              <View style={styles.field}>
+                <Label>Davet kodu (isteğe bağlı)</Label>
+                <Input value={ref} onChangeText={setRef} placeholder="ör. ahmet" autoCapitalize="none" autoCorrect={false} />
+              </View>
+            ) : (
+              <PressScale onPress={() => setShowRef(true)} style={{ alignSelf: 'flex-start' }}>
+                <Text style={styles.link}>Davet kodun var mı?</Text>
+              </PressScale>
+            ))}
           {!signup && (
             <PressScale onPress={forgot} style={{ alignSelf: 'flex-end' }}>
               <Text style={styles.link}>Şifremi unuttum</Text>
@@ -167,11 +187,11 @@ export default function EmailScreen() {
             <View style={styles.rule} />
           </Row>
 
-          <PressScale onPress={google} disabled={googleBusy} style={[styles.social, googleBusy && { opacity: 0.5 }]}>
+          <PressScale onPress={() => { keepRef(); google(); }} disabled={googleBusy} style={[styles.social, googleBusy && { opacity: 0.5 }]}>
             <GoogleLogo size={18} />
             <Text style={styles.socialText}>Google ile devam et</Text>
           </PressScale>
-          <PressScale onPress={() => router.push('/auth/phone')} style={styles.social}>
+          <PressScale onPress={() => { keepRef(); router.push('/auth/phone'); }} style={styles.social}>
             <Icon name={{ ios: 'phone.fill', android: 'call', web: 'call' }} size={18} />
             <Text style={styles.socialText}>Telefon ile devam et</Text>
           </PressScale>

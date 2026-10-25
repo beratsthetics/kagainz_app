@@ -7,6 +7,7 @@ import { Text } from '@/components/T';
 import { Body, Button, Card, EmptyState, GradientCard, Input, Label, Mono, Reveal, Row, Screen } from '@/components/ui';
 import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { redeemCode } from '@/lib/refcode';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { locale, tx } from '@/lib/i18n';
@@ -37,7 +38,7 @@ export default function InviteScreen() {
 
   const myCode = profile.username;
   const bonus = profile.bonus_until && new Date(profile.bonus_until).getTime() > Date.now() ? new Date(profile.bonus_until) : null;
-  const canRedeem = !profile.invited_by && profile.created_at != null && Date.now() - new Date(profile.created_at).getTime() < 14 * 86400000;
+  const canRedeem = !profile.invited_by && !profile.ref_code && profile.created_at != null && Date.now() - new Date(profile.created_at).getTime() < 14 * 86400000;
 
   async function share() {
     await Share.share({ message: tx('Kagainz\'de birlikte antrenman yapalım 💪 Kayıt olurken davet kodumu gir: {0}\nhttps://tanvogue.xyz', [myCode]) }).catch(() => {});
@@ -52,15 +53,18 @@ export default function InviteScreen() {
   async function redeem() {
     setBusy(true);
     setNotice(null);
-    const { data, error } = await supabase.rpc('redeem_invite', { code });
+    const { data, error } = await redeemCode(code);
     setBusy(false);
-    if (error) {
-      return setNotice({
-        ok: false,
-        text: /redeem_invite|schema cache/.test(error.message) ? "Sunucu güncel değil: 0008 SQL dosyasını Supabase'de çalıştır." : error.message,
-      });
-    }
-    setNotice({ ok: true, text: tx('@{0} davetiyle katıldın. Hoş geldin!', [data]) });
+    if (!data) return setNotice({ ok: false, text: error ?? 'Kod kullanılamadı.' });
+    setNotice({
+      ok: true,
+      text:
+        data.kind === 'user'
+          ? tx('@{0} davetiyle katıldın. Hoş geldin!', [data.name])
+          : data.bonus_days > 0
+            ? tx('{0} koduyla katıldın. {1} gün Pro hediye!', [data.name, data.bonus_days])
+            : tx('{0} koduyla katıldın. Hoş geldin!', [data.name]),
+    });
     refreshProfile();
   }
 

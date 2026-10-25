@@ -6,6 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { Platform } from 'react-native';
 
 import { registerPushToken } from './notifications';
+import { forgetRef, pendingRef, redeemCode } from './refcode';
 import { attachUser } from './store';
 import { isSupabaseConfigured, supabase } from './supabase';
 import type { Tier } from './tiers';
@@ -22,6 +23,8 @@ export type Profile = {
   // Davet ödülü: ücretsiz üye bu tarihe kadar Pro sayılır (0008).
   bonus_until?: string | null;
   invited_by?: string | null;
+  // Influencer kodu (0014).
+  ref_code?: string | null;
   // Aktiflik puanı; seviye lib/levels.ts ile hesaplanır (0009).
   xp?: number;
 };
@@ -128,6 +131,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     attachUser(userId);
     if (userId) registerPushToken();
   }, [userId]);
+
+  // Linkten ya da kayıt formundan gelen influencer kodu girişten sonra hesaba yazılır.
+  useEffect(() => {
+    if (!profile?.id || profile.invited_by || profile.ref_code) return;
+    pendingRef().then(async (code) => {
+      if (!code) return;
+      const { data } = await redeemCode(code);
+      forgetRef();
+      if (data) loadProfile(profile.id);
+    });
+  }, [profile?.id, profile?.invited_by, profile?.ref_code, loadProfile]);
 
   const hasPhone = Boolean(session?.user.phone);
 

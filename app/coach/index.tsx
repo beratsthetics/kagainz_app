@@ -167,6 +167,15 @@ export default function CoachPanel() {
         </Row>
       </Reveal>
 
+      <Reveal index={2}>
+        <Shortcut
+          icon={{ ios: 'megaphone.fill', android: 'campaign', web: 'campaign' }}
+          title="Influencer kodları"
+          sub="Kayıt linki oluştur, kimin kaç kişi getirdiğini gör"
+          onPress={() => router.push('/coach/influencers')}
+        />
+      </Reveal>
+
       <Reveal index={3}>
         <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text, marginTop: spacing.sm }}>{tx(TITLES[tab])}</Text>
       </Reveal>

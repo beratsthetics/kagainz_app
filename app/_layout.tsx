@@ -133,6 +133,7 @@ function Navigation() {
         <Stack.Screen name="coach/member/[id]" options={{ title: translate('ÜYE') }} />
         <Stack.Screen name="coach/templates" options={{ title: translate('ŞABLONLAR') }} />
         <Stack.Screen name="coach/exercise-new" options={{ title: translate('YENİ HAREKET') }} />
+        <Stack.Screen name="coach/influencers" options={{ title: translate('INFLUENCER KODLARI') }} />
         <Stack.Screen name="my-program" options={{ title: translate('PROGRAMIM') }} />
         <Stack.Screen name="week" options={{ title: translate('HAFTALIK ÖZET') }} />
         <Stack.Screen name="share" options={{ title: translate('PAYLAŞ'), presentation: 'modal' }} />
