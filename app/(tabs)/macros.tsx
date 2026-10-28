@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Text } from '@/components/T';
 
@@ -87,7 +87,12 @@ function MacroCalculator() {
   const styles = useStyles();
   const { tier } = useAuth();
   const [text, setText] = useState('');
-  const [meal, setMeal] = useState<MealSlot>(mealForNow());
+  // Ana sayfadaki "Sıradaki" kartı hangi öğün için açtıysa o seçili gelir.
+  const params = useLocalSearchParams<{ meal?: MealSlot }>();
+  const [meal, setMeal] = useState<MealSlot>(params.meal ?? mealForNow());
+  useEffect(() => {
+    if (params.meal) setMeal(params.meal);
+  }, [params.meal]);
   const [shelf, setShelf] = useState<'recent' | 'favorites'>('recent');
   const { entries, totals: dayTotals, goals, add, remove, favorites, recent, isFavorite, toggleFavorite } = useDaily();
   const lines = useMemo(() => parseMeal(text), [text]);

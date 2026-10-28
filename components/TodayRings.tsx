@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import Animated, { Easing, useAnimatedProps, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Text } from '@/components/T';
 
-import { Card, Icon, Label, Row, type IconName } from '@/components/ui';
+import { MacroBar, WaterTracker } from '@/components/bits';
+import { Body, Card, Icon, Label, PressScale, Row, type IconName } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useCelebrate } from '@/lib/celebrate';
@@ -25,11 +27,13 @@ type RingData = { key: string; label: string; value: number; text: string; icon:
 
 // Ana sayfadaki günlük halkalar: kalori, protein, antrenman ve su yan yana; altında adı ve değeri.
 // Her halka kendi renk geçişiyle dolar. Dördü dolunca günde bir kez konfeti.
+// Bir halkaya dokununca ayrıntısı altta açılır (makrolar, su bardakları, bugünkü antrenman).
 export function TodayRings() {
   const colors = useColors();
   const celebrate = useCelebrate();
   const { session } = useAuth();
-  const { totals, goals, water, waterGoal } = useDaily();
+  const { totals, goals, water, waterGoal, hasCustomGoals } = useDaily();
+  const [open, setOpen] = useState<string | null>(null);
   const { history, active, program } = useWorkouts();
   const [celebrated, setCelebrated] = useStored<string>('rings-done', '');
   const today = dayKey();
@@ -98,7 +102,7 @@ export function TodayRings() {
         {rings.map((r, i) => {
           const pct = Math.round(Math.max(0, r.value) * 100);
           return (
-            <View key={r.key} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+            <PressScale key={r.key} flex onPress={() => setOpen((o) => (o === r.key ? null : r.key))} style={{ alignItems: 'center', gap: 6, paddingVertical: 4, borderRadius: 14, backgroundColor: open === r.key ? colors.surfaceAlt : 'transparent' }}>
               <View style={{ width: SIZE, height: SIZE }}>
                 <Arc ring={r} delay={i * 120} />
                 <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -114,10 +118,41 @@ export function TodayRings() {
               <Text raw numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: fonts.mono, fontSize: 10.5, color: colors.textMuted, marginTop: -4 }}>
                 {r.text}
               </Text>
-            </View>
+            </PressScale>
           );
         })}
       </Row>
+      {open === null && (
+        <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textDim, textAlign: 'center' }}>Ayrıntı için bir halkaya dokun</Text>
+      )}
+      {(open === 'kcal' || open === 'protein') && (
+        <View style={{ gap: spacing.sm + 2, paddingTop: spacing.xs }}>
+          <MacroBar label="Protein" value={totals.protein} goal={goals.protein} color={colors.protein} />
+          <MacroBar label="Karb." value={totals.carb} goal={goals.carb} color={colors.carb} />
+          <MacroBar label="Yağ" value={totals.fat} goal={goals.fat} color={colors.fat} />
+          <Row style={{ justifyContent: 'space-between' }}>
+            <PressScale onPress={() => router.push(hasCustomGoals ? '/macros' : '/goals')}>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright }}>{hasCustomGoals ? 'Makroya git →' : 'Hedefini kendine göre hesapla →'}</Text>
+            </PressScale>
+            {totals.kcal > 0 && (
+              <PressScale onPress={() => router.push({ pathname: '/share', params: { kind: 'day' } })}>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright }}>Paylaş</Text>
+              </PressScale>
+            )}
+          </Row>
+        </View>
+      )}
+      {open === 'water' && <WaterTracker />}
+      {open === 'workout' && (
+        <Row style={{ justifyContent: 'space-between', paddingTop: spacing.xs }}>
+          <Body muted style={{ fontSize: 13, flex: 1 }}>
+            {trainedToday ? 'Bugünkü antrenmanı bitirdin.' : restDay ? 'Bugün dinlenme günü. Toparlanmak da antrenmanın parçası.' : 'Bugünkü antrenmanın seni bekliyor.'}
+          </Body>
+          <PressScale onPress={() => router.push(active ? '/workout' : '/training')}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright }}>Antrenmana git →</Text>
+          </PressScale>
+        </Row>
+      )}
     </Card>
   );
 }
