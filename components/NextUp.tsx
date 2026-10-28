@@ -1,14 +1,17 @@
 import { router } from 'expo-router';
-import { View } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { Text } from '@/components/T';
 
 import { Body, Button, GradientCard, IconBox, Label, Row, type IconName } from '@/components/ui';
-import { fonts, spacing, tierColors } from '@/constants/theme';
+import { fonts, radius, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { MEALS, mealForNow, useDaily } from '@/lib/daily';
 import { exerciseById } from '@/lib/exercises';
 import { locale, tx } from '@/lib/i18n';
 import { isTrainingDay, todaysDayIndex } from '@/lib/program';
+import { useProgress } from '@/lib/progress';
 import { dayKey } from '@/lib/store';
 import { useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
@@ -26,6 +29,14 @@ export function NextUp() {
   const { session, tier } = useAuth();
   const { entries, totals, goals, water, waterGoal, setWater } = useDaily();
   const { program, active, history, startDay } = useWorkouts();
+  const { stats } = useProgress();
+  // Hiç kayıt yokken kart "İlk adımın" olur ve parlayarak dikkat çeker.
+  const first = !!session && stats.meals + stats.workouts === 0;
+  const glow = useSharedValue(0);
+  useEffect(() => {
+    glow.value = first ? withRepeat(withTiming(1, { duration: 1100 }), -1, true) : 0;
+  }, [first, glow]);
+  const glowStyle = useAnimatedStyle(() => ({ opacity: 0.25 + 0.75 * glow.value }));
   const next = pick();
 
   function pick(): Next {
@@ -139,20 +150,27 @@ export function NextUp() {
   }
 
   return (
-    <GradientCard colors={tierColors.pro}>
-      <Row gap={spacing.md} style={{ alignItems: 'flex-start' }}>
-        <IconBox name={next.icon} color={colors.accentBright} bg={colors.accentSoft} size={44} />
-        <View style={{ flex: 1, gap: 4 }}>
-          <Label>{next.label}</Label>
-          <Text raw style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28, color: colors.text }}>
-            {tx(next.title).toLocaleUpperCase(locale())}
-          </Text>
-          <Body muted style={{ fontSize: 13.5 }}>
-            {next.body}
-          </Body>
-        </View>
-      </Row>
-      <Button title={next.cta} icon={next.ctaIcon} onPress={next.onPress} />
-    </GradientCard>
+    <View>
+      {first && <Animated.View pointerEvents="none" style={[styles.glow, { borderColor: colors.accent, shadowColor: colors.accent }, glowStyle]} />}
+      <GradientCard colors={tierColors.pro}>
+        <Row gap={spacing.md} style={{ alignItems: 'flex-start' }}>
+          <IconBox name={next.icon} color={colors.accentBright} bg={colors.accentSoft} size={44} />
+          <View style={{ flex: 1, gap: 4 }}>
+            <Label>{first ? 'İlk adımın' : next.label}</Label>
+            <Text raw style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 28, color: colors.text }}>
+              {tx(next.title).toLocaleUpperCase(locale())}
+            </Text>
+            <Body muted style={{ fontSize: 13.5 }}>
+              {next.body}
+            </Body>
+          </View>
+        </Row>
+        <Button title={next.cta} icon={next.ctaIcon} onPress={next.onPress} />
+      </GradientCard>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  glow: { position: 'absolute', top: -4, left: -4, right: -4, bottom: -4, borderRadius: radius.lg + 5, borderWidth: 2, shadowOpacity: 0.6, shadowRadius: 14, shadowOffset: { width: 0, height: 0 } },
+});

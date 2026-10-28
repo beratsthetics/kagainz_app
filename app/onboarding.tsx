@@ -1,25 +1,35 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/T';
 import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
 
 import { AuthShell } from '@/components/AuthShell';
-import { Body, Button, Eyebrow, Hero, Input, PressScale, Row, Segmented, Stat, Stepper } from '@/components/ui';
+import { Body, Button, Eyebrow, Hero, Input, PressScale, Row, Segmented, Stepper } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useDaily } from '@/lib/daily';
-import { ACTIVITY, calculateGoals, GOALS, waterGoalGlasses, type Activity, type BodyProfile, type GoalType, type WeightLog } from '@/lib/goals';
+import { ACTIVITY, calculateGoals, GOALS, type Activity, type BodyProfile, type GoalType, type WeightLog } from '@/lib/goals';
 import { dayKey, useStored } from '@/lib/store';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
 import { locale, tx } from '@/lib/i18n';
+import { useWorkouts } from '@/lib/workouts';
 
-// Kayıttan hemen sonra 4 adımlık karşılama: hedef, vücut, hareket, kişisel sonuç.
-// Bitince hedefler ve ilk kilo kaydı yazılır, ana sayfa ilk günden kişisel açılır.
+// Kayıttan hemen sonra 3 soru: hedef, boy ve kilo, haftada kaç gün antrenman.
+// Bitince hedefler, ilk kilo kaydı ve program gün sayısı yazılır; doğrudan Bugün ekranı açılır.
 const GOAL_EMOJI: Record<GoalType, string> = { cut: '🔥', recomp: '⚡', maintain: '⚖️', bulk: '💪' };
 const GOAL_ORDER: GoalType[] = ['cut', 'recomp', 'maintain', 'bulk'];
-const STEPS = 4;
+const STEPS = 3;
+// Haftalık antrenman günü, kalori hesabındaki hareket düzeyini belirler.
+const DAYS: { days: number; label: string; activity: Activity }[] = [
+  { days: 0, label: 'Henüz başlamadım', activity: 'sedentary' },
+  { days: 2, label: '1-2 gün', activity: 'light' },
+  { days: 3, label: '3 gün', activity: 'moderate' },
+  { days: 4, label: '4 gün', activity: 'moderate' },
+  { days: 5, label: '5 gün', activity: 'active' },
+  { days: 6, label: '6 gün ve üstü', activity: 'active' },
+];
 
 export default function Onboarding() {
   const styles = useStyles();
@@ -28,14 +38,18 @@ export default function Onboarding() {
   const { body, setBody } = useDaily();
   const [, setWeights] = useStored<WeightLog[]>('weights', []);
   const [, setOnboarded] = useStored<boolean>('onboarded', false);
+  const { setTemplateDays } = useWorkouts();
   const [step, setStep] = useState(0);
   const [p, setP] = useState<BodyProfile>(body ?? { sex: 'male', age: 25, heightCm: 178, weightKg: 75, activity: 'moderate', goal: 'recomp' });
+  const [days, setDays] = useState(() => DAYS.find((d) => d.activity === p.activity)?.days ?? 6);
   const goals = useMemo(() => calculateGoals(p), [p]);
   const set = <K extends keyof BodyProfile>(k: K, v: BodyProfile[K]) => setP((prev) => ({ ...prev, [k]: v }));
 
   function finish() {
     setBody(p, goals);
     setWeights((prev) => [...prev.filter((w) => w.day !== dayKey()), { day: dayKey(), kg: p.weightKg }].slice(-365));
+    // Koçun 3-6 günlük şablonlarından uyanı (Pro ve üstünde görünür).
+    if (days >= 3) setTemplateDays(days);
     setOnboarded(true);
     router.dismissAll();
   }
@@ -113,40 +127,28 @@ export default function Onboarding() {
 
         {step === 2 && (
           <>
-            <Hero lines={['Ne kadar', 'hareketlisin?']} size={44} />
+            <Hero lines={['Haftada', 'kaç gün?']} size={44} />
+            <Body muted>Kaç gün antrenman yaptığına göre kalori hedefini ve programını ayarlayacağız.</Body>
             <View style={{ gap: spacing.sm }}>
-              {(Object.keys(ACTIVITY) as Activity[]).map((a) => {
-                const active = p.activity === a;
+              {DAYS.map((d) => {
+                const active = days === d.days;
                 return (
-                  <PressScale key={a} onPress={() => set('activity', a)} style={[styles.choice, active && styles.goalActive]}>
+                  <PressScale
+                    key={d.days}
+                    onPress={() => {
+                      setDays(d.days);
+                      set('activity', d.activity);
+                    }}
+                    style={[styles.choice, active && styles.goalActive]}>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.choiceTitle, active && { color: colors.accentBright }]}>{ACTIVITY[a].label}</Text>
-                      <Text style={styles.hint}>{ACTIVITY[a].hint}</Text>
+                      <Text style={[styles.choiceTitle, active && { color: colors.accentBright }]}>{d.label}</Text>
+                      <Text style={styles.hint}>{ACTIVITY[d.activity].label}</Text>
                     </View>
                     <View style={[styles.radio, active && { borderColor: colors.accent }]}>{active && <View style={styles.radioDot} />}</View>
                   </PressScale>
                 );
               })}
             </View>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <View>
-              <Eyebrow>Kişisel planın hazır</Eyebrow>
-              <Hero lines={['Günlük', 'hedefin']} size={48} />
-            </View>
-            <View style={styles.result}>
-              <CountUp value={goals.kcal} style={styles.kcal} />
-              <Text style={styles.kcalUnit}>KCAL / GÜN</Text>
-              <Row gap={spacing.sm} style={{ marginTop: spacing.md }}>
-                <Stat label="Protein" value={`${goals.protein} g`} color={colors.protein} />
-                <Stat label="Karb." value={`${goals.carb} g`} color={colors.carb} />
-                <Stat label="Yağ" value={`${goals.fat} g`} color={colors.fat} />
-              </Row>
-            </View>
-            <Body muted style={{ fontSize: 13.5 }}>{tx('{0} {1} · su hedefin {2} bardak. Öğün girdikçe ana sayfadaki halka dolacak.', [GOAL_EMOJI[p.goal], GOALS[p.goal].label, waterGoalGlasses(p.weightKg)])}</Body>
             {isSupabaseConfigured && <InviteCode />}
           </>
         )}
@@ -196,21 +198,6 @@ function Metric({ label, children, last }: { label: string; children: ReactNode;
   );
 }
 
-// Sayı 0'dan hedefe doğru sayarak çıkar.
-function CountUp({ value, style }: { value: number; style: object }) {
-  const [shown, setShown] = useState(0);
-  useEffect(() => {
-    const start = Date.now();
-    const id = setInterval(() => {
-      const t = Math.min(1, (Date.now() - start) / 900);
-      setShown(Math.round(value * (1 - Math.pow(1 - t, 3))));
-      if (t === 1) clearInterval(id);
-    }, 16);
-    return () => clearInterval(id);
-  }, [value]);
-  return <Text style={style}>{shown.toLocaleString(locale())}</Text>;
-}
-
 const useStyles = makeStyles((colors) => ({
   skip: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.textMuted, textAlign: 'center', paddingVertical: spacing.xs },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -243,14 +230,4 @@ const useStyles = makeStyles((colors) => ({
   choiceTitle: { fontFamily: fonts.bodyBold, fontSize: 15.5, color: colors.text },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
   radioDot: { width: 11, height: 11, borderRadius: 6, backgroundColor: colors.accent },
-  result: {
-    alignItems: 'center',
-    padding: spacing.lg,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    backgroundColor: colors.accentSoft,
-  },
-  kcal: { fontFamily: fonts.display, fontSize: 72, lineHeight: 80, color: colors.text },
-  kcalUnit: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: colors.textMuted },
 }));
