@@ -24,6 +24,7 @@ import { fonts, radius, spacing, tierColors } from '@/constants/theme';
 import { avatarUrl } from '@/lib/media';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
 import { makeStyles, useColors } from '@/lib/theme';
+import { openWelcomeTasks, useWelcomeEligible } from '@/lib/welcome';
 import { locale, translate, tx } from '@/lib/i18n';
 
 // CSS textTransform Türkçe 'i' harfini 'I' yapar; büyük harfi seçili dile göre kendimiz çeviriyoruz.
@@ -782,18 +783,55 @@ export function EmptyState({ icon, title, body }: { icon: IconName; title: strin
 }
 
 // Paketle açılan özellik için kilit kartı.
-export function LockedCard({ tier, title, body, onPress }: { tier: Tier; title: string; body: string; onPress: () => void }) {
+// Kilitli özellik: bulanık örnek görünüm, tek cümle fayda ve açma düğmesi.
+// Pro kilitlerinde, hoş geldin teklifi hâlâ geçerliyse "3 gün ücretsiz dene" görev penceresini açar.
+export function LockedCard({
+  tier,
+  title,
+  body,
+  onPress,
+  preview,
+}: {
+  tier: Tier;
+  title: string;
+  body: string;
+  onPress: () => void;
+  preview?: [string, string][];
+}) {
+  const colors = useColors();
+  const welcome = useWelcomeEligible();
+  const trial = tier === 'pro' && welcome;
   return (
     <GradientCard colors={tierColors[tier]}>
+      {preview && (
+        <View pointerEvents="none" style={{ borderRadius: radius.md, overflow: 'hidden' }}>
+          <View style={[{ gap: 6, opacity: 0.8 }, Platform.OS === 'web' && ({ filter: 'blur(2.5px)' } as ViewStyle)]}>
+            {preview.map(([a, b], i) => (
+              <Row key={i} style={{ justifyContent: 'space-between', padding: spacing.sm, borderRadius: radius.md, backgroundColor: colors.surfaceAlt }}>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.text }}>{a}</Text>
+                <Text style={{ fontFamily: fonts.mono, fontSize: 12.5, color: tierColors[tier][0] }}>{b}</Text>
+              </Row>
+            ))}
+          </View>
+          <LinearGradient colors={['rgba(0,0,0,0)', `${colors.surface}CC`]} locations={[0.3, 1]} style={StyleSheet.absoluteFill} />
+          <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
+            <IconBox name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} color={tierColors[tier][0]} bg={`${tierColors[tier][1]}33`} />
+          </View>
+        </View>
+      )}
       <Row style={{ justifyContent: 'space-between' }}>
-        <IconBox name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} color={tierColors[tier][0]} bg={`${tierColors[tier][1]}33`} />
+        <Heading style={{ flex: 1 }}>{title}</Heading>
         <TierBadge tier={tier} />
       </Row>
-      <Heading>{title}</Heading>
-      <Body muted style={{ fontSize: 14 }}>
-        {body}
-      </Body>
-      <Button title={tx('{0} ile aç', [TIER_INFO[tier].name])} arrow onPress={onPress} />
+      <Body muted style={{ fontSize: 14 }}>{body}</Body>
+      {trial ? (
+        <>
+          <Button title="3 gün ücretsiz dene" arrow onPress={openWelcomeTasks} />
+          <Button title="Paketleri gör" variant="ghost" onPress={onPress} />
+        </>
+      ) : (
+        <Button title={tx('{0} ile aç', [TIER_INFO[tier].name])} arrow onPress={onPress} />
+      )}
     </GradientCard>
   );
 }

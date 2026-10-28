@@ -8,9 +8,11 @@ import { Body, Button, Row, Sheet } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useCelebrate } from '@/lib/celebrate';
+import { useProgress } from '@/lib/progress';
 import { useStored } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
+import { setWelcomeOpener, useWelcomeEligible } from '@/lib/welcome';
 
 // Hoş geldin görevleri (0017): yeni üye TikTok hesaplarımızı takip edince 3 gün Pro alır.
 // TikTok takibi doğrulayamıyoruz; linki açmak görevi tamamlar. Ödülü sunucu hesap başına bir kez verir.
@@ -34,8 +36,7 @@ function TikTokLogo({ size = 40 }: { size?: number }) {
   );
 }
 
-const DELAY_MS = 10_000;
-const WINDOW_DAYS = 7;
+const DELAY_MS = 6_000;
 
 // "Sonra" denince bu oturumda bir daha açılmaz; uygulama yeniden açılınca tekrar sorar.
 let dismissed = false;
@@ -43,24 +44,28 @@ let dismissed = false;
 export function WelcomeTasks() {
   const colors = useColors();
   const celebrate = useCelebrate();
-  const { profile, refreshProfile } = useAuth();
+  const { refreshProfile } = useAuth();
+  const { stats } = useProgress();
   const [done, setDone] = useStored<string[]>('welcomeTasks', []);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // welcome_claimed sütunu yoksa (0017 çalışmamışsa) undefined gelir ve ekran açılmaz.
-  const eligible =
-    profile?.welcome_claimed === false &&
-    profile.tier === 'free' &&
-    !!profile.created_at &&
-    Date.now() - new Date(profile.created_at).getTime() < WINDOW_DAYS * 86400000;
+  const eligible = useWelcomeEligible();
+  // Kendiliğinden ancak ilk öğün ya da antrenman kaydından sonra açılır; kilitli kartlar her an açabilir.
+  const logged = stats.meals + stats.workouts > 0;
 
   useEffect(() => {
-    if (!eligible || dismissed) return;
+    if (!eligible) return;
+    setWelcomeOpener(() => setOpen(true));
+    return () => setWelcomeOpener(null);
+  }, [eligible]);
+
+  useEffect(() => {
+    if (!eligible || !logged || dismissed) return;
     const t = setTimeout(() => setOpen(true), DELAY_MS);
     return () => clearTimeout(t);
-  }, [eligible]);
+  }, [eligible, logged]);
 
   const allDone = TASKS.every((t) => done.includes(t.key));
 

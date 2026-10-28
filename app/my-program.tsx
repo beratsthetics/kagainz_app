@@ -23,7 +23,13 @@ export default function MyProgram() {
   if (!hasFeature(tier, 'training_programs')) {
     return (
       <Screen edges={[]}>
-        <LockedCard tier="pro" title="Kendi programın Pro'da" body="Pro, Plus ve Max üyeler kendi antrenman programını yazabilir." onPress={() => router.push('/plans')} />
+        <LockedCard
+          tier="pro"
+          title="Kendi programın Pro'da"
+          body="Pro, Plus ve Max üyeler kendi antrenman programını yazabilir."
+          preview={[['Pazartesi', 'İtiş'], ['Çarşamba', 'Çekiş'], ['Cuma', 'Bacak']]}
+          onPress={() => router.push('/plans')}
+        />
       </Screen>
     );
   }

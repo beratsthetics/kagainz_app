@@ -7,7 +7,6 @@ import { AvatarRing } from '@/components/BadgeMedal';
 import { NextUp } from '@/components/NextUp';
 import { TodayRings } from '@/components/TodayRings';
 import { WeekStrip } from '@/components/WeekStrip';
-import { WelcomeTasks } from '@/components/WelcomeTasks';
 import { shownXp } from '@/lib/levels';
 import { Avatar, Eyebrow, PressScale, Reveal, Row, Screen, TierBadge } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
@@ -73,7 +72,6 @@ export default function TodayScreen() {
         <WeekStrip />
       </Reveal>
 
-      <WelcomeTasks />
     </Screen>
   );
 }

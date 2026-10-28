@@ -164,7 +164,7 @@ export default function CommunityScreen() {
               {dmOpen ? (
                 <Icon name={{ ios: 'arrow.right', android: 'arrow_forward', web: 'arrow_forward' }} size={16} />
               ) : (
-                <TierBadge tier="max" />
+                <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={16} color={colors.textMuted} />
               )}
             </Row>
           </GradientCard>

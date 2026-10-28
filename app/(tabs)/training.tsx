@@ -23,7 +23,6 @@ import {
   ScreenHeader,
   SectionHeader,
   Tag,
-  TierBadge,
 } from '@/components/ui';
 import { fonts, radius, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -275,7 +274,6 @@ export default function TrainingScreen() {
           <PressScale onPress={() => router.push('/plans')} style={styles.more}>
             <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={14} color={colors.textMuted} />
             <Text style={[styles.link, { color: colors.textMuted }]}>{tx('{0} eski antrenman Pro ile görünür', [hidden])}</Text>
-            <TierBadge tier="pro" />
           </PressScale>
         )}
       </Reveal>
@@ -290,7 +288,7 @@ export default function TrainingScreen() {
                 Önden, yandan, arkadan fotoğrafını gönder, koçun yorumlasın.
               </Body>
             </View>
-            {!hasFeature(tier, 'form_check') && <TierBadge tier="plus" />}
+            {!hasFeature(tier, 'form_check') && <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={16} color={colors.textMuted} />}
           </Card>
         </PressScale>
       </Reveal>

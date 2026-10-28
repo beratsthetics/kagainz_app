@@ -70,7 +70,8 @@ export default function CheckinScreen() {
         <LockedCard
           tier="max"
           title="Haftalık check-in"
-          body="Her hafta kilonu, ölçülerini ve fotoğrafını kaydet; ilk haftayla bugünü yan yana gör. Koçun her check-in'ine yorum yazar. Sadece Max'ta."
+          body="Her hafta kilonu ve fotoğrafını kaydet, koçun yorumlasın, ilk haftanla bugünü yan yana gör."
+          preview={[['1. hafta', '82,4 kg'], ['Bu hafta', '79,1 kg'], ['Koçun yorumu', '✓']]}
           onPress={() => router.push('/plans')}
         />
       </Screen>

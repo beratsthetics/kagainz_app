@@ -54,7 +54,13 @@ export default function PhotoMacrosScreen() {
       <Screen edges={['top', 'bottom']} header={<Close />}>
         <Hero lines={['Fotoğraf', 'çek, bitti']} size={44} />
         <Body muted>Tabağın fotoğrafını çek; yapay zekâ yiyecekleri ve gramlarını tahmin etsin, sen sadece onayla.</Body>
-        <LockedCard tier="plus" title="Fotoğraftan makro" body="Plus ile ayda 30, Max ile sınırsız tahmin." onPress={() => router.push('/plans')} />
+        <LockedCard
+          tier="plus"
+          title="Fotoğraftan makro"
+          body="Plus ile ayda 30, Max ile sınırsız tahmin."
+          preview={[['Tavuk göğsü · 180 g', '297 kcal'], ['Pilav · 150 g', '195 kcal'], ['Salata', '45 kcal']]}
+          onPress={() => router.push('/plans')}
+        />
       </Screen>
     );
   }

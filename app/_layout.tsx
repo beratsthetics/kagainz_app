@@ -9,6 +9,7 @@ import { useEffect, useMemo } from 'react';
 import 'react-native-reanimated';
 
 import { AppSplash } from '@/components/AppSplash';
+import { WelcomeTasks } from '@/components/WelcomeTasks';
 import { fonts } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { CelebrateProvider } from '@/lib/celebrate';
@@ -145,6 +146,7 @@ function Navigation() {
         <Stack.Screen name="invite" options={{ title: translate('DAVET ET') }} />
         <Stack.Screen name="reminders" options={{ title: translate('HATIRLATMALAR') }} />
       </Stack>
+      <WelcomeTasks />
       <AppSplash ready={!loading} />
     </ThemeProvider>
   );

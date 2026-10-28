@@ -31,7 +31,7 @@ import { pickImage, uploadBase64, uploadFile } from '@/lib/media';
 import { useProgress } from '@/lib/progress';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
-import { hasFeature, LIMITS } from '@/lib/tiers';
+import { hasFeature } from '@/lib/tiers';
 import { locale, tx } from '@/lib/i18n';
 
 export default function FormCheckList() {
@@ -65,7 +65,8 @@ export default function FormCheckList() {
         <LockedCard
           tier="plus"
           title="Form check"
-          body={tx('Önden, yandan ve arkadan fotoğrafını gönder; koç formuna, yağ ve kas durumuna bakıp yorum yazsın. Plus\'ta {0} günde bir, Max\'ta haftada bir.', [LIMITS.formCheckDays.plus])}
+          body="Önden, yandan ve arkadan fotoğrafını gönder, koçun formuna bakıp yorum yazsın."
+          preview={[['Önden', '✓'], ['Yandan', '✓'], ['Arkadan', '✓']]}
           onPress={() => router.push('/plans')}
         />
       </Screen>

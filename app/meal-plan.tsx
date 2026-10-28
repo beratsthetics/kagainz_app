@@ -59,7 +59,13 @@ export default function MealPlanScreen() {
     return (
       <Screen>
         <Body muted>Hedef kalorine ve makrolarına göre her gün için menü, tek dokunuşla günlüğe ekleme ve haftalık alışveriş listesi.</Body>
-        <LockedCard tier="pro" title="Yemek planı" body="Pro ile haftalık menün ve alışveriş listen hazır." onPress={() => router.push('/plans')} />
+        <LockedCard
+          tier="pro"
+          title="Yemek planı"
+          body="Pro ile haftalık menün ve alışveriş listen hazır."
+          preview={[['Kahvaltı', '520 kcal'], ['Öğle', '680 kcal'], ['Akşam', '610 kcal']]}
+          onPress={() => router.push('/plans')}
+        />
       </Screen>
     );
   }

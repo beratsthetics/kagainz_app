@@ -62,7 +62,13 @@ export default function DirectMessages() {
   if (!allowed) {
     return (
       <Screen edges={[]}>
-        <LockedCard tier="max" title="Koçla birebir" body="Programını, öğünlerini ve formunu koçunla birebir konuş." onPress={() => router.push('/plans')} />
+        <LockedCard
+          tier="max"
+          title="Koçla birebir"
+          body="Programını, öğünlerini ve formunu koçunla birebir konuş."
+          preview={[['Koçun', '14:02'], ['Sen', '14:05'], ['Koçun', '14:07']]}
+          onPress={() => router.push('/plans')}
+        />
       </Screen>
     );
   }

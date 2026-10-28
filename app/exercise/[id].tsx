@@ -69,7 +69,13 @@ export default function ExerciseScreen() {
       </Reveal>
 
       {!open ? (
-        <LockedCard tier="pro" title="Bu hareket Pro'da" body="Tüm hareket kütüphanesi, animasyonlar ve kas haritası Pro ile açılır." onPress={() => router.push('/plans')} />
+        <LockedCard
+          tier="pro"
+          title="Bu hareket Pro'da"
+          body="Tüm hareket kütüphanesi, animasyonlar ve kas haritası Pro ile açılır."
+          preview={[['Hedef kas', MUSCLES[ex.primary[0]].group], ['Set × tekrar', '4 × 8-10'], ['Dinlenme', '90 sn']]}
+          onPress={() => router.push('/plans')}
+        />
       ) : (
         <>
           <Reveal index={1}>

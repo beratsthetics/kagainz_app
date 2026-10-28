@@ -24,7 +24,6 @@ import {
   ScreenHeader,
   Segmented,
   Stat,
-  TierBadge,
   type IconName,
 } from '@/components/ui';
 import { fonts, radius, spacing } from '@/constants/theme';
@@ -33,7 +32,7 @@ import { MEAL_ORDER, MEALS, mealForNow, totalOf, useDaily, type MealSlot } from 
 import { searchLocal, type FoodResult } from '@/lib/foodsearch';
 import { parseMeal, sumMacros } from '@/lib/macros';
 import { makeStyles, useColors } from '@/lib/theme';
-import { hasFeature, minTierFor } from '@/lib/tiers';
+import { hasFeature } from '@/lib/tiers';
 import { tx } from '@/lib/i18n';
 
 const QUICK = ['2 yumurta', '100g yulaf', '150g tavuk göğsü', '200g pilav', '1 muz', '1 ölçek whey', '1 kase mercimek çorbası', '1 lahmacun'];
@@ -370,7 +369,7 @@ function MacroCalculator() {
             {hasFeature(tier, 'meal_plans') ? (
               <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={18} color={colors.textMuted} />
             ) : (
-              <TierBadge tier={minTierFor('meal_plans')} />
+              <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={16} color={colors.textMuted} />
             )}
           </Card>
         </PressScale>
