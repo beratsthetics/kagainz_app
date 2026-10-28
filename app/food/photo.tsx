@@ -151,7 +151,7 @@ export default function PhotoMacrosScreen() {
           </Row>
           {items.map((it, i) => (
             <Row key={i} style={styles.item}>
-              <View style={{ flex: 1, gap: 2 }}>
+              <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.itemName}>{it.name}</Text>
                 <MacroLine kcal={Math.round(it.kcal * it.scale)} p={Math.round(it.protein * it.scale)} c={Math.round(it.carb * it.scale)} f={Math.round(it.fat * it.scale)} />
               </View>

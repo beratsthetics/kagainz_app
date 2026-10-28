@@ -43,7 +43,7 @@ export function BarChart({
 
   return (
     <View>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 6, minHeight: 22 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 8, minHeight: 22 }}>
         <Text style={{ fontFamily: fonts.mono, fontSize: 15, color: c.text }}>
           {values.length ? `${format(values[active] ?? 0)}${unit ? ` ${unit}` : ''}` : '—'}
         </Text>
@@ -132,7 +132,7 @@ export function LineChart({
 
   return (
     <View>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 6, minHeight: 22 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 8, minHeight: 22 }}>
         <Text style={{ fontFamily: fonts.mono, fontSize: 15, color: c.text }}>
           {values.length ? `${format(values[active])}${unit ? ` ${unit}` : ''}` : '—'}
         </Text>

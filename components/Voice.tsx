@@ -117,7 +117,7 @@ export function VoicePlayer({ path, ms, mine }: { path: string; ms: number | nul
   }
 
   return (
-    <Row gap={10} style={{ minWidth: 200 }}>
+    <Row gap={8} style={{ minWidth: 200 }}>
       <PressScale onPress={toggle} style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: mine ? colors.primaryText + '1F' : colors.accentSoft }}>
         <Icon
           name={status.playing ? { ios: 'pause.fill', android: 'pause', web: 'pause' } : { ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }}
@@ -125,7 +125,7 @@ export function VoicePlayer({ path, ms, mine }: { path: string; ms: number | nul
           color={mine ? colors.primaryText : colors.accentBright}
         />
       </PressScale>
-      <Row gap={2} style={{ flex: 1, height: 28, alignItems: 'center' }}>
+      <Row gap={4} style={{ flex: 1, height: 28, alignItems: 'center' }}>
         {bars.map((h, i) => (
           <View key={i} style={{ flex: 1, height: h * 28, borderRadius: 2, backgroundColor: ink, opacity: i / bars.length <= progress && progress > 0 ? 1 : 0.3 }} />
         ))}

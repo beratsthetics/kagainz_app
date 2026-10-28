@@ -82,7 +82,7 @@ export function LevelProgress({ xp }: { xp: number | null | undefined }) {
   const value = Math.max(0, xp ?? 0);
   const done = level === MAX_LEVEL;
   return (
-    <View style={{ alignSelf: 'stretch', gap: 6 }}>
+    <View style={{ alignSelf: 'stretch', gap: 8 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: band.color }}>{tx(band.name)}</Text>
         <Text style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.textMuted }}>{done ? tx('En üst seviye · {0} XP', [value]) : tx('{0} / {1} XP', [value, to])}</Text>

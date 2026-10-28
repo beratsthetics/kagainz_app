@@ -83,7 +83,7 @@ function LoopVideo({
 function Failed({ size, message }: { size: number; message: string }) {
   const colors = useColors();
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', gap: 6, padding: 16 }}>
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16 }}>
       <Text style={{ fontSize: 28 }}>⚠️</Text>
       <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textMuted, textAlign: 'center' }}>
         Animasyon oynatılamadı. Koç dosyayı MP4 ya da GIF olarak yeniden yüklemeli.

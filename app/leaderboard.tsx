@@ -10,7 +10,7 @@ import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { useLeaderboard, useLeaderboardVisible, type Board, type LeaderRow } from '@/lib/leaderboard';
 import { makeStyles, useColors } from '@/lib/theme';
-import { locale, tx } from '@/lib/i18n';
+import { tx } from '@/lib/i18n';
 
 const BOARDS: Record<Board, { label: string; unit: string; hint: string }> = {
   streak: { label: 'Seri', unit: 'gün', hint: 'Üst üste kayıt girilen gün sayısı.' },
@@ -72,7 +72,7 @@ export default function LeaderboardScreen() {
       </Reveal>
 
       {!visible && (
-        <Card style={{ borderColor: colors.fat }}>
+        <Card style={{ borderColor: colors.accent }}>
           <Body style={{ fontSize: 14 }}>Sıralamada gizlisin. Başkaları seni listede görmüyor.</Body>
           <Button title="Beni göster" variant="outline" onPress={() => setVisible(true)} />
         </Card>
@@ -127,7 +127,7 @@ function Podium({ rows, unit }: { rows: LeaderRow[]; unit: string }) {
     <Row style={{ alignItems: 'flex-end', gap: spacing.sm }}>
       {order.map((r, i) =>
         r ? (
-          <Animated.View key={r.user_id} entering={FadeInUp.delay(120 + i * 90).springify()} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+          <Animated.View key={r.user_id} entering={FadeInUp.delay(120 + i * 90).springify()} style={{ flex: 1, alignItems: 'center', gap: 8 }}>
             <PressScale onPress={() => openProfile(r)}>
               <AvatarRing tier={r.tier} size={i === 1 ? 68 : 54}>
                 <Avatar name={r.username} path={r.avatar_url} size={i === 1 ? 68 : 54} />
@@ -139,7 +139,7 @@ function Podium({ rows, unit }: { rows: LeaderRow[]; unit: string }) {
             </Text>
             <View style={[styles.step, { height: heights[i] }, i === 1 && { borderColor: colors.accent, backgroundColor: colors.accentSoft }]}>
               <Text style={styles.stepValue}>{r.value}</Text>
-              <Text style={styles.stepUnit}>{unit.toLocaleUpperCase(locale())}</Text>
+              <Text style={styles.stepUnit}>{unit}</Text>
             </View>
           </Animated.View>
         ) : (
@@ -160,7 +160,7 @@ function RowItem({ row, unit }: { row: LeaderRow; unit: string }) {
         <AvatarRing tier={row.tier} size={36} still>
           <Avatar name={row.username} path={row.avatar_url} size={36} />
         </AvatarRing>
-        <View style={{ flex: 1, gap: 2 }}>
+        <View style={{ flex: 1, gap: 4 }}>
           <Text style={styles.name} numberOfLines={1}>
             @{row.username}
             {row.is_me ? ' (sen)' : ''}
@@ -192,7 +192,7 @@ const useStyles = makeStyles((colors) => ({
     paddingTop: spacing.sm,
   },
   stepValue: { fontFamily: fonts.display, fontSize: 30, color: colors.text },
-  stepUnit: { fontFamily: fonts.bodyBold, fontSize: 9, letterSpacing: 1.2, color: colors.textMuted },
+  stepUnit: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.textMuted },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

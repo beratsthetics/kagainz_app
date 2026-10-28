@@ -90,7 +90,7 @@ export default function FriendsScreen() {
             <PressScale key={u.id} onPress={() => router.push({ pathname: '/u/[username]', params: { username: u.username } })}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>
                 <Avatar name={u.username} path={u.avatar_url} size={40} />
-                <View style={{ flex: 1, gap: 2 }}>
+                <View style={{ flex: 1, gap: 4 }}>
                   <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>@{u.username}</Text>
                   {u.tier !== 'free' && <TierBadge tier={u.tier} />}
                 </View>
@@ -98,7 +98,7 @@ export default function FriendsScreen() {
                   <View
                     style={{
                       paddingVertical: 8,
-                      paddingHorizontal: 14,
+                      paddingHorizontal: 16,
                       borderRadius: 999,
                       borderWidth: 1,
                       borderColor: ids.has(u.id) ? colors.borderStrong : colors.primary,

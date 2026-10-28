@@ -95,7 +95,7 @@ export default function LibraryScreen() {
               <Text style={styles.muscles} numberOfLines={1}>
                 {e.primary.map((m) => tx(MUSCLES[m].name)).join(', ')}
               </Text>
-              <Row gap={6}>
+              <Row gap={8}>
                 <Tag color={colors.textMuted} bg={colors.surfaceAlt}>
                   {e.equipment}
                 </Tag>
@@ -156,7 +156,7 @@ function Thumb({ exerciseId, pattern, canView }: { exerciseId: string; pattern: 
 
 const useStyles = makeStyles((colors) => ({
   banner: {
-    padding: spacing.sm + 4,
+    padding: spacing.md,
     borderRadius: radius.md,
     backgroundColor: colors.accentSoft,
   },
@@ -164,7 +164,7 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    padding: spacing.sm + 2,
+    padding: spacing.sm,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,

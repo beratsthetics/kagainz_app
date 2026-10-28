@@ -67,12 +67,12 @@ export default function ProgressScreen() {
     <Screen edges={[]}>
       <Reveal index={0}>
         <Row gap={spacing.sm}>
-          <Stat label="Seri" value={tx('{0} gün', [stats.streak])} color={colors.fat} />
+          <Stat label="Seri" value={tx('{0} gün', [stats.streak])} />
           <Stat label="En iyi seri" value={tx('{0} gün', [stats.bestStreak])} />
         </Row>
         <Row gap={spacing.sm} style={{ marginTop: spacing.sm }}>
           <Stat label="Antrenman" value={`${stats.workouts}`} color={colors.accentBright} />
-          <Stat label="Öğün kaydı" value={`${stats.meals}`} color={colors.carb} />
+          <Stat label="Öğün kaydı" value={`${stats.meals}`} />
         </Row>
       </Reveal>
 

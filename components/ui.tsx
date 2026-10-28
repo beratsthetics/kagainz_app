@@ -47,8 +47,8 @@ export function Icon({ name, size = 20, color }: { name: IconName; size?: number
   return <SymbolView name={name} size={size} tintColor={color ?? colors.text} />;
 }
 
-// Sitedeki gibi ince kareli zemin ve üstte mavi bir parıltı.
-export function GridBackground({ glow = true }: { glow?: boolean }) {
+// Sitedeki gibi ince kareli zemin. Mavi parıltı sadece paketler ekranında (glow).
+export function GridBackground({ glow = false }: { glow?: boolean }) {
   const colors = useColors();
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -80,9 +80,11 @@ export function Screen({
   scroll = true,
   edges = ['top'],
   header,
+  glow,
 }: {
   children: ReactNode;
   scroll?: boolean;
+  glow?: boolean;
   edges?: ('top' | 'bottom')[];
   // Kaymayan üst satır (ör. kapat düğmesi): içerik kaydırılınca da yerinde kalır, hep basılabilir.
   header?: ReactNode;
@@ -90,7 +92,7 @@ export function Screen({
   const styles = useStyles();
   return (
     <View style={styles.screen}>
-      <GridBackground />
+      <GridBackground glow={glow} />
       <SafeAreaView style={{ flex: 1 }} edges={edges}>
         {header && <View style={styles.screenHeader}>{header}</View>}
         {scroll ? (
@@ -158,7 +160,7 @@ export function Eyebrow({ children, color }: { children: ReactNode; color?: stri
   const colors = useColors();
   color ??= colors.textMuted;
   const styles = useStyles();
-  return <Text style={[styles.eyebrow, { color }]}>{upper(children)}</Text>;
+  return <Text style={[styles.eyebrow, { color }]}>{children}</Text>;
 }
 
 export function ScreenHeader({ eyebrow, title, right }: { eyebrow?: string; title: string; right?: ReactNode }) {
@@ -193,7 +195,7 @@ export function Heading({ children, style, ...rest }: TextProps & { children: Re
   const styles = useStyles();
   return (
     <Text style={[styles.heading, style]} {...rest}>
-      {upper(children)}
+      {children}
     </Text>
   );
 }
@@ -210,7 +212,7 @@ export function Body({ children, muted, style, ...rest }: TextProps & { children
 
 export function Label({ children, style }: { children: ReactNode; style?: TextProps['style'] }) {
   const styles = useStyles();
-  return <Text style={[styles.label, style]}>{upper(children)}</Text>;
+  return <Text style={[styles.label, style]}>{children}</Text>;
 }
 
 export function Mono({ children, style }: { children: ReactNode; style?: TextProps['style'] }) {
@@ -220,15 +222,9 @@ export function Mono({ children, style }: { children: ReactNode; style?: TextPro
 
 // Üst kenarında hafif ışık yansıması olan kart.
 export function Card({ children, style, glow }: { children: ReactNode; style?: StyleProp<ViewStyle>; glow?: boolean }) {
-  const colors = useColors();
   const styles = useStyles();
   return (
     <View style={[styles.card, glow && styles.cardGlow, style]}>
-      <LinearGradient
-        colors={[colors.sheen, 'rgba(255,255,255,0)']}
-        style={[StyleSheet.absoluteFill, { borderRadius: radius.lg, height: 90 }]}
-        pointerEvents="none"
-      />
       {children}
     </View>
   );
@@ -239,12 +235,17 @@ export function GradientCard({
   children,
   colors: gradient,
   style,
+  vivid,
 }: {
   children: ReactNode;
   colors: [string, string];
   style?: StyleProp<ViewStyle>;
+  // Renkli gradyan sadece paketler ekranında; diğer yerlerde mavi kenarlıklı sade kart.
+  vivid?: boolean;
 }) {
+  const colors = useColors();
   const styles = useStyles();
+  if (!vivid) return <View style={[styles.card, { borderColor: colors.accent }, style]}>{children}</View>;
   return (
     <LinearGradient
       colors={gradient}
@@ -278,7 +279,7 @@ export function Tag({
   const styles = useStyles();
   return (
     <View style={[styles.tag, { backgroundColor: bg }]}>
-      <Text style={[styles.tagText, { color }]}>{upper(children)}</Text>
+      <Text style={[styles.tagText, { color }]}>{children}</Text>
     </View>
   );
 }
@@ -286,9 +287,9 @@ export function Tag({
 export function TierBadge({ tier }: { tier: Tier }) {
   const styles = useStyles();
   return (
-    <LinearGradient colors={tierColors[tier]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.tierBadge}>
+    <View style={[styles.tierBadge, { backgroundColor: tierColors[tier][0] }]}>
       <Text style={styles.tierBadgeText}>{upper(TIER_INFO[tier].name)}</Text>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -374,7 +375,7 @@ export function Button({
       ) : (
         <>
           {icon && <Icon name={icon} size={18} color={fg} />}
-          <Text style={[styles.buttonText, { color: fg }]}>{upper(title)}</Text>
+          <Text style={[styles.buttonText, { color: fg }]}>{title}</Text>
           {arrow && <Text style={[styles.buttonText, { color: fg }]}>→</Text>}
         </>
       )}
@@ -412,11 +413,11 @@ export function Stat({ label, value, color }: { label: string; value: string; co
   const styles = useStyles();
   return (
     <View style={styles.stat}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         {color && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />}
         <Label>{label}</Label>
       </View>
-      <Mono style={{ fontSize: 17, marginTop: 6 }}>{value}</Mono>
+      <Mono style={{ fontSize: 17, marginTop: 8 }}>{value}</Mono>
     </View>
   );
 }
@@ -653,7 +654,7 @@ export function Sheet({
             sheetStyle,
           ]}>
           {/* Tutamaç ve başlık sürüklenebilir alan. */}
-          <View {...pan.panHandlers} style={{ paddingTop: spacing.sm + 2, gap: spacing.md, cursor: 'grab', userSelect: 'none' } as ViewStyle}>
+          <View {...pan.panHandlers} style={{ paddingTop: spacing.sm, gap: spacing.md, cursor: 'grab', userSelect: 'none' } as ViewStyle}>
             <View style={{ alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong }} />
             {title ? <Heading>{title}</Heading> : <View style={{ height: 4 }} />}
           </View>
@@ -694,7 +695,7 @@ export function Segmented<T extends string>({
             flex
             onPress={() => onChange(o.value)}
             style={{
-              paddingVertical: 10,
+              paddingVertical: 8,
               borderRadius: radius.sm,
               alignItems: 'center',
               backgroundColor: active ? colors.primary : 'transparent',
@@ -805,17 +806,17 @@ export function LockedCard({
     <GradientCard colors={tierColors[tier]}>
       {preview && (
         <View pointerEvents="none" style={{ borderRadius: radius.md, overflow: 'hidden' }}>
-          <View style={[{ gap: 6, opacity: 0.8 }, Platform.OS === 'web' && ({ filter: 'blur(2.5px)' } as ViewStyle)]}>
+          <View style={[{ gap: 8, opacity: 0.8 }, Platform.OS === 'web' && ({ filter: 'blur(2.5px)' } as ViewStyle)]}>
             {preview.map(([a, b], i) => (
               <Row key={i} style={{ justifyContent: 'space-between', padding: spacing.sm, borderRadius: radius.md, backgroundColor: colors.surfaceAlt }}>
                 <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.text }}>{a}</Text>
-                <Text style={{ fontFamily: fonts.mono, fontSize: 12.5, color: tierColors[tier][0] }}>{b}</Text>
+                <Text style={{ fontFamily: fonts.mono, fontSize: 12.5, color: colors.accentBright }}>{b}</Text>
               </Row>
             ))}
           </View>
           <LinearGradient colors={['rgba(0,0,0,0)', `${colors.surface}CC`]} locations={[0.3, 1]} style={StyleSheet.absoluteFill} />
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
-            <IconBox name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} color={tierColors[tier][0]} bg={`${tierColors[tier][1]}33`} />
+            <IconBox name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} color={colors.accentBright} bg={colors.accentSoft} />
           </View>
         </View>
       )}
@@ -838,9 +839,9 @@ export function LockedCard({
 
 const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
-  screenHeader: { paddingHorizontal: spacing.md + 4, paddingTop: spacing.sm, width: '100%', maxWidth: 720, alignSelf: 'center' },
+  screenHeader: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, width: '100%', maxWidth: 720, alignSelf: 'center' },
   screenContent: {
-    padding: spacing.md + 4,
+    padding: spacing.md,
     paddingBottom: spacing.xl * 2,
     gap: spacing.md,
     width: '100%',
@@ -848,31 +849,24 @@ const useStyles = makeStyles((colors) => ({
     alignSelf: 'center',
   },
   title: { fontFamily: fonts.display, fontSize: 40, lineHeight: 44, color: colors.text, letterSpacing: 0.3 },
-  eyebrow: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 2.4, marginBottom: 4 },
-  heading: { fontFamily: fonts.display, fontSize: 22, lineHeight: 28, color: colors.text, letterSpacing: 0.3 },
+  eyebrow: { fontFamily: fonts.bodyBold, fontSize: 13, marginBottom: 4 },
+  heading: { fontFamily: fonts.bodyBold, fontSize: 18, lineHeight: 24, color: colors.text },
   body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 22, color: colors.text },
-  label: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.textMuted },
+  label: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textMuted },
   mono: { fontFamily: fonts.mono, fontSize: 13, color: colors.text },
   card: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: radius.lg,
-    padding: spacing.md + 2,
-    gap: spacing.sm + 2,
+    padding: spacing.md,
+    gap: spacing.sm,
     overflow: 'hidden',
   },
-  cardGlow: {
-    borderColor: colors.borderStrong,
-    shadowColor: colors.accent,
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
-  tag: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
-  tagText: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1 },
-  tierBadge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
+  cardGlow: { borderColor: colors.borderStrong },
+  tag: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
+  tagText: { fontFamily: fonts.bodyBold, fontSize: 12 },
+  tierBadge: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, alignSelf: 'flex-start' },
   tierBadgeText: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.2, color: '#08090B' },
   button: {
     minHeight: 54,
@@ -891,7 +885,7 @@ const useStyles = makeStyles((colors) => ({
     shadowOffset: { width: 0, height: 4 },
   },
   buttonOutline: { borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: 'rgba(255,255,255,0.02)' },
-  buttonText: { fontFamily: fonts.displayMedium, fontSize: 17, letterSpacing: 1 },
+  buttonText: { fontFamily: fonts.bodyBold, fontSize: 16 },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -916,14 +910,14 @@ const useStyles = makeStyles((colors) => ({
     flex: 1,
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
-    padding: spacing.sm + 4,
+    padding: spacing.md,
   },
   progressTrack: { backgroundColor: colors.border, overflow: 'hidden' },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
+    gap: 8,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
@@ -971,7 +965,7 @@ export function SkeletonList({ variant = 'rows', count = 4 }: { variant?: 'rows'
           return (
             <View key={i} style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-end', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
               {!mine && <Skeleton width={32} height={32} radius={16} />}
-              <View style={{ width: `${widths[i % widths.length]}%`, gap: 6 }}>
+              <View style={{ width: `${widths[i % widths.length]}%`, gap: 8 }}>
                 {!mine && <Skeleton width={70} height={10} />}
                 <Skeleton height={i % 2 ? 40 : 58} radius={radius.lg} />
               </View>
@@ -986,7 +980,7 @@ export function SkeletonList({ variant = 'rows', count = 4 }: { variant?: 'rows'
       {Array.from({ length: count }, (_, i) => (
         <View key={i} style={[card, { flexDirection: 'row', alignItems: 'center', gap: spacing.sm }]}>
           <Skeleton width={36} height={36} radius={18} />
-          <View style={{ flex: 1, gap: 7 }}>
+          <View style={{ flex: 1, gap: 8 }}>
             <Skeleton width={`${50 + ((i * 17) % 35)}%`} />
             <Skeleton width={`${30 + ((i * 11) % 25)}%`} height={10} />
           </View>

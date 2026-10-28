@@ -8,7 +8,7 @@ import { fonts, radius, spacing } from '@/constants/theme';
 import { MEAL_ORDER, MEALS, useDaily, type EntrySource, type MealSlot } from '@/lib/daily';
 import { macrosFor, type FoodResult } from '@/lib/foodsearch';
 import { useColors } from '@/lib/theme';
-import { locale, tx } from '@/lib/i18n';
+import { tx } from '@/lib/i18n';
 
 // Seçilen yiyeceğin gramını ayarlayıp günlüğe ekleme paneli (arama ve barkod ortak).
 export function FoodSheet({
@@ -53,10 +53,10 @@ export function FoodSheet({
           <Image source={{ uri: food.image }} style={{ width: 56, height: 56, borderRadius: radius.md, backgroundColor: colors.surfaceAlt }} contentFit="cover" />
         ) : null}
         <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text }} numberOfLines={2}>
-            {food.name.toLocaleUpperCase(locale())}
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 20, color: colors.text }} numberOfLines={2}>
+            {food.name}
           </Text>
-          <Row gap={6}>
+          <Row gap={8}>
             {food.brand ? <Tag color={colors.textMuted} bg={colors.surfaceAlt}>{food.brand}</Tag> : null}
             <Text style={{ fontFamily: fonts.mono, fontSize: 11.5, color: colors.textDim }}>{tx('100 g: {0} kcal', [food.per100g.kcal])}</Text>
           </Row>

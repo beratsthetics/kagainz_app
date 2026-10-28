@@ -194,7 +194,7 @@ export default function FormCheckList() {
         <Label>Fotoğraflar</Label>
         <Row gap={spacing.sm} style={{ alignItems: 'flex-start' }}>
           {POSES.map((pose, i) => (
-            <View key={pose.key} style={{ flex: 1, gap: 6 }}>
+            <View key={pose.key} style={{ flex: 1, gap: 8 }}>
               {photos[i] ? (
                 <CheckinPhoto uri={photos[i]!.uri} width="100%" />
               ) : (

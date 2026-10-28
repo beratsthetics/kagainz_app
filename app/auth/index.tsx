@@ -10,7 +10,7 @@ import { fonts, radius, spacing } from '@/constants/theme';
 import { leaveAuth, sendPasswordReset, useAuth } from '@/lib/auth';
 import { rememberRef } from '@/lib/refcode';
 import { makeStyles, useColors } from '@/lib/theme';
-import { locale, tx } from '@/lib/i18n';
+import { tx } from '@/lib/i18n';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const MIN_PASSWORD = 6;
@@ -179,7 +179,7 @@ export default function EmailScreen() {
 
           <Row gap={spacing.sm} style={{ marginVertical: spacing.xs }}>
             <View style={styles.rule} />
-            <Text style={styles.or}>{tx('veya').toLocaleUpperCase(locale())}</Text>
+            <Text style={styles.or}>{tx('veya')}</Text>
             <View style={styles.rule} />
           </Row>
 
@@ -202,7 +202,7 @@ export default function EmailScreen() {
       </Reveal>
 
       <Reveal index={2}>
-        <Row gap={10} style={{ justifyContent: 'center' }}>
+        <Row gap={8} style={{ justifyContent: 'center' }}>
           <Icon name={{ ios: 'checkmark.shield.fill', android: 'verified_user', web: 'verified_user' }} size={14} color={colors.success} />
           <Text style={styles.switchText}>E-postan sadece giriş için kullanılır, kimseyle paylaşılmaz.</Text>
         </Row>
@@ -221,7 +221,7 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.accent,
     backgroundColor: colors.accentSoft,
   },
-  field: { gap: 6 },
+  field: { gap: 8 },
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
   link: { fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.accentBright },
   rule: { flex: 1, height: 1, backgroundColor: colors.border },
@@ -230,7 +230,7 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm + 2,
+    gap: spacing.sm,
     minHeight: 52,
     borderRadius: 999,
     borderWidth: 1,

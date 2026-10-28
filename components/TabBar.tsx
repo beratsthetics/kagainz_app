@@ -70,11 +70,11 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: B
 }
 
 const useStyles = makeStyles((colors) => ({
-  wrap: { paddingHorizontal: 14, paddingTop: 8, backgroundColor: colors.background },
+  wrap: { paddingHorizontal: 16, paddingTop: 8, backgroundColor: colors.background },
   capsule: {
     flexDirection: 'row',
     gap: 4,
-    padding: 6,
+    padding: 8,
     borderRadius: 30,
     backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
@@ -85,9 +85,9 @@ const useStyles = makeStyles((colors) => ({
     shadowOffset: { width: 0, height: 8 },
     elevation: 12,
   },
-  tab: { height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 8 },
+  tab: { height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 8 },
   tabActive: { backgroundColor: colors.primary },
-  label: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.4 },
+  label: { fontFamily: fonts.bodyBold, fontSize: 12 },
   plus: {
     width: 46,
     height: 46,

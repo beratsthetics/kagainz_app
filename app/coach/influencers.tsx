@@ -136,7 +136,7 @@ export default function InfluencersScreen() {
           <Reveal key={row.code} index={i + 2}>
             <Card style={!row.active && { opacity: 0.6 }}>
               <Row style={{ justifyContent: 'space-between' }}>
-                <View style={{ flex: 1, gap: 2 }}>
+                <View style={{ flex: 1, gap: 4 }}>
                   <Text raw style={{ fontFamily: fonts.display, fontSize: 24, color: colors.text }}>
                     {row.code.toUpperCase()}
                   </Text>

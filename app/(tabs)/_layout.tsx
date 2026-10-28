@@ -21,30 +21,30 @@ export default function TabLayout() {
       }}>
       <Tabs.Screen
         name="index"
-        options={{ title: translate('BUGÜN'), tabBarIcon: icon({ ios: 'house.fill', android: 'home', web: 'home' }) }}
+        options={{ title: translate('Bugün'), tabBarIcon: icon({ ios: 'house.fill', android: 'home', web: 'home' }) }}
       />
       <Tabs.Screen
         name="community"
         options={{
-          title: translate('TOPLULUK'),
+          title: translate('Topluluk'),
           tabBarIcon: icon({ ios: 'bubble.left.and.bubble.right.fill', android: 'forum', web: 'forum' }),
         }}
       />
       <Tabs.Screen
         name="macros"
-        options={{ title: translate('MAKRO'), tabBarIcon: icon({ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }) }}
+        options={{ title: translate('Makro'), tabBarIcon: icon({ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }) }}
       />
       <Tabs.Screen
         name="training"
         options={{
-          title: translate('ANTRENMAN'),
+          title: translate('Antrenman'),
           tabBarIcon: icon({ ios: 'dumbbell.fill', android: 'fitness_center', web: 'fitness_center' }),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: translate('PROFİL'),
+          title: translate('Profil'),
           tabBarIcon: icon({ ios: 'person.crop.circle.fill', android: 'person', web: 'person' }),
         }}
       />

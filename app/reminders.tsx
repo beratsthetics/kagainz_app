@@ -89,7 +89,7 @@ function Item({ title, body, value, onChange }: { title: string; body: string; v
   const colors = useColors();
   return (
     <Row style={{ justifyContent: 'space-between', gap: spacing.md }}>
-      <View style={{ flex: 1, gap: 2 }}>
+      <View style={{ flex: 1, gap: 4 }}>
         <Body style={{ fontSize: 15, fontFamily: fonts.bodyBold }}>{title}</Body>
         <Body muted style={{ fontSize: 13 }}>
           {body}

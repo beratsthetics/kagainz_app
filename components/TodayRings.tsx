@@ -102,7 +102,7 @@ export function TodayRings() {
         {rings.map((r, i) => {
           const pct = Math.round(Math.max(0, r.value) * 100);
           return (
-            <PressScale key={r.key} flex onPress={() => setOpen((o) => (o === r.key ? null : r.key))} style={{ alignItems: 'center', gap: 6, paddingVertical: 4, borderRadius: 14, backgroundColor: open === r.key ? colors.surfaceAlt : 'transparent' }}>
+            <PressScale key={r.key} flex onPress={() => setOpen((o) => (o === r.key ? null : r.key))} style={{ alignItems: 'center', gap: 8, paddingVertical: 4, borderRadius: 14, backgroundColor: open === r.key ? colors.surfaceAlt : 'transparent' }}>
               <View style={{ width: SIZE, height: SIZE }}>
                 <Arc ring={r} delay={i * 120} />
                 <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -113,7 +113,7 @@ export function TodayRings() {
                 </View>
               </View>
               <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.4, color: colors.text }}>
-                {tx(r.label).toLocaleUpperCase(locale())}
+                {tx(r.label)}
               </Text>
               <Text raw numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: fonts.mono, fontSize: 10.5, color: colors.textMuted, marginTop: -4 }}>
                 {r.text}
@@ -126,7 +126,7 @@ export function TodayRings() {
         <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textDim, textAlign: 'center' }}>Ayrıntı için bir halkaya dokun</Text>
       )}
       {(open === 'kcal' || open === 'protein') && (
-        <View style={{ gap: spacing.sm + 2, paddingTop: spacing.xs }}>
+        <View style={{ gap: spacing.sm, paddingTop: spacing.xs }}>
           <MacroBar label="Protein" value={totals.protein} goal={goals.protein} color={colors.protein} />
           <MacroBar label="Karb." value={totals.carb} goal={goals.carb} color={colors.carb} />
           <MacroBar label="Yağ" value={totals.fat} goal={goals.fat} color={colors.fat} />

@@ -84,7 +84,7 @@ export default function PhoneScreen() {
       <Reveal index={3}>
         <View style={{ gap: spacing.sm }}>
           {['Numaran kimseyle paylaşılmaz', "Chat'e yazmak için doğrulama zorunlu, spam yok"].map((t) => (
-            <Row key={t} gap={10}>
+            <Row key={t} gap={8}>
               <Icon
                 name={{ ios: 'checkmark.shield.fill', android: 'verified_user', web: 'verified_user' }}
                 size={16}
@@ -106,9 +106,9 @@ const useStyles = makeStyles((colors) => ({
   prefix: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingRight: spacing.sm + 4,
-    marginRight: 2,
+    gap: 8,
+    paddingRight: spacing.md,
+    marginRight: 4,
     borderRightWidth: 1,
     borderRightColor: colors.borderStrong,
   },

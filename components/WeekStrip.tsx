@@ -42,7 +42,7 @@ export function WeekStrip() {
           </Row>
           <Row style={{ justifyContent: 'space-between' }}>
             {days.map((d) => (
-              <View key={d.key} style={{ alignItems: 'center', gap: 6, flex: 1 }}>
+              <View key={d.key} style={{ alignItems: 'center', gap: 8, flex: 1 }}>
                 <View
                   style={{
                     width: 30,
@@ -68,7 +68,7 @@ export function WeekStrip() {
         </View>
       </PressScale>
       <PressScale onPress={() => router.push('/challenges')}>
-        <View style={{ gap: 6, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
+        <View style={{ gap: 8, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
           <Row style={{ justifyContent: 'space-between' }}>
             <Row gap={spacing.sm} style={{ flex: 1 }}>
               <Text style={{ fontSize: 18 }}>{challenge.challenge.emoji}</Text>
@@ -80,7 +80,7 @@ export function WeekStrip() {
               {challenge.value.toLocaleString(locale())}/{challenge.challenge.target}
             </Text>
           </Row>
-          <ProgressBar value={challenge.value / challenge.challenge.target} color={challenge.done ? colors.success : colors.fat} height={5} />
+          <ProgressBar value={challenge.value / challenge.challenge.target} color={challenge.done ? colors.success : colors.accent} height={5} />
         </View>
       </PressScale>
     </Card>

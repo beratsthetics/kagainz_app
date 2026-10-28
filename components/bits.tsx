@@ -34,7 +34,7 @@ export function ThemeToggle() {
             : { ios: 'moon.fill', android: 'dark_mode', web: 'dark_mode' }
         }
         size={18}
-        color={mode === 'dark' ? colors.fat : colors.text}
+        color={colors.text}
       />
     </PressScale>
   );
@@ -50,16 +50,16 @@ export function StreakPill() {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 5,
-        paddingHorizontal: 10,
+        gap: 4,
+        paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 999,
-        backgroundColor: on ? `${colors.fat}22` : colors.surfaceAlt,
+        backgroundColor: colors.surfaceAlt,
         borderWidth: 1,
-        borderColor: on ? `${colors.fat}55` : colors.border,
+        borderColor: colors.border,
       }}>
       <Text style={{ fontSize: 12 }}>🔥</Text>
-      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 0.6, color: on ? colors.fat : colors.textMuted }}>{tx('{0} GÜN', [stats.streak])}</Text>
+      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: on ? colors.text : colors.textMuted }}>{tx('{0} gün', [stats.streak])}</Text>
     </PressScale>
   );
 }
@@ -73,18 +73,18 @@ export function WaterTracker() {
   const [rowWidth, setRowWidth] = useState(0);
   const glassWidth = rowWidth ? Math.max(18, Math.min(26, Math.floor((rowWidth - 34 - 6 * glasses) / glasses))) : 26;
   return (
-    <View style={{ gap: spacing.sm + 2 }}>
+    <View style={{ gap: spacing.sm }}>
       <Row style={{ justifyContent: 'space-between' }}>
-        <Row gap={6}>
+        <Row gap={8}>
           <Icon name={{ ios: 'drop.fill', android: 'water_drop', web: 'water_drop' }} size={16} color={colors.water} />
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.textMuted }}>SU</Text>
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textMuted }}>Su</Text>
         </Row>
         <Text style={{ fontFamily: fonts.mono, fontSize: 12.5, color: colors.textMuted }}>
           <Text style={{ color: colors.text }}>{((water * GLASS_ML) / 1000).toLocaleString(locale())} L</Text> /{' '}
           {((waterGoal * GLASS_ML) / 1000).toLocaleString(locale())} L
         </Text>
       </Row>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }} onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }} onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}>
         {Array.from({ length: glasses }, (_, i) => {
           const full = i < water;
           return (
@@ -126,10 +126,10 @@ export function WaterTracker() {
 export function MacroBar({ label, value, goal, color }: { label: string; value: number; goal: number; color: string }) {
   const colors = useColors();
   return (
-    <View style={{ gap: 6 }}>
+    <View style={{ gap: 8 }}>
       <Row style={{ justifyContent: 'space-between' }}>
-        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.textMuted }}>
-          {label.toLocaleUpperCase(locale())}
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textMuted }}>
+          {label}
         </Text>
         <Text style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.text }}>
           {Math.round(value)}

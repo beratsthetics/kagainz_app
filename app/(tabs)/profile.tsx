@@ -2,7 +2,7 @@ import { router, type Href } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Switch, View } from 'react-native';
 import { Text } from '@/components/T';
-import { AvatarRing, BadgeMedal, LevelMedals, TierFrame } from '@/components/BadgeMedal';
+import { AvatarRing, BadgeMedal, LevelMedals } from '@/components/BadgeMedal';
 import { LevelBadge, LevelProgress } from '@/components/Level';
 import { shownXp } from '@/lib/levels';
 
@@ -61,7 +61,7 @@ export default function ProfileScreen() {
           <Card glow>
             {['Google, e-posta ya da telefonla saniyeler içinde', 'Günlüğün, antrenmanların ve rozetlerin her cihazda', 'Toplulukta kendi kullanıcı adın'].map(
               (t) => (
-                <Row key={t} gap={10}>
+                <Row key={t} gap={8}>
                   <Icon name={CHECK} size={16} color={colors.success} />
                   <Body style={{ fontSize: 14 }}>{t}</Body>
                 </Row>
@@ -85,7 +85,7 @@ export default function ProfileScreen() {
         <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md }}>
           <ProfilePhoto />
           <Text style={styles.username}>@{profile?.username ?? 'kullanıcı adı yok'}</Text>
-          <Row gap={6}>
+          <Row gap={8}>
             <TierBadge tier={tier} />
             <LevelBadge xp={shownXp(profile?.xp, profile?.role)} size="md" />
           </Row>
@@ -109,36 +109,34 @@ export default function ProfileScreen() {
       )}
 
       <Reveal index={3}>
-        <TierFrame tier={tier}>
-          <PressScale onPress={() => router.push('/badges')}>
-            <Card style={tier !== 'free' && { borderWidth: 0 }}>
-              <Row style={{ justifyContent: 'space-between' }}>
-                <Label>Rozetler</Label>
-                <Mono style={{ color: colors.textMuted }}>
-                  {Object.keys(unlocked).length}/{BADGES.length} ›
-                </Mono>
+        <PressScale onPress={() => router.push('/badges')}>
+          <Card style={tier !== 'free' && { borderWidth: 0 }}>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <Label>Rozetler</Label>
+              <Mono style={{ color: colors.textMuted }}>
+                {Object.keys(unlocked).length}/{BADGES.length} ›
+              </Mono>
+            </Row>
+            <LevelMedals xp={shownXp(profile?.xp, profile?.role)} />
+            <View style={styles.rule} />
+            {recent.length ? (
+              <Row gap={spacing.sm} style={{ flexWrap: 'wrap', paddingVertical: 4 }}>
+                {recent.map((b, i) => (
+                  <BadgeMedal key={b.id} badge={b} earned size={44} delay={i * 300} />
+                ))}
               </Row>
-              <LevelMedals xp={shownXp(profile?.xp, profile?.role)} />
-              <View style={styles.rule} />
-              {recent.length ? (
-                <Row gap={spacing.sm} style={{ flexWrap: 'wrap', paddingVertical: 4 }}>
-                  {recent.map((b, i) => (
-                    <BadgeMedal key={b.id} badge={b} earned size={44} delay={i * 300} />
-                  ))}
-                </Row>
-              ) : (
-                <Body muted style={{ fontSize: 13.5 }}>
-                  İlk öğününü gir, ilk rozetin gelsin.
-                </Body>
-              )}
-              {tier === 'free' && (
-                <Body muted style={{ fontSize: 12.5 }}>
-                  Pro, Plus ve Max'ta rozetlerin parlar, vitrinin canlanır.
-                </Body>
-              )}
-            </Card>
-          </PressScale>
-        </TierFrame>
+            ) : (
+              <Body muted style={{ fontSize: 13.5 }}>
+                İlk öğününü gir, ilk rozetin gelsin.
+              </Body>
+            )}
+            {tier === 'free' && (
+              <Body muted style={{ fontSize: 12.5 }}>
+                Pro, Plus ve Max'ta rozetlerin parlar, vitrinin canlanır.
+              </Body>
+            )}
+          </Card>
+        </PressScale>
       </Reveal>
 
       {isCoach && (
@@ -195,7 +193,7 @@ export default function ProfileScreen() {
             size={18}
             color={colors.danger}
           />
-          <Text style={styles.signOutText}>{tx('Çıkış yap').toLocaleUpperCase(locale())}</Text>
+          <Text style={styles.signOutText}>{tx('Çıkış yap')}</Text>
         </PressScale>
         <DeleteAccount />
       </Reveal>
@@ -291,7 +289,7 @@ function ProfilePhoto() {
   }
 
   return (
-    <View style={{ alignItems: 'center', gap: 6 }}>
+    <View style={{ alignItems: 'center', gap: 8 }}>
       <PressScale onPress={change}>
         <AvatarRing tier={tier} xp={shownXp(profile?.xp, profile?.role)} size={88}>
           <Avatar name={profile?.username} path={profile?.avatar_url} size={88} />
@@ -377,7 +375,7 @@ function MembershipCard() {
       </Row>
       <Heading style={{ fontSize: 26 }}>{TIER_INFO[tier].name}</Heading>
       {TIER_INFO[tier].perks.map((p) => (
-        <Row key={p} gap={10}>
+        <Row key={p} gap={8}>
           <Icon name={CHECK} size={15} color={colors.success} />
           <Body muted style={{ flex: 1, fontSize: 14 }}>
             {p}
@@ -408,11 +406,11 @@ const useStyles = makeStyles((colors) => ({
   removePhoto: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
   photoError: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger, textAlign: 'center' },
   rule: { height: 1, backgroundColor: colors.border },
-  linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md - 2 },
+  linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
   linkBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
   linkText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
-  linkSub: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted, marginTop: 2 },
-  summary: { alignItems: 'center', gap: 2, paddingVertical: spacing.sm + 2, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  linkSub: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted, marginTop: 4 },
+  summary: { alignItems: 'center', gap: 4, paddingVertical: spacing.sm, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   summaryValue: { fontFamily: fonts.display, fontSize: 20, color: colors.text },
   username: { fontFamily: fonts.display, fontSize: 28, color: colors.text },
   signOut: {
@@ -422,5 +420,5 @@ const useStyles = makeStyles((colors) => ({
     gap: spacing.sm,
     paddingVertical: spacing.md,
   },
-  signOutText: { fontFamily: fonts.displayMedium, fontSize: 15, letterSpacing: 1, color: colors.danger },
+  signOutText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.danger },
 }));

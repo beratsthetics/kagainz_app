@@ -134,7 +134,7 @@ function MacroCalculator() {
               <Text style={styles.ringKcal}>{Math.max(0, goals.kcal - dayTotals.kcal)}</Text>
               <Label>kaldı</Label>
             </Ring>
-            <View style={{ flex: 1, gap: spacing.sm + 2 }}>
+            <View style={{ flex: 1, gap: spacing.sm }}>
               <MacroBar label="Protein" value={dayTotals.protein} goal={goals.protein} color={colors.protein} />
               <MacroBar label="Karb." value={dayTotals.carb} goal={goals.carb} color={colors.carb} />
               <MacroBar label="Yağ" value={dayTotals.fat} goal={goals.fat} color={colors.fat} />
@@ -156,7 +156,7 @@ function MacroCalculator() {
           placeholder="Ne yedin? ör. 3 yumurta, 1 dilim ekmek"
           prefix={<Icon name={{ ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' }} size={18} color={colors.accentBright} />}
           suffix={
-            <Row gap={6}>
+            <Row gap={8}>
               <PressScale onPress={() => router.push({ pathname: '/food/photo', params: { meal } })} style={styles.inputBtn}>
                 <Icon name={{ ios: 'camera.viewfinder', android: 'photo_camera', web: 'photo_camera' }} size={19} color={colors.text} />
                 {!photoOk && (
@@ -170,7 +170,7 @@ function MacroCalculator() {
               </PressScale>
             </Row>
           }
-          style={{ minHeight: 64, alignItems: 'flex-start', paddingTop: 2 }}
+          style={{ minHeight: 64, alignItems: 'flex-start', paddingTop: 4 }}
         />
       </Reveal>
 
@@ -308,7 +308,7 @@ function MacroCalculator() {
               <Card key={slot} style={{ gap: spacing.sm }}>
                 <Row style={{ justifyContent: 'space-between' }}>
                   <Row gap={spacing.sm}>
-                    <IconBox name={MEALS[slot].icon as IconName} color={colors.fat} bg={`${colors.fat}1A`} size={32} />
+                    <IconBox name={MEALS[slot].icon as IconName} color={colors.accentBright} bg={colors.accentSoft} size={32} />
                     <Heading style={{ fontSize: 18 }}>{MEALS[slot].label}</Heading>
                   </Row>
                   <Row gap={spacing.sm}>
@@ -385,8 +385,8 @@ const useStyles = makeStyles((colors) => ({
   goalBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
+    gap: 8,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 999,
     backgroundColor: colors.accentSoft,
@@ -394,8 +394,8 @@ const useStyles = makeStyles((colors) => ({
   goalBtnText: { fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, color: colors.accentBright },
   tool: {
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: spacing.md - 2,
+    gap: 8,
+    paddingVertical: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
@@ -413,14 +413,14 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  split: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', gap: 2, marginTop: spacing.xs },
+  split: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', gap: 4, marginTop: spacing.xs },
   line: {
     gap: spacing.md,
-    padding: spacing.sm + 4,
+    padding: spacing.md,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceAlt,
   },
-  lineName: { fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text, marginBottom: 3 },
+  lineName: { fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text, marginBottom: 4 },
   shelfRow: { gap: spacing.md, paddingVertical: spacing.xs },
   addBtn: {
     width: 34,
@@ -443,7 +443,7 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
+    paddingVertical: spacing.sm,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -459,5 +459,5 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  entry: { paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.sm + 4 },
+  entry: { paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.md },
 }));

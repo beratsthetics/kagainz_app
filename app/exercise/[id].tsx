@@ -58,7 +58,7 @@ export default function ExerciseScreen() {
       <Reveal index={0}>
         {/* Adlar İngilizce: büyük harfe İngilizce kuralıyla çevir ("LYING", "LYİNG" değil). */}
         <Title style={{ fontSize: 34, lineHeight: 38 }}>{ex.trName.toLocaleUpperCase('en-US')}</Title>
-        <Row gap={6} style={{ marginTop: spacing.xs, flexWrap: 'wrap' }}>
+        <Row gap={8} style={{ marginTop: spacing.xs, flexWrap: 'wrap' }}>
           <Tag>{MUSCLES[ex.primary[0]].group}</Tag>
           <Tag color={colors.textMuted} bg={colors.surfaceAlt}>
             {ex.equipment}
@@ -99,13 +99,13 @@ export default function ExerciseScreen() {
               <Label>Çalışan kaslar</Label>
               <BodyMap primary={ex.primary} secondary={ex.secondary} height={230} />
               <Row gap={spacing.md} style={{ justifyContent: 'center' }}>
-                <Row gap={6}>
+                <Row gap={8}>
                   <View style={[styles.dot, { backgroundColor: colors.accentBright }]} />
                   <Text style={styles.legend}>{ex.primary.map((m) => tx(MUSCLES[m].name)).join(', ')}</Text>
                 </Row>
               </Row>
               {ex.secondary.length > 0 && (
-                <Row gap={6} style={{ justifyContent: 'center' }}>
+                <Row gap={8} style={{ justifyContent: 'center' }}>
                   <View style={[styles.dot, { backgroundColor: colors.accent, opacity: 0.5 }]} />
                   <Text style={[styles.legend, { color: colors.textMuted }]}>{tx('Yardımcı: {0}', [ex.secondary.map((m) => tx(MUSCLES[m].name)).join(', ')])}</Text>
                 </Row>
@@ -125,7 +125,7 @@ export default function ExerciseScreen() {
                 </Row>
               ))}
               <View style={styles.tip}>
-                <Text style={styles.tipLabel}>İPUCU</Text>
+                <Text style={styles.tipLabel}>İpucu</Text>
                 <Body style={{ fontSize: 14 }}>{ex.tip}</Body>
               </View>
             </Card>
@@ -138,7 +138,7 @@ export default function ExerciseScreen() {
                 <>
                   <Row gap={spacing.sm}>
                     <Stat label="En ağır" value={tx('{0} kg × {1}', [rec.kg, rec.reps])} />
-                    <Stat label="Tahmini 1RM" value={tx('{0} kg', [Math.round(rec.e1rm)])} color={colors.fat} />
+                    <Stat label="Tahmini 1RM" value={tx('{0} kg', [Math.round(rec.e1rm)])} color={colors.accentBright} />
                   </Row>
                   {points.length > 1 && (
                     <LineChart
@@ -310,8 +310,8 @@ function CoachMediaControls({ exerciseId, media }: { exerciseId: string; media: 
 
 const useStyles = makeStyles((colors) => ({
   link: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright, marginTop: spacing.sm, textAlign: 'center' },
-  coach: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.fat, gap: spacing.sm },
-  coachLabel: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.fat },
+  coach: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.accent, gap: spacing.sm },
+  coachLabel: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.accentBright },
   notice: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
   en: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted, alignSelf: 'center' },
   anim: {
@@ -335,5 +335,5 @@ const useStyles = makeStyles((colors) => ({
   },
   stepText: { fontFamily: fonts.mono, fontSize: 12, color: colors.text },
   tip: { padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.accentSoft, gap: 4 },
-  tipLabel: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.accentBright },
+  tipLabel: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
 }));

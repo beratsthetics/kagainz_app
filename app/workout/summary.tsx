@@ -63,7 +63,7 @@ export default function SummaryScreen() {
           <Row gap={spacing.sm}>
             <Stat label="Süre" value={tx('{0} dk', [meta.minutes])} />
             <Stat label="Set" value={`${meta.sets}`} />
-            <Stat label="Hacim" value={tx('{0} kg', [meta.volume.toLocaleString(locale())])} color={colors.fat} />
+            <Stat label="Hacim" value={tx('{0} kg', [meta.volume.toLocaleString(locale())])} />
           </Row>
           {meta.exercises.map((e) => (
             <Row key={e.name} style={{ justifyContent: 'space-between' }}>

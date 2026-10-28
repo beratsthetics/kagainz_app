@@ -650,7 +650,7 @@ function MessageBubble({
           style={[message.hidden && { opacity: 0.55 }, styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, coach && !mine && styles.bubbleCoach, framed && { borderWidth: 0 }]}>
           <Row style={{ justifyContent: 'space-between', gap: spacing.md }}>
             {!mine && (
-              <Row gap={6}>
+              <Row gap={8}>
                 {message.profiles?.username ? (
                   <LevelName username={message.profiles.username} xp={xp} style={styles.username} />
                 ) : (
@@ -693,7 +693,7 @@ function MessageBubble({
             <Text raw style={[styles.text, { color: ink }]}>{message.body}</Text>
           ) : null}
           {message.macros && (
-            <Row gap={6} style={{ flexWrap: 'wrap', marginTop: 4 }}>
+            <Row gap={8} style={{ flexWrap: 'wrap', marginTop: 4 }}>
               <MacroPill label="kcal" value={message.macros.kcal} color={ink} />
               <MacroPill label="P" value={message.macros.protein} color={colors.protein} />
               <MacroPill label="K" value={message.macros.carb} color={colors.carb} />
@@ -772,7 +772,7 @@ const useStyles = makeStyles((colors) => ({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     padding: spacing.md,
-    gap: spacing.sm + 2,
+    gap: spacing.sm,
     backgroundColor: colors.overlay,
   },
   pinned: {
@@ -792,7 +792,7 @@ const useStyles = makeStyles((colors) => ({
     gap: spacing.sm,
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
-    padding: spacing.sm + 2,
+    padding: spacing.sm,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceHigh,
     borderWidth: 1,
@@ -821,8 +821,8 @@ const useStyles = makeStyles((colors) => ({
   bubble: {
     borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 4,
-    gap: 6,
+    paddingVertical: spacing.md,
+    gap: 8,
   },
   bubbleOther: {
     backgroundColor: colors.surface,
@@ -839,19 +839,19 @@ const useStyles = makeStyles((colors) => ({
   username: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
   text: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.text },
   time: { fontFamily: fonts.mono, fontSize: 10.5, color: colors.textDim, alignSelf: 'flex-end' },
-  quote: { borderLeftWidth: 3, borderLeftColor: colors.accent, paddingLeft: spacing.sm, gap: 2 },
+  quote: { borderLeftWidth: 3, borderLeftColor: colors.accent, paddingLeft: spacing.sm, gap: 4 },
   quoteUser: { fontFamily: fonts.bodyBold, fontSize: 11.5, color: colors.accentBright },
   quoteText: { fontFamily: fonts.body, fontSize: 13, color: colors.textMuted },
-  workout: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.sm + 2, gap: 6, minWidth: 220 },
-  workoutTitle: { fontFamily: fonts.display, fontSize: 18, letterSpacing: 0.3 },
-  pill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: colors.surfaceHigh },
+  workout: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.sm, gap: 8, minWidth: 220 },
+  workoutTitle: { fontFamily: fonts.bodyBold, fontSize: 16 },
+  pill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: colors.surfaceHigh },
   pillText: { fontFamily: fonts.mono, fontSize: 11 },
   reaction: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: colors.border,
@@ -867,6 +867,6 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md - 2 },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
   actionText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
 }));

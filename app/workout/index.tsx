@@ -68,7 +68,7 @@ export default function WorkoutScreen() {
               <Text style={styles.clock}>{fmt(elapsed)}</Text>
             </View>
             <PressScale onPress={() => setConfirm('finish')} style={styles.finish}>
-              <Text style={styles.finishText}>BİTİR</Text>
+              <Text style={styles.finishText}>Bitir</Text>
             </PressScale>
           </Row>
         }>
@@ -84,7 +84,7 @@ export default function WorkoutScreen() {
 
         <Button title="Hareket ekle" variant="outline" icon={{ ios: 'plus', android: 'add', web: 'add' }} onPress={() => router.push({ pathname: '/library', params: { pick: '1' } })} />
         <PressScale onPress={() => setConfirm('discard')} style={{ alignItems: 'center', paddingVertical: spacing.md }}>
-          <Text style={[styles.finishText, { color: colors.danger }]}>ANTRENMANI SİL</Text>
+          <Text style={[styles.finishText, { color: colors.danger }]}>Antrenmanı sil</Text>
         </PressScale>
         <View style={{ height: 90 }} />
       </Screen>
@@ -165,7 +165,7 @@ function ExerciseCard({ index }: { index: number }) {
           ) : null}
         </PressScale>
         <PressScale flex onPress={() => router.push(`/exercise/${e.exerciseId}`)}>
-          <Heading style={{ fontSize: 19 }}>{(ex?.trName ?? e.exerciseId).toLocaleUpperCase('en-US')}</Heading>
+          <Heading style={{ fontSize: 19 }}>{ex?.trName ?? e.exerciseId}</Heading>
           <Mono style={{ color: colors.textMuted, fontSize: 12 }}>
             {e.target ? tx('Hedef {0}×{1}', [e.target.sets, e.target.reps]) : 'Serbest'}
             {rec ? tx(' · Rekor {0} kg × {1}', [rec.kg, rec.reps]) : ''}
@@ -227,7 +227,7 @@ function ExerciseCard({ index }: { index: number }) {
       {missing != null && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger, textAlign: 'center' }}>Önce kilo ve tekrarı yaz, sonra ✓'ye bas.</Text>}
       <PressScale onPress={() => w.addSet(index)} style={styles.addSet}>
         <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={14} color={colors.textMuted} />
-        <Text style={[styles.head, { color: colors.textMuted }]}>SET EKLE</Text>
+        <Text style={[styles.head, { color: colors.textMuted, fontSize: 13, letterSpacing: 0 }]}>Set ekle</Text>
       </PressScale>
     </Card>
   );
@@ -380,13 +380,13 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  clock: { fontFamily: fonts.mono, fontSize: 20, color: colors.text, marginTop: 2 },
-  finish: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.sm, backgroundColor: colors.success },
-  finishText: { fontFamily: fonts.displayMedium, fontSize: 15, letterSpacing: 1, color: '#08090B' },
-  mini: { flex: 1, padding: spacing.sm + 4, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  headRow: { gap: spacing.sm, paddingHorizontal: 6 },
+  clock: { fontFamily: fonts.mono, fontSize: 20, color: colors.text, marginTop: 4 },
+  finish: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.sm, backgroundColor: colors.success },
+  finishText: { fontFamily: fonts.bodyBold, fontSize: 15, color: '#08090B' },
+  mini: { flex: 1, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  headRow: { gap: spacing.sm, paddingHorizontal: 8 },
   head: { fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 1.2, color: colors.textDim },
-  setRow: { gap: spacing.sm, paddingHorizontal: 6, paddingVertical: 6, borderRadius: radius.sm },
+  setRow: { gap: spacing.sm, paddingHorizontal: 8, paddingVertical: 8, borderRadius: radius.sm },
   setIndex: { fontFamily: fonts.mono, fontSize: 14, color: colors.text },
   prev: { flex: 1, fontFamily: fonts.mono, fontSize: 13, color: colors.textDim },
   cell: {
@@ -411,7 +411,7 @@ const useStyles = makeStyles((colors) => ({
     justifyContent: 'center',
   },
   checkOn: { backgroundColor: colors.success, borderColor: colors.success },
-  addSet: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: spacing.sm },
+  addSet: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: spacing.sm },
   restBar: {
     position: 'absolute',
     left: 0,
@@ -419,7 +419,7 @@ const useStyles = makeStyles((colors) => ({
     bottom: 0,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
-    paddingBottom: spacing.lg + 8,
+    paddingBottom: spacing.xl,
     gap: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,

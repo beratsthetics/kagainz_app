@@ -21,7 +21,7 @@ import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { TIER_INFO, type Tier } from '@/lib/tiers';
 import { makeStyles, useColors } from '@/lib/theme';
-import { locale, tx } from '@/lib/i18n';
+import { tx } from '@/lib/i18n';
 
 const PLANS: Tier[] = ['free', 'pro', 'plus', 'max'];
 const POPULAR: Tier = 'plus';
@@ -33,6 +33,7 @@ export default function PlansScreen() {
 
   return (
     <Screen
+      glow
       edges={['top', 'bottom']}
       header={
         <Row style={{ justifyContent: 'flex-end' }}>
@@ -54,7 +55,7 @@ export default function PlansScreen() {
           <>
             <Row style={{ justifyContent: 'space-between' }}>
               <TierBadge tier={t} />
-              {t === POPULAR && <Text style={styles.popular}>{tx('★ En popüler').toLocaleUpperCase(locale())}</Text>}
+              {t === POPULAR && <Text style={styles.popular}>{tx('★ En popüler')}</Text>}
               {current && <Label style={{ color: colors.success }}>Mevcut paketin</Label>}
             </Row>
             <Heading style={{ fontSize: 30 }}>{TIER_INFO[t].name}</Heading>
@@ -63,7 +64,7 @@ export default function PlansScreen() {
             </Body>
             <View style={{ gap: spacing.sm }}>
               {TIER_INFO[t].perks.map((p) => (
-                <Row key={p} gap={10}>
+                <Row key={p} gap={8}>
                   <Icon
                     name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
                     size={16}
@@ -86,7 +87,7 @@ export default function PlansScreen() {
         );
         return (
           <Reveal key={t} index={2 + i}>
-            {t === 'free' ? <Card>{body}</Card> : <GradientCard colors={tierColors[t]}>{body}</GradientCard>}
+            {t === 'free' ? <Card>{body}</Card> : <GradientCard vivid colors={tierColors[t]}>{body}</GradientCard>}
           </Reveal>
         );
       })}

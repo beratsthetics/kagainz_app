@@ -67,7 +67,7 @@ export default function ScanScreen() {
             <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={18} color="#fff" />
           </PressScale>
           <View style={styles.counter}>
-            <Text style={styles.counterText}>{unlimited ? 'SINIRSIZ TARAMA' : tx('BUGÜN {0} TARAMA KALDI', [left])}</Text>
+            <Text style={styles.counterText}>{unlimited ? 'Sınırsız tarama' : tx('Bugün {0} tarama kaldı', [left])}</Text>
           </View>
         </Row>
 
@@ -93,7 +93,7 @@ export default function ScanScreen() {
           {left <= 0 ? (
             <>
               <Row style={{ justifyContent: 'space-between' }}>
-                <Text style={[styles.panelTitle, { color: colors.text }]}>GÜNLÜK TARAMA HAKKIN BİTTİ</Text>
+                <Text style={[styles.panelTitle, { color: colors.text }]}>Günlük tarama hakkın bitti</Text>
                 <TierBadge tier="pro" />
               </Row>
               <Body muted style={{ fontSize: 13.5 }}>{tx('Ücretsiz pakette günde {0} tarama var. Pro ile sınırsız tara.', [LIMITS.freeScansPerDay])}</Body>
@@ -101,7 +101,7 @@ export default function ScanScreen() {
             </>
           ) : !permission?.granted ? (
             <>
-              <Text style={[styles.panelTitle, { color: colors.text }]}>KAMERA İZNİ</Text>
+              <Text style={[styles.panelTitle, { color: colors.text }]}>Kamera izni</Text>
               <Body muted style={{ fontSize: 13.5 }}>
                 Barkodu okumak için kameraya izin ver. Görüntü kaydedilmez.
               </Body>
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  counter: { backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
-  counterText: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: '#fff' },
+  counter: { backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8 },
+  counterText: { fontFamily: fonts.bodyBold, fontSize: 13, color: '#fff' },
   frame: { width: 260, height: 170 },
   corner: { position: 'absolute', width: C, height: C, borderColor: '#fff' },
   tl: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 14 },
@@ -161,14 +161,14 @@ const styles = StyleSheet.create({
   hint: { fontFamily: fonts.bodyBold, fontSize: 14, color: '#fff', textAlign: 'center', paddingHorizontal: spacing.lg },
   panel: {
     marginVertical: spacing.md,
-    padding: spacing.md + 2,
+    padding: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,
-    gap: spacing.sm + 2,
+    gap: spacing.sm,
     maxWidth: 560,
     width: '92%',
     alignSelf: 'center',
   },
-  panelTitle: { fontFamily: fonts.display, fontSize: 18, letterSpacing: 0.4 },
+  panelTitle: { fontFamily: fonts.bodyBold, fontSize: 17 },
   go: { width: 54, height: 54, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });

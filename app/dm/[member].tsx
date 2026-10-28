@@ -137,7 +137,7 @@ export default function DirectMessages() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, gap: 4 },
+  bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: 4 },
   mine: { alignSelf: 'flex-end', backgroundColor: colors.primary, borderBottomRightRadius: 6 },
   other: { alignSelf: 'flex-start', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 6 },
   name: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.fat },

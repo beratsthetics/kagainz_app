@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
@@ -205,23 +205,10 @@ export function AvatarRing({ tier, xp, size, still, children }: { tier?: Tier | 
   );
 }
 
-// Pro, Plus ve Max üyelerde rozet vitrininin kenarında paket renginde dönen bir ışık.
-export function TierFrame({ tier, children }: { tier: Tier; children: ReactNode }) {
-  const [box, setBox] = useState<{ width: number; height: number } | null>(null);
-  if (tier === 'free') return <>{children}</>;
-  const ring = tierColors[tier];
-  return (
-    <View onLayout={(e) => setBox(e.nativeEvent.layout)} style={{ borderRadius: radii.lg + 2, padding: 2, overflow: 'hidden' }}>
-      {box ? <Spin width={box.width} height={box.height} ring={[ring[0], ring[1], 'rgba(0,0,0,0)']} duration={6000} /> : null}
-      {children}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   face: { position: 'absolute', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   shine: { position: 'absolute', backgroundColor: 'rgba(255,255,255,0.22)' },
-  levelRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
+  levelRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
   levelCell: { alignItems: 'center', gap: 4, flex: 1 },
   levelName: { fontFamily: fonts.bodyBold, fontSize: 11.5, marginTop: 4 },
   levelFrom: { fontFamily: fonts.mono, fontSize: 10 },

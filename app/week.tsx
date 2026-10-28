@@ -48,7 +48,7 @@ export default function WeekScreen() {
               <Row style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
                 <View>
                   <Label>Antrenman</Label>
-                  <Row gap={10} style={{ alignItems: 'flex-end' }}>
+                  <Row gap={8} style={{ alignItems: 'flex-end' }}>
                     <CountUp value={week.workouts} style={styles.hero} />
                     <Delta now={week.workouts} prev={week.prev?.workouts} />
                   </Row>
@@ -86,7 +86,7 @@ export default function WeekScreen() {
               </Row>
               <Row gap={spacing.sm}>
                 <Box label="Set" value={`${week.sets}`} />
-                <Box label="Rekor" value={week.prs ? `🏆 ${week.prs}` : '–'} color={colors.fat} />
+                <Box label="Rekor" value={week.prs ? `🏆 ${week.prs}` : '–'} />
               </Row>
             </Card>
           </Animated.View>
@@ -153,7 +153,7 @@ function Delta({ now, prev }: { now: number; prev?: number }) {
   if (prev == null || now === prev) return null;
   const up = now > prev;
   return (
-    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, marginBottom: 12, color: up ? colors.success : colors.textMuted }}>{tx('{0} {1} geçen haftaya göre', [up ? '▲' : '▼', Math.abs(now - prev)])}</Text>
+    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, marginBottom: 16, color: up ? colors.success : colors.textMuted }}>{tx('{0} {1} geçen haftaya göre', [up ? '▲' : '▼', Math.abs(now - prev)])}</Text>
   );
 }
 
@@ -163,7 +163,7 @@ function DayRow({ week }: { week: WeekSummary }) {
   return (
     <Row style={{ justifyContent: 'space-between', marginTop: spacing.sm }}>
       {week.days.map((d, i) => (
-        <View key={d.day} style={{ alignItems: 'center', gap: 6 }}>
+        <View key={d.day} style={{ alignItems: 'center', gap: 8 }}>
           <Animated.View
             entering={ZoomIn.delay(200 + i * 60).springify()}
             style={[
@@ -189,7 +189,7 @@ function Box({ label, value, hint, color }: { label: string; value: string; hint
   const styles = useStyles();
   return (
     <View style={styles.box}>
-      <Row gap={6}>
+      <Row gap={8}>
         {color && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />}
         <Label>{label}</Label>
       </Row>

@@ -13,7 +13,7 @@ import { ACTIVITY, calculateGoals, GOALS, type Activity, type BodyProfile, type 
 import { dayKey, useStored } from '@/lib/store';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
-import { locale, tx } from '@/lib/i18n';
+import { tx } from '@/lib/i18n';
 import { useWorkouts } from '@/lib/workouts';
 
 // Kayıttan hemen sonra 3 soru: hedef, boy ve kilo, haftada kaç gün antrenman.
@@ -90,7 +90,7 @@ export default function Onboarding() {
                   <View key={g} style={styles.goalCell}>
                     <PressScale flex onPress={() => set('goal', g)} style={[styles.goal, active && styles.goalActive]}>
                       <Text style={{ fontSize: 30 }}>{GOAL_EMOJI[g]}</Text>
-                      <Text style={[styles.goalTitle, active && { color: colors.accentBright }]}>{GOALS[g].label.toLocaleUpperCase(locale())}</Text>
+                      <Text style={[styles.goalTitle, active && { color: colors.accentBright }]}>{GOALS[g].label}</Text>
                       <Text style={styles.hint}>{GOALS[g].hint}</Text>
                     </PressScale>
                   </View>
@@ -209,10 +209,10 @@ const useStyles = makeStyles((colors) => ({
     borderWidth: 1.5,
     borderColor: colors.border,
     backgroundColor: colors.surface,
-    gap: 6,
+    gap: 8,
   },
   goalActive: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  goalTitle: { fontFamily: fonts.displayMedium, fontSize: 18, color: colors.text, letterSpacing: 0.5 },
+  goalTitle: { fontFamily: fonts.bodyBold, fontSize: 16, color: colors.text },
   hint: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted },
   metrics: { borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: spacing.md },
   metric: { justifyContent: 'space-between', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },

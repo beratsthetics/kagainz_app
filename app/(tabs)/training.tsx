@@ -71,7 +71,7 @@ export default function TrainingScreen() {
           right={
             <PressScale onPress={() => router.push('/library')} style={styles.libraryBtn}>
               <Icon name={{ ios: 'figure.strengthtraining.traditional', android: 'fitness_center', web: 'fitness_center' }} size={16} color={colors.accentBright} />
-              <Text style={styles.libraryText}>HAREKETLER</Text>
+              <Text style={styles.libraryText}>Hareketler</Text>
             </PressScale>
           }
         />
@@ -138,8 +138,8 @@ export default function TrainingScreen() {
           <Card glow>
             <Row style={{ justifyContent: 'space-between' }}>
               <Label>{current.day}</Label>
-              <Row gap={6}>
-                {assigned && <Tag color={colors.gold} bg={`${colors.gold}1F`}>Koç</Tag>}
+              <Row gap={8}>
+                {assigned && <Tag>Koç</Tag>}
                 <Tag>{current.focus}</Tag>
               </Row>
             </Row>
@@ -213,7 +213,7 @@ export default function TrainingScreen() {
           </Row>
           <Row gap={spacing.md} style={{ alignItems: 'center' }}>
             <BodyMap heat={volume} height={190} />
-            <View style={{ flex: 1, gap: 6 }}>
+            <View style={{ flex: 1, gap: 8 }}>
               {topMuscles.length ? (
                 topMuscles.map(([m, v]) => (
                   <Row key={m} style={{ justifyContent: 'space-between' }}>
@@ -281,7 +281,7 @@ export default function TrainingScreen() {
       <Reveal index={8}>
         <PressScale onPress={() => router.push('/form-check')}>
           <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <IconBox name={{ ios: 'figure.stand', android: 'accessibility_new', web: 'accessibility_new' }} color="#C4B5FD" bg="rgba(196,181,253,0.16)" size={46} />
+            <IconBox name={{ ios: 'figure.stand', android: 'accessibility_new', web: 'accessibility_new' }} color={colors.accentBright} bg={colors.accentSoft} size={46} />
             <View style={{ flex: 1 }}>
               <Heading style={{ fontSize: 18 }}>Form check</Heading>
               <Body muted style={{ fontSize: 13 }}>
@@ -300,26 +300,26 @@ const useStyles = makeStyles((colors) => ({
   libraryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
+    gap: 8,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 999,
     backgroundColor: colors.accentSoft,
   },
-  libraryText: { fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, color: colors.accentBright },
+  libraryText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
   link: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
   exercise: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm + 4,
+    gap: spacing.md,
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 4,
+    paddingVertical: spacing.md,
   },
   index: { fontFamily: fonts.mono, fontSize: 12, color: colors.textDim },
   name: { fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text },
-  muscle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  muscle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 4 },
   muscleName: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
   lockOverlay: {
     position: 'absolute',
@@ -331,7 +331,7 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingBottom: spacing.lg,
-    gap: spacing.sm + 4,
+    gap: spacing.md,
   },
   lockIcon: {
     width: 56,
@@ -343,6 +343,6 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  prRow: { gap: spacing.sm + 2, paddingVertical: spacing.sm + 2, borderBottomWidth: 1, borderBottomColor: colors.border },
+  prRow: { gap: spacing.sm, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   more: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md, justifyContent: 'center' },
 }));

@@ -69,7 +69,7 @@ export default function UserProfile() {
           <AvatarRing tier={profile.tier} xp={shownXp(profile.xp, profile.role)} size={96}>
             <Avatar name={profile.username} path={profile.avatar_url} size={96} />
           </AvatarRing>
-          <Row gap={6}>
+          <Row gap={8}>
             <LevelName username={profile.username} xp={shownXp(profile.xp, profile.role)} style={{ fontFamily: fonts.display, fontSize: 28, color: colors.text }} />
             {profile.tier !== 'free' && <TierBadge tier={profile.tier} />}
             <LevelBadge xp={shownXp(profile.xp, profile.role)} size="md" />
@@ -142,7 +142,7 @@ export default function UserProfile() {
 function Box({ label, value, suffix = '' }: { label: string; value: number | string; suffix?: string }) {
   const colors = useColors();
   return (
-    <View style={{ flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 2 }}>
+    <View style={{ flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 4 }}>
       <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text }}>
         {value}
         {suffix}

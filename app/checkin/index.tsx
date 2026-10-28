@@ -199,7 +199,7 @@ export default function CheckinScreen() {
                       <Text style={{ fontSize: 20 }}>📏</Text>
                     </View>
                   )}
-                  <View style={{ flex: 1, gap: 2 }}>
+                  <View style={{ flex: 1, gap: 4 }}>
                     <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>{weekTitle(c.week_start)}</Text>
                     <Mono style={{ fontSize: 12.5, color: colors.textMuted }}>{tx('{0} kg · bel {1} cm', [fmt(c.weight), fmt(c.waist)])}</Mono>
                   </View>
@@ -278,7 +278,7 @@ function Delta({ label, unit, a, b }: { label: string; unit: string; a: number |
   if (a == null || b == null) return null;
   const d = Math.round((b - a) * 10) / 10;
   return (
-    <View style={{ minWidth: '30%', flexGrow: 1, padding: spacing.sm, borderRadius: 10, backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border, gap: 2 }}>
+    <View style={{ minWidth: '30%', flexGrow: 1, padding: spacing.sm, borderRadius: 10, backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border, gap: 4 }}>
       <Label>{label}</Label>
       <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.text }}>
         {d > 0 ? '+' : ''}

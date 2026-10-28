@@ -130,7 +130,7 @@ export default function CoachPanel() {
       </Reveal>
 
       <Reveal index={1}>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 4 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
           <Kpi tab="forms" active={tab} onPress={setTab} icon={{ ios: 'figure.stand', android: 'accessibility_new', web: 'accessibility_new' }} label="Bekleyen form" value={pending.length} color={colors.fat} />
           <Kpi tab="dms" active={tab} onPress={setTab} icon={{ ios: 'bubble.left.fill', android: 'chat', web: 'chat' }} label="Yanıt bekleyen" value={unanswered} color={colors.accentBright} />
           <Kpi tab="checkins" active={tab} onPress={setTab} icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} label="Bekleyen check-in" value={waitingCheckins} color={colors.success} />
@@ -150,7 +150,7 @@ export default function CoachPanel() {
       </Reveal>
 
       <Reveal index={2}>
-        <Row gap={spacing.sm + 4}>
+        <Row gap={spacing.md}>
           <Shortcut
             icon={{ ios: 'list.bullet.rectangle.fill', android: 'view_list', web: 'view_list' }}
             title="Şablonlar"
@@ -176,7 +176,7 @@ export default function CoachPanel() {
       </Reveal>
 
       <Reveal index={3}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text, marginTop: spacing.sm }}>{tx(TITLES[tab])}</Text>
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 20, color: colors.text, marginTop: spacing.sm }}>{tx(TITLES[tab])}</Text>
       </Reveal>
 
       {tab === 'forms' &&
@@ -255,7 +255,7 @@ export default function CoachPanel() {
                 <Row gap={spacing.sm}>
                   <Avatar name={t.member?.username} path={t.member?.avatar_url} size={36} />
                   <View style={{ flex: 1 }}>
-                    <Row gap={6}>
+                    <Row gap={8}>
                       <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>@{t.member?.username ?? 'üye'}</Text>
                       {t.sender_id === t.member_id && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent }} />}
                     </Row>
@@ -306,7 +306,7 @@ export default function CoachPanel() {
           ) : (
             shownMembers.slice(0, 100).map((m) => (
               <PressScale key={m.id} onPress={() => router.push({ pathname: '/coach/member/[id]', params: { id: m.id } })}>
-                <Card style={{ paddingVertical: spacing.sm + 2 }}>
+                <Card style={{ paddingVertical: spacing.sm }}>
                   <Row gap={spacing.sm}>
                     <Avatar name={m.username} path={m.avatar_url} size={32} />
                     <Text style={{ flex: 1, fontFamily: fonts.bodyBold, fontSize: 14.5, color: colors.text }}>@{m.username}</Text>

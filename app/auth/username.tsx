@@ -57,7 +57,7 @@ export default function UsernameScreen() {
         {RULES.map((r) => {
           const ok = r.test(name);
           return (
-            <Row key={r.text} gap={10}>
+            <Row key={r.text} gap={8}>
               <Icon
                 name={
                   ok
@@ -93,13 +93,13 @@ const useStyles = makeStyles((colors) => ({
   at: { fontFamily: fonts.mono, fontSize: 18, color: colors.textMuted },
   preview: {
     flexDirection: 'row',
-    gap: spacing.sm + 4,
+    gap: spacing.md,
     padding: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  previewName: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textMuted, marginBottom: 2 },
+  previewName: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textMuted, marginBottom: 4 },
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
 }));

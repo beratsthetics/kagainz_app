@@ -49,7 +49,7 @@ export function ShareCard({ data, variant, ref }: { data: CardData; variant: Car
         </View>
       </View>
 
-      <View style={{ flex: 1, justifyContent: 'center', gap: 18 }}>
+      <View style={{ flex: 1, justifyContent: 'center', gap: 16 }}>
         <Text style={[styles.eyebrow, { color: p.muted }]}>{date.toLocaleUpperCase(locale())}</Text>
         {data.kind === 'day' && <DayBody data={data} p={p} />}
         {data.kind === 'workout' && <WorkoutBody data={data} p={p} />}
@@ -95,7 +95,7 @@ function Row({ children, gap = 6 }: { children: ReactNode; gap?: number }) {
 function Bar({ label, value, goal, color, p }: { label: string; value: number; goal: number; color: string; p: P }) {
   const pct = goal > 0 ? Math.min(1, value / goal) : 0;
   return (
-    <View style={{ gap: 6 }}>
+    <View style={{ gap: 8 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={[styles.tileLabel, { color: p.muted }]}>{label}</Text>
         <Text style={[styles.mono, { color: p.text }]}>
@@ -115,7 +115,7 @@ function DayBody({ data, p }: { data: Extract<CardData, { kind: 'day' }>; p: P }
     <>
       <Text style={[styles.title, { color: p.text }]}>{tx('GÜNÜMÜ{0}KAPATTIM', ['\n'])}</Text>
       <Big value={num(data.totals.kcal)} unit={tx('/ {0} KCAL', [num(data.goals.kcal)])} p={p} />
-      <View style={{ gap: 12 }}>
+      <View style={{ gap: 16 }}>
         <Bar label="PROTEİN" value={data.totals.protein} goal={data.goals.protein} color={MACRO.protein} p={p} />
         <Bar label="KARB." value={data.totals.carb} goal={data.goals.carb} color={MACRO.carb} p={p} />
         <Bar label="YAĞ" value={data.totals.fat} goal={data.goals.fat} color={MACRO.fat} p={p} />
@@ -165,9 +165,9 @@ function WeekBody({ data, p }: { data: Extract<CardData, { kind: 'week' }>; p: P
     <>
       <Text style={[styles.title, { color: p.text }]}>{tx('HAFTAMIN{0}ÖZETİ', ['\n'])}</Text>
       <Big value={`${w.workouts}`} unit={w.workouts === 1 ? 'ANTRENMAN' : 'ANTRENMAN'} p={p} />
-      <Row gap={6}>
+      <Row gap={8}>
         {w.days.map((d, i) => (
-          <View key={d.day} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+          <View key={d.day} style={{ flex: 1, alignItems: 'center', gap: 8 }}>
             <View
               style={[
                 styles.dayDot,
@@ -236,26 +236,26 @@ function Backdrop({ variant }: { variant: CardStyle }) {
 
 const styles = StyleSheet.create({
   badgeRing: { width: 180, height: 180, borderRadius: 90, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
-  card: { width: CARD_W, height: CARD_H, padding: 26, overflow: 'hidden' },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  card: { width: CARD_W, height: CARD_H, padding: 24, overflow: 'hidden' },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   brand: { fontFamily: fonts.display, fontSize: 20, letterSpacing: 2, lineHeight: 22 },
   brandSub: { fontFamily: fonts.bodyBold, fontSize: 8, letterSpacing: 2.4 },
   eyebrow: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 2.2 },
   title: { fontFamily: fonts.display, fontSize: 46, lineHeight: 48, letterSpacing: 0.5 },
   big: { fontFamily: fonts.display, fontSize: 64, lineHeight: 68 },
-  unit: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.6, marginBottom: 12 },
-  tile: { flex: 1, borderRadius: 14, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 12, gap: 4 },
+  unit: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.6, marginBottom: 16 },
+  tile: { flex: 1, borderRadius: 14, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 16, gap: 4 },
   tileLabel: { fontFamily: fonts.bodyBold, fontSize: 9.5, letterSpacing: 1.4 },
   tileValue: { fontFamily: fonts.displayMedium, fontSize: 17 },
   dot: { width: 6, height: 6, borderRadius: 3 },
   mono: { fontFamily: fonts.mono, fontSize: 12 },
   track: { height: 6, borderRadius: 3, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: 3 },
-  list: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 12 },
-  listRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 9, gap: 10 },
+  list: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 16 },
+  listRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, gap: 8 },
   listName: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 13 },
-  more: { fontFamily: fonts.body, fontSize: 11.5, paddingBottom: 9 },
+  more: { fontFamily: fonts.body, fontSize: 11.5, paddingBottom: 8 },
   dayDot: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, paddingTop: 12 },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, paddingTop: 16 },
   footerText: { fontFamily: fonts.mono, fontSize: 11 },
 });

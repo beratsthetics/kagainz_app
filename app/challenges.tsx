@@ -71,7 +71,7 @@ export default function ChallengesScreen() {
             </Mono>
             <Mono style={{ color: colors.textMuted }}>{tx('%{0}', [Math.round((ch.value / ch.challenge.target) * 100)])}</Mono>
           </Row>
-          <ProgressBar value={ch.value / ch.challenge.target} color={ch.done ? colors.success : colors.fat} />
+          <ProgressBar value={ch.value / ch.challenge.target} color={ch.done ? colors.success : colors.accent} />
           <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>
             {days.map((d, i) => {
               const a = activity[d] ?? {};
@@ -86,7 +86,7 @@ export default function ChallengesScreen() {
                       borderRadius: 15,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: active ? colors.fat : colors.surfaceHigh,
+                      backgroundColor: active ? colors.accent : colors.surfaceHigh,
                       borderWidth: today ? 2 : 0,
                       borderColor: colors.text,
                     }}>
@@ -109,7 +109,7 @@ export default function ChallengesScreen() {
           {finishers.length ? (
             finishers.map((f, i) => (
               <Row key={f.user_id} gap={spacing.sm}>
-                <Mono style={{ width: 22, color: i < 3 ? colors.fat : colors.textMuted }}>{i + 1}</Mono>
+                <Mono style={{ width: 22, color: i < 3 ? colors.accentBright : colors.textMuted }}>{i + 1}</Mono>
                 <Avatar name={f.profiles?.username} path={f.profiles?.avatar_url} size={28} />
                 <Text style={{ flex: 1, fontFamily: fonts.bodyBold, fontSize: 14, color: f.user_id === session?.user.id ? colors.accentBright : colors.text }}>
                   @{f.profiles?.username ?? 'anonim'}

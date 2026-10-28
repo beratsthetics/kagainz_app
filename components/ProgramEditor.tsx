@@ -59,7 +59,7 @@ function DayEditor({
   return (
     <Card>
       <Row style={{ justifyContent: 'space-between' }}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.text }}>{day.day}</Text>
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 18, color: colors.text }}>{day.day}</Text>
         <PressScale onPress={onRemove}>
           <Icon name={{ ios: 'trash', android: 'delete', web: 'delete' }} size={18} color={colors.danger} />
         </PressScale>
@@ -131,6 +131,6 @@ function exerciseGroup(m: Muscle) {
 }
 
 const useStyles = makeStyles((colors) => ({
-  exRow: { gap: spacing.sm, padding: spacing.sm + 2, borderRadius: radius.md, backgroundColor: colors.surfaceHigh },
-  pickRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 2, borderBottomWidth: 1, borderBottomColor: colors.border },
+  exRow: { gap: spacing.sm, padding: spacing.sm, borderRadius: radius.md, backgroundColor: colors.surfaceHigh },
+  pickRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
 }));

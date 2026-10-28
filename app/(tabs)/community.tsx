@@ -26,7 +26,7 @@ import { challengeProgress } from '@/lib/challenges';
 import { useProgress } from '@/lib/progress';
 import { hasFeature, type Feature, type Tier } from '@/lib/tiers';
 import { makeStyles, useColors } from '@/lib/theme';
-import { locale, tx } from '@/lib/i18n';
+import { tx } from '@/lib/i18n';
 
 const ROOMS: { id: string; name: string; description: string; feature: Feature; minTier: Tier; icon: IconName }[] = [
   {
@@ -104,7 +104,7 @@ export default function CommunityScreen() {
         <PressScale onPress={() => router.push('/challenges')}>
           <Card>
             <Row style={{ justifyContent: 'space-between' }}>
-              <Text style={styles.eyebrow}>{'Haftanın meydan okuması'.toLocaleUpperCase(locale())}</Text>
+              <Text style={styles.eyebrow}>Haftanın meydan okuması</Text>
               {ch.done && (
                 <Tag color={colors.success} bg={colors.successSoft}>
                   Tamam
@@ -120,7 +120,7 @@ export default function CommunityScreen() {
                 </Body>
               </View>
             </Row>
-            <ProgressBar value={ch.value / ch.challenge.target} color={ch.done ? colors.success : colors.fat} height={5} />
+            <ProgressBar value={ch.value / ch.challenge.target} color={ch.done ? colors.success : colors.accent} height={5} />
           </Card>
         </PressScale>
       </Reveal>
@@ -148,8 +148,8 @@ export default function CommunityScreen() {
             <Row gap={spacing.md}>
               <IconBox
                 name={{ ios: 'bubble.left.and.text.bubble.right.fill', android: 'forum', web: 'forum' }}
-                color={tierColors.max[0]}
-                bg={`${tierColors.max[1]}33`}
+                color={colors.accentBright}
+                bg={colors.accentSoft}
               />
               <View style={{ flex: 1 }}>
                 <Heading style={{ fontSize: 18 }}>{isCoach ? 'Koç paneli' : 'Koçuna yaz'}</Heading>
@@ -173,15 +173,15 @@ export default function CommunityScreen() {
 
       {ROOMS.map((room, i) => {
         const open = isCoach || hasFeature(tier, room.feature);
-        const [c1] = tierColors[room.minTier === 'free' ? 'pro' : room.minTier];
+        const c1 = colors.accentBright;
         const content = (
           <>
             <Row style={{ justifyContent: 'space-between' }}>
               <IconBox name={room.icon} color={c1} bg={`${c1}22`} size={44} />
               {room.minTier === 'free' ? (
-                <Row gap={6}>
+                <Row gap={8}>
                   <View style={styles.liveDot} />
-                  <Text style={styles.open}>{tx('AÇIK')}</Text>
+                  <Text style={styles.open}>{tx('Açık')}</Text>
                 </Row>
               ) : (
                 <TierBadge tier={room.minTier} />
@@ -193,7 +193,7 @@ export default function CommunityScreen() {
             </Body>
             <Row style={{ justifyContent: 'space-between', marginTop: spacing.xs }}>
               <Text style={[styles.cta, !open && { color: colors.textMuted }]}>
-                {tx(open ? 'Sohbete gir' : 'Kilidi aç').toLocaleUpperCase(locale())}
+                {tx(open ? 'Sohbete gir' : 'Kilidi aç')}
               </Text>
               <Icon
                 name={
@@ -224,8 +224,8 @@ export default function CommunityScreen() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  eyebrow: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.6, color: colors.fat },
+  eyebrow: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.success },
-  open: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: colors.success },
-  cta: { fontFamily: fonts.displayMedium, fontSize: 15, letterSpacing: 1, color: colors.text },
+  open: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.success },
+  cta: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
 }));

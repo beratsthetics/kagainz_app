@@ -73,7 +73,7 @@ export default function NewExercise() {
 
   const muscleChips = (list: Muscle[], set: (l: Muscle[]) => void) =>
     GROUPS.map((g) => (
-      <Row key={g} gap={6} style={{ flexWrap: 'wrap' }}>
+      <Row key={g} gap={8} style={{ flexWrap: 'wrap' }}>
         {(Object.keys(MUSCLES) as Muscle[])
           .filter((m) => MUSCLES[m].group === g)
           .map((m) => (
@@ -110,7 +110,7 @@ export default function NewExercise() {
       <Reveal index={3}>
         <Card>
           <Label>Ekipman</Label>
-          <Row gap={6} style={{ flexWrap: 'wrap' }}>
+          <Row gap={8} style={{ flexWrap: 'wrap' }}>
             {EQUIPMENT.map((e) => (
               <Chip key={e} label={e} active={equipment === e} onPress={() => setEquipment(e)} />
             ))}
@@ -127,7 +127,7 @@ export default function NewExercise() {
           <Input value={steps} onChangeText={setSteps} multiline placeholder={'Koltuğa otur...\nTutamakları kavra...'} />
           <Label>İpucu</Label>
           <Input value={tip} onChangeText={setTip} multiline placeholder="ör. Dirseklerini kilitleme" />
-          <Row gap={6}>
+          <Row gap={8}>
             <Chip label="Ücretsiz üyelere de açık" active={free} onPress={() => setFree(!free)} />
           </Row>
         </Card>

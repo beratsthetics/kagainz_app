@@ -121,7 +121,7 @@ export default function MealPlanScreen() {
             <Row style={{ justifyContent: 'space-between' }}>
               <Label>{WEEKDAYS[ORDER[day]].day}</Label>
               <PressScale onPress={regenerate}>
-                <Row gap={6}>
+                <Row gap={8}>
                   <Icon name={{ ios: 'arrow.triangle.2.circlepath', android: 'refresh', web: 'refresh' }} size={14} color={colors.accentBright} />
                   <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright }}>Yenile</Text>
                 </Row>
@@ -138,7 +138,7 @@ export default function MealPlanScreen() {
             <Card key={m.slot}>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Row gap={spacing.sm}>
-                  <IconBox name={MEALS[m.slot].icon as IconName} color={colors.fat} bg={`${colors.fat}1A`} size={32} />
+                  <IconBox name={MEALS[m.slot].icon as IconName} color={colors.accentBright} bg={colors.accentSoft} size={32} />
                   <Heading style={{ fontSize: 18 }}>{MEALS[m.slot].label}</Heading>
                 </Row>
                 <Mono>{tx('{0} kcal', [m.macros.kcal])}</Mono>
@@ -171,7 +171,7 @@ export default function MealPlanScreen() {
             />
           ) : (
             <Row gap={spacing.sm} style={{ justifyContent: 'center' }}>
-              <Tag color={colors.gold} bg={`${colors.gold}1F`}>Max</Tag>
+              <Tag>Max</Tag>
               <Body muted style={{ fontSize: 12.5 }}>
                 Max üyeler planı koç onayına gönderebilir.
               </Body>
@@ -187,7 +187,7 @@ export default function MealPlanScreen() {
           </Row>
           <Card>
             {list.map((i) => (
-              <Row key={i.key} style={{ justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+              <Row key={i.key} style={{ justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border }}>
                 <Body style={{ fontSize: 14.5 }}>{i.name}</Body>
                 <Mono>{i.amount}</Mono>
               </Row>

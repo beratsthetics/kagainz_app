@@ -32,7 +32,7 @@ export default function BadgesScreen() {
               {earned}/{BADGES.length}
             </Mono>
           </Row>
-          <ProgressBar value={earned / BADGES.length} color={colors.gold} />
+          <ProgressBar value={earned / BADGES.length} color={colors.accent} />
         </Card>
       </Reveal>
 
@@ -65,7 +65,7 @@ export default function BadgesScreen() {
         {open && (
           <View style={{ alignItems: 'center', gap: spacing.sm }}>
             <BadgeMedal badge={open} earned={Boolean(unlocked[open.id])} size={110} />
-            <Text style={{ fontFamily: fonts.display, fontSize: 26, color: colors.text }}>{open.title}</Text>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 22, color: colors.text }}>{open.title}</Text>
             <Body muted style={{ textAlign: 'center' }}>
               {open.description}
             </Body>
@@ -127,7 +127,7 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
     padding: spacing.sm,
   },
   tileText: { fontFamily: fonts.bodyBold, fontSize: 11.5, textAlign: 'center' },

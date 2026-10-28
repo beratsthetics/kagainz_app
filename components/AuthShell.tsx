@@ -45,7 +45,7 @@ export function AuthShell({
               <Icon name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }} size={20} />
             </PressScale>
             {step !== undefined && (
-              <Row gap={6}>
+              <Row gap={8}>
                 {Array.from({ length: steps }, (_, i) => (
                   <StepDot key={i} active={i === step} done={i < step} />
                 ))}

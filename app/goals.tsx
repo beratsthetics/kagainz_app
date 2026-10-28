@@ -117,7 +117,7 @@ export default function GoalsScreen() {
                 onPress={() => set('goal', g)}
                 style={[styles.goal, p.goal === g && { borderColor: colors.accent, backgroundColor: colors.accentSoft }]}>
                 <Text style={[styles.goalTitle, p.goal === g && { color: colors.accentBright }]}>
-                  {GOALS[g].label.toLocaleUpperCase(locale())}
+                  {GOALS[g].label}
                 </Text>
                 <Text style={styles.goalHint}>{GOALS[g].hint}</Text>
               </PressScale>
@@ -185,13 +185,13 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.surfaceAlt,
     gap: 4,
   },
-  goalTitle: { fontFamily: fonts.displayMedium, fontSize: 17, color: colors.text, letterSpacing: 0.5 },
+  goalTitle: { fontFamily: fonts.bodyBold, fontSize: 16, color: colors.text },
   goalHint: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted },
   choice: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    padding: spacing.sm + 4,
+    padding: spacing.md,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,

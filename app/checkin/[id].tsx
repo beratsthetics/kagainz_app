@@ -81,7 +81,7 @@ export default function CheckinDetail() {
           {!mine && <Avatar name={item.profiles?.username} path={item.profiles?.avatar_url} size={40} />}
           <View style={{ flex: 1 }}>
             {!mine && (
-              <Row gap={6}>
+              <Row gap={8}>
                 <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text }}>@{item.profiles?.username ?? 'üye'}</Text>
                 {item.profiles?.tier && item.profiles.tier !== 'free' && <TierBadge tier={item.profiles.tier} />}
               </Row>
@@ -155,7 +155,7 @@ function Line({ label, unit, now, before }: { label: string; unit: string; now: 
   return (
     <Row style={{ justifyContent: 'space-between', paddingVertical: 4 }}>
       <Body style={{ fontSize: 14.5 }}>{label}</Body>
-      <Row gap={10}>
+      <Row gap={8}>
         {d != null && d !== 0 && (
           <Mono style={{ fontSize: 12.5, color: colors.textMuted }}>
             {d > 0 ? '▲' : '▼'} {fmt(Math.abs(d))}

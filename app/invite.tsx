@@ -125,7 +125,7 @@ export default function InviteScreen() {
 function Count({ label, value }: { label: string; value: number | string | undefined }) {
   const colors = useColors();
   return (
-    <View style={{ flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 2 }}>
+    <View style={{ flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 4 }}>
       <Mono style={{ fontSize: 22, color: colors.text }}>{value ?? '–'}</Mono>
       <Label>{label}</Label>
     </View>

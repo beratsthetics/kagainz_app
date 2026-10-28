@@ -111,11 +111,11 @@ function Result({ food, onPress }: { food: FoodResult; onPress: () => void }) {
   const styles = useStyles();
   return (
     <PressScale onPress={onPress} style={styles.result}>
-      <View style={{ flex: 1, gap: 3 }}>
+      <View style={{ flex: 1, gap: 4 }}>
         <Text style={styles.name} numberOfLines={1}>
           {food.name}
         </Text>
-        <Row gap={6}>
+        <Row gap={8}>
           {food.brand ? <Tag color={colors.textMuted} bg={colors.surfaceAlt}>{food.brand}</Tag> : null}
           <Mono style={{ fontSize: 11.5, color: colors.textMuted }}>
             <Text style={{ color: colors.protein }}>P {food.per100g.protein}</Text> · <Text style={{ color: colors.carb }}>K {food.per100g.carb}</Text> ·{' '}

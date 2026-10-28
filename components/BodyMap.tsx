@@ -101,7 +101,7 @@ export function BodyMap({
     labels && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 1.4, color: c.textDim }}>{text}</Text>;
 
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
       <View style={{ alignItems: 'center' }}>
         {figure(bodyFront, colors(FRONT), '0 0 724 1448')}
         {label('ÖN')}

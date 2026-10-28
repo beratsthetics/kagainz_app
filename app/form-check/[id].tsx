@@ -154,7 +154,7 @@ function Detail({
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.text }}>{formCheckTitle(check)}</Text>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 20, color: colors.text }}>{formCheckTitle(check)}</Text>
               <Mono style={{ color: colors.textMuted }}>
                 @{check.profiles?.username ?? 'üye'} · {new Date(check.created_at).toLocaleDateString(locale(), { day: 'numeric', month: 'long' })}
               </Mono>
@@ -206,8 +206,8 @@ function Detail({
                   ) : (
                     <Avatar name={c.profiles?.username} path={c.profiles?.avatar_url} size={26} />
                   )}
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Row gap={6}>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Row gap={8}>
                       <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted }}>@{c.profiles?.username ?? ''}</Text>
                       {c.profiles?.role === 'coach' && (
                         <Tag color={colors.primaryText} bg={colors.fat}>
