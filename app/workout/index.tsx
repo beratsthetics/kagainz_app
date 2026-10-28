@@ -139,13 +139,16 @@ function ExerciseCard({ index }: { index: number }) {
   const { view } = useExerciseMedia(e.exerciseId, isCoach || tier !== 'free');
   const [big, setBig] = useState(false);
   const [bigWidth, setBigWidth] = useState(0);
+  // Kilosu ya da tekrarı boş bir sete ✓ basılınca o satır kırmızı yanar.
+  const [missing, setMissing] = useState<number | null>(null);
 
   function toggle(si: number, set: SetLog) {
     if (set.done) return w.updateSet(index, si, { done: false });
     const p = prev?.[si] ?? prev?.[prev.length - 1];
     const kg = set.kg ?? p?.kg ?? null;
     const reps = set.reps ?? p?.reps ?? null;
-    if (kg == null || reps == null) return;
+    if (kg == null || reps == null) return setMissing(si);
+    setMissing(null);
     w.updateSet(index, si, { kg, reps, done: true });
     w.startRest(w.restSeconds);
   }
@@ -197,7 +200,7 @@ function ExerciseCard({ index }: { index: number }) {
       {e.sets.map((s, si) => {
         const p = prev?.[si];
         return (
-          <Row key={si} style={[styles.setRow, s.done && { backgroundColor: colors.successSoft }]}>
+          <Row key={si} style={[styles.setRow, s.done && { backgroundColor: colors.successSoft }, missing === si && { borderWidth: 1, borderColor: colors.danger }]}>
             <PressScale onPress={() => e.sets.length > 1 && !s.done && w.removeSet(index, si)} style={{ width: 26 }}>
               <Text style={styles.setIndex}>{si + 1}</Text>
             </PressScale>
@@ -221,6 +224,7 @@ function ExerciseCard({ index }: { index: number }) {
           </Row>
         );
       })}
+      {missing != null && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger, textAlign: 'center' }}>Önce kilo ve tekrarı yaz, sonra ✓'ye bas.</Text>}
       <PressScale onPress={() => w.addSet(index)} style={styles.addSet}>
         <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={14} color={colors.textMuted} />
         <Text style={[styles.head, { color: colors.textMuted }]}>SET EKLE</Text>

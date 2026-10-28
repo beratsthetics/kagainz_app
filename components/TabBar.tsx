@@ -30,7 +30,7 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: B
           }
           return (
             <Fragment key={route.key}>
-              <Animated.View layout={LinearTransition.springify().damping(18).stiffness(180)} style={{ flex: focused ? 2 : 1 }}>
+              <Animated.View layout={LinearTransition.springify().damping(18).stiffness(180)} style={{ flex: focused ? 3 : 1 }}>
                 <Pressable
                   onPress={press}
                   onLongPress={() => emitter.emit({ type: 'tabLongPress', target: route.key })}
@@ -89,9 +89,10 @@ const useStyles = makeStyles((colors) => ({
   tabActive: { backgroundColor: colors.primary },
   label: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.4 },
   plus: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.accent,

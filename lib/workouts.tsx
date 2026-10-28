@@ -107,6 +107,16 @@ function emptySets(n: number): SetLog[] {
   return Array.from({ length: Math.max(1, n) }, () => ({ kg: null, reps: null, done: false }));
 }
 
+// Setler geçen seferin kilo ve tekrarıyla dolu gelir; geçmiş yoksa tekrar hedefin alt sınırıdır ("8-10" -> 8).
+// Üye çoğu zaman sadece ✓'ye basar.
+function prefilledSets(n: number, prev: SetLog[] | null, targetReps?: string): SetLog[] {
+  const target = targetReps ? parseInt(targetReps, 10) : NaN;
+  return emptySets(n).map((s, i) => {
+    const p = prev?.[i] ?? prev?.[prev.length - 1];
+    return { ...s, kg: p?.kg ?? null, reps: p?.reps ?? (Number.isFinite(target) ? target : null) };
+  });
+}
+
 export function WorkoutProvider({ children }: { children: ReactNode }) {
   const { session, tier, isCoach } = useAuth();
   const { markWorkout, bump } = useProgress();
@@ -260,13 +270,13 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           exercises: day.exercises.map((e) => ({
             exerciseId: e.exerciseId,
             target: { sets: e.sets, reps: e.reps },
-            sets: emptySets(e.sets),
+            sets: prefilledSets(e.sets, lastSetsFor(e.exerciseId), e.reps),
           })),
         }),
       startEmpty: () =>
         setActive({ id: `${Date.now()}`, title: 'Serbest antrenman', startedAt: new Date().toISOString(), exercises: [] }),
       addExercise: (exerciseId) =>
-        mutate((s) => ({ ...s, exercises: [...s.exercises, { exerciseId, sets: emptySets(3) }] })),
+        mutate((s) => ({ ...s, exercises: [...s.exercises, { exerciseId, sets: prefilledSets(3, lastSetsFor(exerciseId)) }] })),
       removeExercise: (index) => mutate((s) => ({ ...s, exercises: s.exercises.filter((_, i) => i !== index) })),
       updateSet: (ei, si, patch) =>
         mutate((s) => ({
