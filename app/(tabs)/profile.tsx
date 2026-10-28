@@ -1,5 +1,5 @@
 import { router, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Switch, View } from 'react-native';
 import { Text } from '@/components/T';
 import { AvatarRing, BadgeMedal, LevelMedals, TierFrame } from '@/components/BadgeMedal';
@@ -94,6 +94,12 @@ export default function ProfileScreen() {
           </Mono>
           <LevelProgress xp={shownXp(profile?.xp, profile?.role)} />
         </View>
+        {/* Üstte tek bakışta özet: seri, rekor, rozet */}
+        <Row gap={spacing.sm}>
+          <Summary value={tx('{0} gün', [stats.streak])} label="Seri" emoji="🔥" />
+          <Summary value={`${stats.prs}`} label="Rekor" emoji="🏆" />
+          <Summary value={`${Object.keys(unlocked).length}/${BADGES.length}`} label="Rozet" emoji="🏅" onPress={() => router.push('/badges')} />
+        </Row>
       </Reveal>
 
       {!profile?.username && (
@@ -101,18 +107,6 @@ export default function ProfileScreen() {
           <Button title="Kullanıcı adı seç" arrow onPress={() => router.push('/auth/username')} />
         </Reveal>
       )}
-
-      <Reveal index={2}>
-        <Card>
-          <Label>Günlük hedefler</Label>
-          <Row style={{ justifyContent: 'space-between' }}>
-            <Goal label="Kalori" value={`${goals.kcal}`} />
-            <Goal label="Protein" value={`${goals.protein}g`} color={colors.protein} />
-            <Goal label="Karb." value={`${goals.carb}g`} color={colors.carb} />
-            <Goal label="Yağ" value={`${goals.fat}g`} color={colors.fat} />
-          </Row>
-        </Card>
-      </Reveal>
 
       <Reveal index={3}>
         <TierFrame tier={tier}>
@@ -142,38 +136,52 @@ export default function ProfileScreen() {
                   Pro, Plus ve Max'ta rozetlerin parlar, vitrinin canlanır.
                 </Body>
               )}
-              <Row gap={spacing.md}>
-                <Mono style={{ color: colors.textMuted }}>{tx('🔥 {0} gün seri', [stats.streak])}</Mono>
-                <Mono style={{ color: colors.textMuted }}>{tx('🏆 {0} rekor', [stats.prs])}</Mono>
-              </Row>
             </Card>
           </PressScale>
         </TierFrame>
       </Reveal>
 
+      {isCoach && (
+        <Reveal index={4}>
+          <Card style={{ gap: 0, paddingVertical: spacing.xs }}>
+            <LinkRow icon={{ ios: 'person.badge.key.fill', android: 'shield_person', web: 'shield_person' }} label="Koç paneli" href="/coach" last />
+          </Card>
+        </Reveal>
+      )}
+
+      {/* Menü üç grupta: İlerlemem, Topluluk, Ayarlar */}
       <Reveal index={4}>
-        <Card style={{ gap: 0, paddingVertical: spacing.xs }}>
-          {isCoach && <LinkRow icon={{ ios: 'person.badge.key.fill', android: 'shield_person', web: 'shield_person' }} label="Koç paneli" href="/coach" />}
-          <LinkRow icon={{ ios: 'chart.xyaxis.line', android: 'monitoring', web: 'monitoring' }} label="İlerleme" href="/progress" />
-          <LinkRow icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} label="Haftalık check-in" href="/checkin" />
-          <LinkRow icon={{ ios: 'target', android: 'target', web: 'target' }} label="Hedeflerim" href="/goals" />
+        <Group title="İlerlemem">
+          <LinkRow icon={{ ios: 'chart.xyaxis.line', android: 'monitoring', web: 'monitoring' }} label="İlerleme" sub="Kilo, kalori ve antrenman grafikleri" href="/progress" />
           <LinkRow icon={{ ios: 'calendar', android: 'calendar_month', web: 'calendar_month' }} label="Haftalık özet" href="/week" />
-          <LinkRow icon={{ ios: 'trophy.fill', android: 'trophy', web: 'trophy' }} label="Sıralama" href="/leaderboard" />
-          <LinkRow icon={{ ios: 'person.2.fill', android: 'group', web: 'group' }} label="Arkadaşlar" href="/friends" />
-          <LinkRow icon={{ ios: 'gift.fill', android: 'redeem', web: 'redeem' }} label="Arkadaşını davet et" href="/invite" />
-          <LinkRow icon={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }} label="Hatırlatmalar" href="/reminders" />
-          <LinkRow icon={{ ios: 'flag.checkered', android: 'flag', web: 'flag' }} label="Haftalık meydan okuma" href="/challenges" />
-          {hasFeature(tier, 'form_check') && (
-            <LinkRow icon={{ ios: 'video.fill', android: 'videocam', web: 'videocam' }} label="Form kontrol" href="/form-check" />
-          )}
-          {hasFeature(tier, 'coach_dm') && !isCoach && (
-            <LinkRow icon={{ ios: 'bubble.left.and.text.bubble.right.fill', android: 'forum', web: 'forum' }} label="Koçuma yaz" href="/dm/me" last />
-          )}
-        </Card>
+          <LinkRow
+            icon={{ ios: 'target', android: 'target', web: 'target' }}
+            label="Hedeflerim"
+            sub={tx('{0} kcal · {1} g protein', [goals.kcal.toLocaleString(locale()), goals.protein])}
+            href="/goals"
+          />
+          <LinkRow icon={{ ios: 'figure.stand', android: 'accessibility_new', web: 'accessibility_new' }} label="Form kontrolü" locked={!hasFeature(tier, 'form_check')} href="/form-check" />
+          <LinkRow icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} label="Haftalık check-in" locked={tier !== 'max'} href="/checkin" last />
+        </Group>
       </Reveal>
 
       <Reveal index={5}>
-        <Settings />
+        <Group title="Topluluk">
+          <LinkRow icon={{ ios: 'trophy.fill', android: 'trophy', web: 'trophy' }} label="Sıralama" href="/leaderboard" />
+          <LinkRow icon={{ ios: 'flag.checkered', android: 'flag', web: 'flag' }} label="Haftalık meydan okuma" href="/challenges" />
+          <LinkRow icon={{ ios: 'person.2.fill', android: 'group', web: 'group' }} label="Arkadaşlar" href="/friends" />
+          <LinkRow icon={{ ios: 'gift.fill', android: 'redeem', web: 'redeem' }} label="Arkadaşını davet et" href="/invite" last={!(hasFeature(tier, 'coach_dm') && !isCoach)} />
+          {hasFeature(tier, 'coach_dm') && !isCoach && (
+            <LinkRow icon={{ ios: 'bubble.left.and.text.bubble.right.fill', android: 'forum', web: 'forum' }} label="Koçuma yaz" href="/dm/me" last />
+          )}
+        </Group>
+      </Reveal>
+
+      <Reveal index={5}>
+        <Group title="Ayarlar">
+          <LinkRow icon={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }} label="Hatırlatmalar" href="/reminders" last />
+          <Settings />
+        </Group>
       </Reveal>
 
       <Reveal index={6}>
@@ -230,13 +238,24 @@ function DeleteAccount() {
   );
 }
 
-function Goal({ label, value, color }: { label: string; value: string; color?: string }) {
-  const colors = useColors();
-  color ??= colors.text;
+function Summary({ value, label, emoji, onPress }: { value: string; label: string; emoji: string; onPress?: () => void }) {
+  const styles = useStyles();
   return (
-    <View style={{ alignItems: 'center', gap: 4 }}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 22, color }}>{value}</Text>
+    <PressScale flex onPress={onPress} style={styles.summary}>
+      <Text style={{ fontSize: 18 }}>{emoji}</Text>
+      <Text raw style={styles.summaryValue}>
+        {value}
+      </Text>
       <Label>{label}</Label>
+    </PressScale>
+  );
+}
+
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View style={{ gap: spacing.xs }}>
+      <Label style={{ marginLeft: 4 }}>{title}</Label>
+      <Card style={{ gap: 0, paddingVertical: spacing.xs }}>{children}</Card>
     </View>
   );
 }
@@ -295,13 +314,21 @@ function ProfilePhoto() {
   );
 }
 
-function LinkRow({ icon, label, href, last }: { icon: IconName; label: string; href: Href; last?: boolean }) {
+function LinkRow({ icon, label, href, last, sub, locked }: { icon: IconName; label: string; href: Href; last?: boolean; sub?: string; locked?: boolean }) {
   const colors = useColors();
   const styles = useStyles();
   return (
     <PressScale onPress={() => router.push(href)} style={[styles.linkRow, !last && styles.linkBorder]}>
       <Icon name={icon} size={18} color={colors.accentBright} />
-      <Text style={styles.linkText}>{label}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.linkText}>{label}</Text>
+        {sub ? (
+          <Text raw style={styles.linkSub}>
+            {sub}
+          </Text>
+        ) : null}
+      </View>
+      {locked && <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={13} color={colors.textDim} />}
       <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={14} color={colors.textDim} />
     </PressScale>
   );
@@ -313,7 +340,7 @@ function Settings() {
   const [leaderboardVisible, setLeaderboardVisible] = useLeaderboardVisible();
   const [lang, setLang] = useLangPref();
   return (
-    <Card>
+    <View style={{ gap: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
       <Label>Dil / Language</Label>
       <Segmented options={LANGS} value={lang} onChange={setLang} />
       <Label>Görünüm</Label>
@@ -335,7 +362,7 @@ function Settings() {
         </View>
         <Switch value={leaderboardVisible} trackColor={{ true: colors.accent, false: colors.surfaceHigh }} onValueChange={setLeaderboardVisible} />
       </Row>
-    </Card>
+    </View>
   );
 }
 
@@ -383,7 +410,10 @@ const useStyles = makeStyles((colors) => ({
   rule: { height: 1, backgroundColor: colors.border },
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md - 2 },
   linkBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
-  linkText: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
+  linkText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
+  linkSub: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted, marginTop: 2 },
+  summary: { alignItems: 'center', gap: 2, paddingVertical: spacing.sm + 2, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  summaryValue: { fontFamily: fonts.display, fontSize: 20, color: colors.text },
   username: { fontFamily: fonts.display, fontSize: 28, color: colors.text },
   signOut: {
     flexDirection: 'row',
