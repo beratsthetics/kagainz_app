@@ -4,6 +4,7 @@ import { ScrollView, View } from 'react-native';
 import { Text } from '@/components/T';
 
 import { MacroBar, MacroLine, WaterTracker } from '@/components/bits';
+import { FoodSheet } from '@/components/FoodSheet';
 import {
   Body,
   Button,
@@ -29,6 +30,7 @@ import {
 import { fonts, radius, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { MEAL_ORDER, MEALS, mealForNow, totalOf, useDaily, type MealSlot } from '@/lib/daily';
+import { searchLocal, type FoodResult } from '@/lib/foodsearch';
 import { parseMeal, sumMacros } from '@/lib/macros';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature, minTierFor } from '@/lib/tiers';
@@ -94,41 +96,21 @@ function MacroCalculator() {
     if (params.meal) setMeal(params.meal);
   }, [params.meal]);
   const [shelf, setShelf] = useState<'recent' | 'favorites'>('recent');
+  const [picked, setPicked] = useState<FoodResult | null>(null);
   const { entries, totals: dayTotals, goals, add, remove, favorites, recent, isFavorite, toggleFavorite } = useDaily();
   const lines = useMemo(() => parseMeal(text), [text]);
   const total = useMemo(() => sumMacros(lines), [lines]);
   const known = lines.filter((l) => l.food);
+  // Yazılan son parça için veritabanından öneriler: dokununca gramıyla eklenir.
+  const fragment = text.split(/\n|,(?!\d)|\+|\bve\b/i).pop()?.trim() ?? '';
+  const query = fragment.replace(/^[\d.,]+\s*(g|gr|gram|ml|kg|adet)?\s*/i, '');
+  const suggestions = useMemo(() => (query.length >= 2 ? searchLocal(query, 4) : []), [query]);
   const shelfItems = shelf === 'recent' ? recent : favorites;
   const photoOk = hasFeature(tier, 'photo_macros');
 
   function addQuick(q: string) {
     setText((t) => (t.trim() ? `${t.trim().replace(/,$/, '')}, ${q}` : q));
   }
-
-  const tools: { icon: IconName; label: string; onPress: () => void; badge?: boolean }[] = [
-    {
-      icon: { ios: 'magnifyingglass', android: 'search', web: 'search' },
-      label: 'Ara',
-      onPress: () => router.push({ pathname: '/food/search', params: { meal } }),
-    },
-    {
-      icon: { ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' },
-      label: 'Barkod',
-      onPress: () => router.push({ pathname: '/food/scan', params: { meal } }),
-    },
-    {
-      icon: { ios: 'camera.viewfinder', android: 'photo_camera', web: 'photo_camera' },
-      label: 'Fotoğraf',
-      badge: !photoOk,
-      onPress: () => router.push({ pathname: '/food/photo', params: { meal } }),
-    },
-    {
-      icon: { ios: 'list.bullet.rectangle.fill', android: 'menu_book', web: 'menu_book' },
-      label: 'Plan',
-      badge: !hasFeature(tier, 'meal_plans'),
-      onPress: () => router.push('/meal-plan'),
-    },
-  ];
 
   return (
     <Screen>
@@ -162,45 +144,64 @@ function MacroCalculator() {
         </Card>
       </Reveal>
 
-      {/* Ekleme yolları */}
-      <Reveal index={2}>
-        <Row gap={spacing.sm}>
-          {tools.map((t) => (
-            <PressScale key={t.label} flex onPress={t.onPress} style={styles.tool}>
-              <Icon name={t.icon} size={22} color={colors.text} />
-              <Text style={styles.toolText}>{t.label}</Text>
-              {t.badge && (
-                <View style={styles.toolBadge}>
-                  <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={9} color={colors.primaryText} />
-                </View>
-              )}
-            </PressScale>
-          ))}
-        </Row>
-      </Reveal>
-
       <Reveal index={3}>
         <Segmented options={MEAL_OPTIONS} value={meal} onChange={setMeal} />
       </Reveal>
 
+      {/* Tek giriş kutusu: yazınca hem hesaplar hem veritabanında arar; yanında kamera ve barkod */}
       <Reveal index={4}>
         <Input
           value={text}
           onChangeText={setText}
           multiline
-          placeholder="Yaz: 3 yumurta, 1 dilim ekmek, 10g zeytinyağı"
+          placeholder="Ne yedin? ör. 3 yumurta, 1 dilim ekmek"
           prefix={<Icon name={{ ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' }} size={18} color={colors.accentBright} />}
+          suffix={
+            <Row gap={6}>
+              <PressScale onPress={() => router.push({ pathname: '/food/photo', params: { meal } })} style={styles.inputBtn}>
+                <Icon name={{ ios: 'camera.viewfinder', android: 'photo_camera', web: 'photo_camera' }} size={19} color={colors.text} />
+                {!photoOk && (
+                  <View style={styles.toolBadge}>
+                    <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={8} color={colors.primaryText} />
+                  </View>
+                )}
+              </PressScale>
+              <PressScale onPress={() => router.push({ pathname: '/food/scan', params: { meal } })} style={styles.inputBtn}>
+                <Icon name={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }} size={19} color={colors.text} />
+              </PressScale>
+            </Row>
+          }
           style={{ minHeight: 64, alignItems: 'flex-start', paddingTop: 2 }}
         />
       </Reveal>
 
-      <Reveal index={5}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
-          {QUICK.map((q) => (
-            <Chip key={q} label={`+ ${tx(q)}`} onPress={() => addQuick(tx(q))} />
+      {text.trim().length === 0 ? (
+        <Reveal index={5}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+            {QUICK.map((q) => (
+              <Chip key={q} label={`+ ${tx(q)}`} onPress={() => addQuick(tx(q))} />
+            ))}
+          </ScrollView>
+        </Reveal>
+      ) : (
+        <View style={{ gap: spacing.xs }}>
+          {suggestions.map((f) => (
+            <PressScale key={f.id} onPress={() => setPicked(f)} style={styles.suggestion}>
+              <Icon name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }} size={15} color={colors.textMuted} />
+              <Text style={styles.suggestionName} numberOfLines={1}>
+                {f.name}
+              </Text>
+              <Mono style={{ fontSize: 11.5, color: colors.textMuted }}>{tx('{0} kcal/100g', [f.per100g.kcal])}</Mono>
+              <Icon name={{ ios: 'plus.circle.fill', android: 'add_circle', web: 'add_circle' }} size={20} color={colors.accentBright} />
+            </PressScale>
           ))}
-        </ScrollView>
-      </Reveal>
+          {query.length >= 3 && (
+            <PressScale onPress={() => router.push({ pathname: '/food/search', params: { q: query, meal } })}>
+              <Text style={[styles.link, { paddingVertical: 4 }]}>{tx('Paketli ürünlerde "{0}" ara →', [query])}</Text>
+            </PressScale>
+          )}
+        </View>
+      )}
 
       {text.trim().length > 0 && (
         <Reveal index={0}>
@@ -356,22 +357,25 @@ function MacroCalculator() {
         </Card>
       </Reveal>
 
-      {!hasFeature(tier, 'meal_plans') && (
-        <Reveal index={9}>
-          <PressScale onPress={() => router.push('/meal-plan')}>
-            <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <IconBox name={{ ios: 'list.bullet.rectangle.fill', android: 'menu_book', web: 'menu_book' }} color={colors.accentBright} bg={colors.accentSoft} />
-              <View style={{ flex: 1 }}>
-                <Heading style={{ fontSize: 17 }}>Haftalık yemek planı</Heading>
-                <Body muted style={{ fontSize: 13 }}>
-                  Hedefine göre menü ve alışveriş listesi.
-                </Body>
-              </View>
+      <Reveal index={9}>
+        <PressScale onPress={() => router.push('/meal-plan')}>
+          <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <IconBox name={{ ios: 'list.bullet.rectangle.fill', android: 'menu_book', web: 'menu_book' }} color={colors.accentBright} bg={colors.accentSoft} />
+            <View style={{ flex: 1 }}>
+              <Heading style={{ fontSize: 17 }}>Haftalık yemek planı</Heading>
+              <Body muted style={{ fontSize: 13 }}>
+                Hedefine göre menü ve alışveriş listesi.
+              </Body>
+            </View>
+            {hasFeature(tier, 'meal_plans') ? (
+              <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={18} color={colors.textMuted} />
+            ) : (
               <TierBadge tier={minTierFor('meal_plans')} />
-            </Card>
-          </PressScale>
-        </Reveal>
-      )}
+            )}
+          </Card>
+        </PressScale>
+      </Reveal>
+      <FoodSheet food={picked} meal={meal} source="search" onClose={() => setPicked(null)} onAdded={() => setText('')} />
     </Screen>
   );
 }
@@ -401,11 +405,11 @@ const useStyles = makeStyles((colors) => ({
   toolText: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.text },
   toolBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    top: -2,
+    right: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: colors.text,
     alignItems: 'center',
     justifyContent: 'center',
@@ -427,6 +431,26 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  inputBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  suggestionName: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 14, color: colors.text },
   slotAdd: {
     width: 28,
     height: 28,
