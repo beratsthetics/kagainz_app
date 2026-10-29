@@ -58,12 +58,17 @@ export function BodyMap({
   heat,
   height = 260,
   labels = true,
+  base,
+  stroke,
 }: {
   primary?: Muscle[];
   secondary?: Muscle[];
   heat?: Partial<Record<Muscle, number>>;
   height?: number;
   labels?: boolean;
+  // Paylaşım kartı gibi kendi renkleri olan yerlerde boş kas ve kenar rengi.
+  base?: string;
+  stroke?: string;
 }) {
   const c = useColors();
   const maxHeat = heat ? Math.max(1, ...Object.values(heat).map((v) => v ?? 0)) : 1;
@@ -90,7 +95,7 @@ export function BodyMap({
       <Svg viewBox={viewBox} width={height / 2} height={height}>
         {parts.flatMap((p) =>
           [...(p.path?.common ?? []), ...(p.path?.left ?? []), ...(p.path?.right ?? [])].map((d) => (
-            <Path key={d} d={d} fill={(p.slug && fills.get(p.slug)) || c.surfaceHigh} stroke={c.background} strokeWidth={1} />
+            <Path key={d} d={d} fill={(p.slug && fills.get(p.slug)) || base || c.surfaceHigh} stroke={stroke ?? c.background} strokeWidth={1} />
           )),
         )}
       </Svg>

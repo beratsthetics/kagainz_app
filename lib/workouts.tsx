@@ -54,6 +54,8 @@ export type WorkoutMeta = {
   volume: number;
   exercises: { name: string; best: string }[];
   prs: string[];
+  // Kas başına çalışma seti (yardımcı kas yarım sayılır); paylaşım kartındaki vücut haritası için.
+  heat: Partial<Record<Muscle, number>>;
 };
 
 export function workoutMeta(s: Session): WorkoutMeta {
@@ -68,6 +70,13 @@ export function workoutMeta(s: Session): WorkoutMeta {
       return { name: exerciseById(e.exerciseId)?.trName ?? e.exerciseId, best: tx('{0} kg × {1}', [best.kg, best.reps]) };
     }),
     prs: (s.prs ?? []).map((p) => tx('{0}: {1} kg × {2}', [exerciseById(p.exerciseId)?.trName, p.kg, p.reps])),
+    heat: s.exercises.reduce<Partial<Record<Muscle, number>>>((h, e) => {
+      const ex = exerciseById(e.exerciseId);
+      const n = e.sets.filter((x) => x.done && isWorking(x)).length;
+      ex?.primary.forEach((m) => (h[m] = (h[m] ?? 0) + n));
+      ex?.secondary.forEach((m) => (h[m] = (h[m] ?? 0) + n / 2));
+      return h;
+    }, {}),
   };
 }
 

@@ -9,6 +9,7 @@ import { fonts } from '@/constants/theme';
 import { type Macros } from '@/lib/macros';
 import { type WeekSummary } from '@/lib/week';
 import { type WorkoutMeta } from '@/lib/workouts';
+import { BodyMap } from '@/components/BodyMap';
 import { locale, tx } from '@/lib/i18n';
 
 // Instagram hikâyesi boyutunda (9:16) paylaşım kartı. Ekranda 360x640 çizilir,
@@ -141,8 +142,9 @@ function WorkoutBody({ data, p }: { data: Extract<CardData, { kind: 'workout' }>
         <Tile label="Set" value={`${m.sets}`} p={p} />
         <Tile label="Rekor" value={m.prs.length ? `🏆 ${m.prs.length}` : '–'} p={p} />
       </Row>
+      {Object.keys(m.heat).length > 0 && <BodyMap heat={m.heat} height={110} labels={false} base={p.tile} stroke={p.bg} />}
       <View style={[styles.list, { borderColor: p.line }]}>
-        {m.exercises.slice(0, 5).map((e, i) => (
+        {m.exercises.slice(0, 3).map((e, i) => (
           <View key={i} style={[styles.listRow, i > 0 && { borderTopWidth: 1, borderTopColor: p.line }]}>
             <Text style={[styles.listName, { color: p.text }]} numberOfLines={1}>
               {e.name}
@@ -150,7 +152,7 @@ function WorkoutBody({ data, p }: { data: Extract<CardData, { kind: 'workout' }>
             <Text style={[styles.mono, { color: p.muted }]}>{e.best}</Text>
           </View>
         ))}
-        {m.exercises.length > 5 && <Text style={[styles.more, { color: p.muted }]}>{tx('+{0} hareket daha', [m.exercises.length - 5])}</Text>}
+        {m.exercises.length > 3 && <Text style={[styles.more, { color: p.muted }]}>{tx('+{0} hareket daha', [m.exercises.length - 3])}</Text>}
       </View>
     </>
   );
