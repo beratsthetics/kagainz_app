@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, typ
 import { useAuth } from './auth';
 import { useCelebrate } from './celebrate';
 import { loadCatalog } from './exerciseCatalog';
-import { exerciseById, MUSCLES, type Muscle } from './exercises';
+import { exerciseById, MUSCLES, type Equipment, type Muscle } from './exercises';
 import { cancelNotification, scheduleRestDone } from './notifications';
 import { DEFAULT_PROGRAM, type Program, type ProgramDay } from './program';
 import { useProgress } from './progress';
@@ -11,8 +11,13 @@ import { daysAgo, useStored } from './store';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { tx } from './i18n';
 
-export type SetLog = { kg: number | null; reps: number | null; done: boolean };
-export type ExerciseLog = { exerciseId: string; target?: { sets: number; reps: string }; sets: SetLog[] };
+// type yoksa normal set. Isınma setleri hacme, rekora ve ilerleme önerisine sayılmaz.
+export type SetType = 'warmup' | 'drop' | 'failure';
+export type SetLog = { kg: number | null; reps: number | null; done: boolean; type?: SetType; rpe?: number };
+// superset: bu hareket bir sonrakiyle süperset; aralarında dinlenme sayacı başlamaz.
+export type ExerciseLog = { exerciseId: string; target?: { sets: number; reps: string }; sets: SetLog[]; superset?: boolean };
+
+export const isWorking = (s: SetLog) => s.type !== 'warmup';
 export type PR = { exerciseId: string; kg: number; reps: number; e1rm: number; kind: 'weight' | 'e1rm' };
 export type Session = {
   id: string;
@@ -33,7 +38,7 @@ export function e1rm(kg: number, reps: number) {
 
 export function sessionVolume(s: Session) {
   return s.exercises.reduce(
-    (n, e) => n + e.sets.reduce((m, set) => m + (set.done ? (set.kg ?? 0) * (set.reps ?? 0) : 0), 0),
+    (n, e) => n + e.sets.reduce((m, set) => m + (set.done && isWorking(set) ? (set.kg ?? 0) * (set.reps ?? 0) : 0), 0),
     0,
   );
 }
@@ -89,6 +94,7 @@ type WorkoutState = {
   updateSet: (ei: number, si: number, patch: Partial<SetLog>) => void;
   addSet: (ei: number) => void;
   removeSet: (ei: number, si: number) => void;
+  toggleSuperset: (ei: number) => void;
   finish: () => Session | null;
   discard: () => void;
   lastSetsFor: (exerciseId: string) => SetLog[] | null;
@@ -107,14 +113,47 @@ function emptySets(n: number): SetLog[] {
   return Array.from({ length: Math.max(1, n) }, () => ({ kg: null, reps: null, done: false }));
 }
 
-// Setler geçen seferin kilo ve tekrarıyla dolu gelir; geçmiş yoksa tekrar hedefin alt sınırıdır ("8-10" -> 8).
-// Üye çoğu zaman sadece ✓'ye basar.
-function prefilledSets(n: number, prev: SetLog[] | null, targetReps?: string): SetLog[] {
+export type Suggestion = { kg: number; reps: number; reason: 'up' | 'reps' | 'same' };
+
+// Hedef aralığı: "6-8" -> [6, 8], "10" -> [10, 10]. Sayı yoksa null.
+function repRange(target?: string): [number, number] | null {
+  const m = target?.match(/(\d+)\s*(?:-\s*(\d+))?/);
+  if (!m) return null;
+  const lo = Number(m[1]);
+  return [lo, m[2] ? Number(m[2]) : lo];
+}
+
+const STEP_KG: Partial<Record<Equipment, number>> = { Barbell: 2.5, Smith: 2.5, Dumbbell: 2.5, Makine: 5, Kablo: 5 };
+
+// Çift ilerleme: geçen sefer en ağır kiloda her çalışma seti aralığın üstüne ulaştıysa kilo artar ve tekrar
+// aralığın altına iner; hepsi en az alt sınırdaysa bir tekrar eklenir; değilse aynı kiloda kalınır.
+export function suggestNext(prev: SetLog[] | null, target?: string, equipment?: Equipment): Suggestion | null {
+  const range = repRange(target);
+  const working = (prev ?? []).filter((s) => isWorking(s) && s.type !== 'drop' && s.kg != null && s.reps != null);
+  if (!range || !working.length) return null;
+  const [lo, hi] = range;
+  const top = Math.max(...working.map((s) => s.kg!));
+  const reps = working.filter((s) => s.kg === top).map((s) => s.reps!);
+  const step = equipment ? STEP_KG[equipment] : undefined;
+  if (reps.every((r) => r >= hi)) return step ? { kg: top + step, reps: lo, reason: 'up' } : { kg: top, reps: hi + 1, reason: 'reps' };
+  if (reps.every((r) => r >= lo)) return { kg: top, reps: Math.min(hi, Math.min(...reps) + 1), reason: 'reps' };
+  return { kg: top, reps: lo, reason: 'same' };
+}
+
+// Setler geçen seferin kilo ve tekrarıyla dolu gelir; ilerleme önerisi varsa çalışma setleri ondan dolar.
+// Geçmiş yoksa tekrar hedefin alt sınırıdır ("8-10" -> 8). Üye çoğu zaman sadece ✓'ye basar.
+function prefilledSets(n: number, prev: SetLog[] | null, targetReps?: string, next?: Suggestion | null): SetLog[] {
   const target = targetReps ? parseInt(targetReps, 10) : NaN;
-  return emptySets(n).map((s, i) => {
-    const p = prev?.[i] ?? prev?.[prev.length - 1];
-    return { ...s, kg: p?.kg ?? null, reps: p?.reps ?? (Number.isFinite(target) ? target : null) };
-  });
+  const warmups: SetLog[] = (prev ?? []).filter((s) => !isWorking(s)).map((p) => ({ kg: p.kg, reps: p.reps, done: false, type: p.type }));
+  const working = (prev ?? []).filter(isWorking);
+  return [
+    ...warmups,
+    ...emptySets(n).map((s, i): SetLog => {
+      const p = working[i] ?? working[working.length - 1];
+      if (next && p?.type !== 'drop') return { ...s, kg: next.kg, reps: next.reps };
+      return { ...s, kg: p?.kg ?? null, reps: p?.reps ?? (Number.isFinite(target) ? target : null), type: p?.type };
+    }),
+  ];
 }
 
 export function WorkoutProvider({ children }: { children: ReactNode }) {
@@ -209,8 +248,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     const nextRecords = { ...records };
     const now = new Date().toISOString();
     for (const e of exercises) {
-      const best = e.sets.reduce<SetLog | null>((b, s) => (!b || e1rm(s.kg!, s.reps!) > e1rm(b.kg!, b.reps!) ? s : b), null);
-      const heaviest = e.sets.reduce<SetLog | null>((b, s) => (!b || s.kg! > b.kg! ? s : b), null);
+      const work = e.sets.filter(isWorking);
+      const best = work.reduce<SetLog | null>((b, s) => (!b || e1rm(s.kg!, s.reps!) > e1rm(b.kg!, b.reps!) ? s : b), null);
+      const heaviest = work.reduce<SetLog | null>((b, s) => (!b || s.kg! > b.kg! ? s : b), null);
       const old = records[e.exerciseId];
       if (!best || !heaviest) continue;
       const bestE = e1rm(best.kg!, best.reps!);
@@ -270,7 +310,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           exercises: day.exercises.map((e) => ({
             exerciseId: e.exerciseId,
             target: { sets: e.sets, reps: e.reps },
-            sets: prefilledSets(e.sets, lastSetsFor(e.exerciseId), e.reps),
+            sets: prefilledSets(e.sets, lastSetsFor(e.exerciseId), e.reps, suggestNext(lastSetsFor(e.exerciseId), e.reps, exerciseById(e.exerciseId)?.equipment)),
           })),
         }),
       startEmpty: () =>
@@ -294,6 +334,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
             return { ...e, sets: [...e.sets, { kg: last?.kg ?? null, reps: last?.reps ?? null, done: false }] };
           }),
         })),
+      toggleSuperset: (ei) =>
+        mutate((s) => ({ ...s, exercises: s.exercises.map((e, i) => (i !== ei ? e : { ...e, superset: !e.superset })) })),
       removeSet: (ei, si) =>
         mutate((s) => ({
           ...s,
@@ -313,7 +355,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           for (const e of s.exercises) {
             const ex = exerciseById(e.exerciseId);
             if (!ex) continue;
-            const n = e.sets.filter((x) => x.done).length;
+            const n = e.sets.filter((x) => x.done && isWorking(x)).length;
             ex.primary.forEach((m) => (out[m] += n));
             ex.secondary.forEach((m) => (out[m] += n / 2));
           }

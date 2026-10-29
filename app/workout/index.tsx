@@ -14,7 +14,7 @@ import { useAuth } from '@/lib/auth';
 import { useExerciseMedia } from '@/lib/exerciseMedia';
 import { exerciseById } from '@/lib/exercises';
 import { makeStyles, useColors } from '@/lib/theme';
-import { doneSets, sessionVolume, useWorkouts, type SetLog } from '@/lib/workouts';
+import { doneSets, isWorking, sessionVolume, suggestNext, useWorkouts, type SetLog, type SetType } from '@/lib/workouts';
 import { locale, tx } from '@/lib/i18n';
 
 function useNow(interval = 1000) {
@@ -136,7 +136,14 @@ function ExerciseCard({ index }: { index: number }) {
   const e = w.active!.exercises[index];
   const ex = exerciseById(e.exerciseId);
   const prev = w.lastSetsFor(e.exerciseId);
+  const next = suggestNext(prev, e.target?.reps, ex?.equipment);
   const rec = w.records[e.exerciseId];
+  const count = w.active!.exercises.length;
+  // Süperset: bu hareket sonrakiyle bağlıysa set sonrası dinlenme başlamaz, sıradaki harekete geçilir.
+  const linkedNext = !!e.superset && index < count - 1;
+  const linkedPrev = !!w.active!.exercises[index - 1]?.superset;
+  const [edit, setEdit] = useState<number | null>(null);
+  const [plates, setPlates] = useState(false);
   const { tier, isCoach } = useAuth();
   const { view } = useExerciseMedia(e.exerciseId, isCoach || tier !== 'free');
   const [big, setBig] = useState(false);
@@ -154,12 +161,24 @@ function ExerciseCard({ index }: { index: number }) {
     w.updateSet(index, si, { kg, reps, done: true });
     // Rekorda güçlü, normal sette hafif titreşim.
     if (Platform.OS !== 'web')
-      rec && kg > rec.kg ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    w.startRest(w.restSeconds);
+      rec && kg > rec.kg && isWorking(set) ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (!linkedNext) w.startRest(w.restSeconds);
   }
 
+  // Isınma setleri numara almaz (I); çalışma setleri 1'den sayılır.
+  let n = 0;
+  const marks = e.sets.map((s) => (s.type === 'warmup' ? 'I' : s.type === 'drop' ? 'D' : s.type === 'failure' ? 'T' : String(++n)));
+
   return (
-    <Card>
+    <Card style={(linkedNext || linkedPrev) && { borderColor: colors.accent }}>
+      {(linkedNext || linkedPrev) && (
+        <Row gap={6}>
+          <Icon name={{ ios: 'link', android: 'link', web: 'link' }} size={14} color={colors.accentBright} />
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.accentBright }}>
+            {linkedNext ? 'Süperset: setten sonra sıradaki harekete geç' : 'Süperset: bu setten sonra dinlen'}
+          </Text>
+        </Row>
+      )}
       <Row style={{ justifyContent: 'space-between' }}>
         {/* Hareketin animasyonu: koçun videosu varsa o, yoksa çizim. Dokununca büyür. */}
         <PressScale onPress={() => setBig((b) => !b)} style={styles.thumb}>
@@ -195,6 +214,18 @@ function ExerciseCard({ index }: { index: number }) {
         </PressScale>
       )}
 
+      {next && !e.sets.some((s) => s.done) && (
+        <Text style={{ fontFamily: fonts.body, fontSize: 13, color: next.reason === 'up' ? colors.accentBright : colors.textMuted }}>
+          {tx(
+            next.reason === 'up'
+              ? 'Kiloyu artır: bugün {0} kg × {1}. Geçen sefer bütün tekrarlar tamamdı.'
+              : next.reason === 'reps'
+                ? 'Bugün {0} kg × {1}: geçen seferden bir tekrar fazla.'
+                : 'Aynı kiloda kal: {0} kg × {1}. Önce tekrarları tamamla.',
+            [next.kg.toLocaleString(locale()), next.reps],
+          )}
+        </Text>
+      )}
       <Row style={styles.headRow}>
         <Text style={[styles.head, { width: 26 }]}>SET</Text>
         <Text style={[styles.head, { flex: 1 }]}>ÖNCEKİ</Text>
@@ -206,10 +237,11 @@ function ExerciseCard({ index }: { index: number }) {
         const p = prev?.[si];
         return (
           <Row key={si} style={[styles.setRow, s.done && { backgroundColor: colors.successSoft }, missing === si && { borderWidth: 1, borderColor: colors.danger }]}>
-            <PressScale onPress={() => e.sets.length > 1 && !s.done && w.removeSet(index, si)} style={{ width: 26 }}>
-              <Text style={styles.setIndex}>{si + 1}</Text>
+            <PressScale onPress={() => setEdit(si)} style={{ width: 26, alignItems: 'center' }}>
+              <Text raw style={[styles.setIndex, s.type && { color: s.type === 'warmup' ? colors.textMuted : colors.accentBright }]}>{marks[si]}</Text>
+              {s.rpe != null && <Text raw style={{ fontFamily: fonts.mono, fontSize: 9.5, color: colors.textMuted }}>@{s.rpe}</Text>}
             </PressScale>
-            {s.done && rec && s.kg != null && s.kg > rec.kg ? (
+            {s.done && rec && s.kg != null && s.kg > rec.kg && isWorking(s) ? (
               <Text style={[styles.prev, { fontFamily: fonts.bodyBold, color: colors.accentBright }]}>Yeni rekor</Text>
             ) : (
               <Text style={styles.prev}>{p ? `${p.kg}×${p.reps}` : '—'}</Text>
@@ -232,11 +264,150 @@ function ExerciseCard({ index }: { index: number }) {
         );
       })}
       {missing != null && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger, textAlign: 'center' }}>Önce kilo ve tekrarı yaz, sonra ✓'ye bas.</Text>}
-      <PressScale onPress={() => w.addSet(index)} style={styles.addSet}>
-        <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={14} color={colors.textMuted} />
-        <Text style={[styles.head, { color: colors.textMuted, fontSize: 13, letterSpacing: 0 }]}>Set ekle</Text>
-      </PressScale>
+      <Row style={{ justifyContent: 'space-around' }}>
+        <PressScale onPress={() => w.addSet(index)} style={styles.addSet}>
+          <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={14} color={colors.textMuted} />
+          <Text style={[styles.head, { color: colors.textMuted, fontSize: 13, letterSpacing: 0 }]}>Set ekle</Text>
+        </PressScale>
+        {index < count - 1 && (
+          <PressScale onPress={() => w.toggleSuperset(index)} style={styles.addSet}>
+            <Icon name={{ ios: 'link', android: 'link', web: 'link' }} size={14} color={e.superset ? colors.accentBright : colors.textMuted} />
+            <Text style={[styles.head, { color: e.superset ? colors.accentBright : colors.textMuted, fontSize: 13, letterSpacing: 0 }]}>
+              {e.superset ? 'Süperseti kaldır' : 'Süperset'}
+            </Text>
+          </PressScale>
+        )}
+        {ex?.equipment === 'Barbell' && (
+          <PressScale onPress={() => setPlates(true)} style={styles.addSet}>
+            <Icon name={{ ios: 'circle.circle', android: 'album', web: 'album' }} size={14} color={colors.textMuted} />
+            <Text style={[styles.head, { color: colors.textMuted, fontSize: 13, letterSpacing: 0 }]}>Plaka</Text>
+          </PressScale>
+        )}
+      </Row>
+      <SetSheet
+        set={edit == null ? null : (e.sets[edit] ?? null)}
+        canRemove={e.sets.length > 1}
+        onClose={() => setEdit(null)}
+        onChange={(patch) => edit != null && w.updateSet(index, edit, patch)}
+        onRemove={() => {
+          if (edit != null) w.removeSet(index, edit);
+          setEdit(null);
+        }}
+      />
+      <PlateSheet visible={plates} onClose={() => setPlates(false)} start={e.sets.find((s) => !s.done && isWorking(s))?.kg ?? next?.kg ?? 60} />
     </Card>
+  );
+}
+
+const SET_TYPES: { type: SetType | undefined; label: string }[] = [
+  { type: undefined, label: 'Normal' },
+  { type: 'warmup', label: 'Isınma' },
+  { type: 'drop', label: 'Drop set' },
+  { type: 'failure', label: 'Tükeniş' },
+];
+
+// Set ayarları: set türü ve RPE (1-10 zorluk; 10 = bir tekrar daha yapamazdım).
+function SetSheet({
+  set,
+  canRemove,
+  onClose,
+  onChange,
+  onRemove,
+}: {
+  set: SetLog | null;
+  canRemove: boolean;
+  onClose: () => void;
+  onChange: (patch: Partial<SetLog>) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <Sheet visible={set != null} onClose={onClose} title="Set ayarları">
+      <Label>Set türü</Label>
+      <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
+        {SET_TYPES.map((t) => (
+          <Chip key={t.label} label={t.label} active={set?.type === t.type} onPress={() => onChange({ type: t.type })} />
+        ))}
+      </Row>
+      <Label>RPE: ne kadar zordu?</Label>
+      <Row gap={spacing.sm} style={{ flexWrap: 'wrap' }}>
+        {[undefined, 6, 7, 8, 9, 10].map((r) => (
+          <Chip key={String(r)} label={r == null ? 'Yok' : String(r)} active={set?.rpe === r} onPress={() => onChange({ rpe: r })} />
+        ))}
+      </Row>
+      <Body muted style={{ fontSize: 13 }}>
+        10 = bir tekrar daha yapamazdım, 8 = iki tekrar daha yapabilirdim.
+      </Body>
+      {canRemove && !set?.done && <Button title="Seti sil" variant="ghost" onPress={onRemove} />}
+      <Button title="Tamam" onPress={onClose} />
+    </Sheet>
+  );
+}
+
+const BAR_KG = 20;
+const PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+
+// Plaka hesaplayıcı: 20 kg bar için her tarafa hangi plakalar takılır.
+function platesFor(kg: number): { plates: number[]; rest: number } {
+  let side = Math.max(0, (kg - BAR_KG) / 2);
+  const plates: number[] = [];
+  for (const p of PLATES) {
+    while (side >= p - 1e-9) {
+      plates.push(p);
+      side -= p;
+    }
+  }
+  return { plates, rest: Math.round(side * 100) / 100 };
+}
+
+function PlateSheet({ visible, onClose, start }: { visible: boolean; onClose: () => void; start: number }) {
+  const colors = useColors();
+  const [kg, setKg] = useState(start);
+  useEffect(() => {
+    if (visible) setKg(start);
+  }, [visible, start]);
+  const { plates, rest } = platesFor(kg);
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Plaka hesaplayıcı">
+      <Row style={{ justifyContent: 'space-between' }}>
+        <PressScale onPress={() => setKg((k) => Math.max(BAR_KG, k - 2.5))} style={{ padding: spacing.sm }}>
+          <Icon name={{ ios: 'minus', android: 'remove', web: 'remove' }} size={20} color={colors.text} />
+        </PressScale>
+        <Mono style={{ fontSize: 28, color: colors.text }}>{tx('{0} kg', [kg.toLocaleString(locale())])}</Mono>
+        <PressScale onPress={() => setKg((k) => k + 2.5)} style={{ padding: spacing.sm }}>
+          <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={20} color={colors.text} />
+        </PressScale>
+      </Row>
+      <Label>Her tarafa</Label>
+      <Row gap={spacing.sm} style={{ flexWrap: 'wrap', minHeight: 44, alignItems: 'center' }}>
+        {plates.length ? (
+          plates.map((p, i) => (
+            <View
+              key={i}
+              style={{
+                height: 28 + p * 1.6,
+                minWidth: 40,
+                paddingHorizontal: 6,
+                borderRadius: radius.sm,
+                backgroundColor: p >= 20 ? colors.accent : colors.surfaceHigh,
+                borderWidth: 1,
+                borderColor: colors.border,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <Text raw style={{ fontFamily: fonts.mono, fontSize: 13, color: p >= 20 ? colors.primaryText : colors.text }}>
+                {p.toLocaleString(locale())}
+              </Text>
+            </View>
+          ))
+        ) : (
+          <Body muted>Sadece bar.</Body>
+        )}
+      </Row>
+      <Body muted style={{ fontSize: 13 }}>
+        {rest > 0 ? tx('20 kg bar varsayıldı. Her tarafa {0} kg tam oturmuyor.', [rest.toLocaleString(locale())]) : '20 kg bar varsayıldı.'}
+      </Body>
+      <Button title="Tamam" onPress={onClose} />
+    </Sheet>
   );
 }
 
