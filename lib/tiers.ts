@@ -15,7 +15,6 @@ export type Feature =
   | 'full_history'
   | 'unlimited_scans'
   | 'all_badges'
-  | 'photo_macros'
   | 'coach_dm';
 
 // Her özelliğin açıldığı en düşük üyelik.
@@ -31,7 +30,6 @@ const FEATURE_MIN_TIER: Record<Feature, Tier> = {
   all_badges: 'pro',
   plus_chat: 'plus',
   form_check: 'plus',
-  photo_macros: 'plus',
   max_chat: 'max',
   coach_dm: 'max',
 };
@@ -84,7 +82,6 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
     perks: [
       "Pro'daki her şey",
       '2 haftada bir form check (ön, yan, arka fotoğraf) ve koç yorumu',
-      'Fotoğraftan makro tahmini (ayda 30)',
       'Plus üyelere özel chat',
     ],
   },
@@ -96,7 +93,6 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
       'Koçla birebir mesajlaşma',
       'Haftalık check-in (kilo, ölçü, fotoğraf) ve koç yorumu',
       'Haftada bir form check',
-      'Sınırsız fotoğraftan makro tahmini',
       'Koç onaylı yemek planı',
       'Max chat ve özel rozetler',
       "Chat'te sesli mesaj",

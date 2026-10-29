@@ -3,7 +3,7 @@
 iOS, Android ve web için tek kod tabanlı fitness uygulaması (Expo / React Native + Supabase).
 
 ## Özellikler
-- **Makro:** yazarak hesaplama, 150+ besin (Türk yemekleri dahil), Open Food Facts araması, barkod okutma (ücretsiz günde 3), fotoğraftan tahmin (Plus/Max, `supabase/functions/estimate-meal`), kişisel hedef sihirbazı, öğün bölümleri, su takibi, favoriler, haftalık yemek planı ve alışveriş listesi (Pro).
+- **Makro:** yazarak hesaplama, 150+ besin (Türk yemekleri dahil), Open Food Facts araması, barkod okutma (ücretsiz günde 3), kişisel hedef sihirbazı, öğün bölümleri, su takibi, favoriler, haftalık yemek planı ve alışveriş listesi (Pro).
 - **Antrenman:** kas haritası ve hareket animasyonları, 36 hareketlik kütüphane, set/kg/tekrar kaydı (önceki değerler gri), dinlenme sayacı ve bildirimi, rekorlar (e1RM), kas grubu başına haftalık set, koçun atadığı program.
 - **Topluluk:** Genel / Pro / Plus / Max odaları, fotoğraf, tepkiler, yanıt, antrenmanı kart olarak paylaşma, koç rozeti ve sabitleme, şikayet / engelle / sustur / sil, haftalık meydan okuma.
 - **Koçluk:** form check videosu ve saniyeli yorumlar (Plus 14, Max 7 günde bir), Max için koçla birebir mesaj, koç paneli (form check, mesajlar, şikayetler, üye paketi, program atama).
@@ -30,8 +30,6 @@ npx expo start
    ```bash
    npx supabase login
    npx supabase link --project-ref PROJE_REF
-   npx supabase secrets set ANTHROPIC_API_KEY=...
-   npx supabase functions deploy estimate-meal
    npx supabase functions deploy push
    ```
 7. Bildirim webhook'u: Database > Webhooks > Create: tablo `notifications`, olay `Insert`, tür "Supabase Edge Functions", fonksiyon `push`.

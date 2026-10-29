@@ -105,7 +105,6 @@ function MacroCalculator() {
   const query = fragment.replace(/^[\d.,]+\s*(g|gr|gram|ml|kg|adet)?\s*/i, '');
   const suggestions = useMemo(() => (query.length >= 2 ? searchLocal(query, 4) : []), [query]);
   const shelfItems = shelf === 'recent' ? recent : favorites;
-  const photoOk = hasFeature(tier, 'photo_macros');
 
   function addQuick(q: string) {
     setText((t) => (t.trim() ? `${t.trim().replace(/,$/, '')}, ${q}` : q));
@@ -147,7 +146,7 @@ function MacroCalculator() {
         <Segmented options={MEAL_OPTIONS} value={meal} onChange={setMeal} />
       </Reveal>
 
-      {/* Tek giriş kutusu: yazınca hem hesaplar hem veritabanında arar; yanında kamera ve barkod */}
+      {/* Tek giriş kutusu: yazınca hem hesaplar hem veritabanında arar; yanında barkod */}
       <Reveal index={4}>
         <Input
           value={text}
@@ -156,19 +155,9 @@ function MacroCalculator() {
           placeholder="Ne yedin? ör. 3 yumurta, 1 dilim ekmek"
           prefix={<Icon name={{ ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' }} size={18} color={colors.accentBright} />}
           suffix={
-            <Row gap={8}>
-              <PressScale onPress={() => router.push({ pathname: '/food/photo', params: { meal } })} style={styles.inputBtn}>
-                <Icon name={{ ios: 'camera.viewfinder', android: 'photo_camera', web: 'photo_camera' }} size={19} color={colors.text} />
-                {!photoOk && (
-                  <View style={styles.toolBadge}>
-                    <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={8} color={colors.primaryText} />
-                  </View>
-                )}
-              </PressScale>
-              <PressScale onPress={() => router.push({ pathname: '/food/scan', params: { meal } })} style={styles.inputBtn}>
-                <Icon name={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }} size={19} color={colors.text} />
-              </PressScale>
-            </Row>
+            <PressScale onPress={() => router.push({ pathname: '/food/scan', params: { meal } })} style={styles.inputBtn}>
+              <Icon name={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }} size={19} color={colors.text} />
+            </PressScale>
           }
           style={{ minHeight: 64, alignItems: 'flex-start', paddingTop: 4 }}
         />
@@ -402,17 +391,6 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.surface,
   },
   toolText: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.text },
-  toolBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   split: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', gap: 4, marginTop: spacing.xs },
   line: {
     gap: spacing.md,

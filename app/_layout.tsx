@@ -118,7 +118,6 @@ function Navigation() {
         <Stack.Screen name="goals" options={modal} />
         <Stack.Screen name="food/search" options={modal} />
         <Stack.Screen name="food/scan" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
-        <Stack.Screen name="food/photo" options={modal} />
         <Stack.Screen name="workout/index" options={{ headerShown: false, presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="workout/summary" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         <Stack.Screen name="library" options={{ title: translate('HAREKETLER') }} />
