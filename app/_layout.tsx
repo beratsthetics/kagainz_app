@@ -36,7 +36,7 @@ SplashScreen.preventAutoHideAsync();
 
 // Hesap gerektiren ekranlar. Misafir buralara hangi butondan gelirse gelsin kayıt ekranına döner.
 const MEMBERS_ONLY = new Set([
-  'badges', 'challenges', 'checkin', 'coach', 'dm', 'food', 'form-check', 'friends', 'goals', 'invite',
+  'badges', 'challenges', 'checkin', 'coach', 'compare', 'dm', 'food', 'form-check', 'friends', 'goals', 'invite',
   'meal-plan', 'my-program', 'progress', 'reminders', 'share', 'u', 'week', 'workout',
 ]);
 
@@ -147,6 +147,7 @@ function Navigation() {
         <Stack.Screen name="coach/influencers" options={{ title: translate('INFLUENCER KODLARI') }} />
         <Stack.Screen name="my-program" options={{ title: translate('PROGRAMIM') }} />
         <Stack.Screen name="week" options={{ title: translate('HAFTALIK ÖZET') }} />
+        <Stack.Screen name="compare" options={{ title: translate('ÖNCE / SONRA') }} />
         <Stack.Screen name="share" options={{ title: translate('PAYLAŞ'), presentation: 'modal' }} />
         <Stack.Screen name="leaderboard" options={{ title: translate('SIRALAMA') }} />
         <Stack.Screen name="checkin/index" options={{ title: translate('CHECK-IN') }} />

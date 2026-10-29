@@ -148,6 +148,17 @@ export default function FormCheckList() {
         </Card>
       </Reveal>
 
+      {(items?.filter((f) => f.photos.length === 3).length ?? 0) >= 2 && (
+        <Reveal index={1}>
+          <Button
+            title="Önce / sonra karşılaştır"
+            variant="outline"
+            icon={{ ios: 'photo.on.rectangle', android: 'compare', web: 'compare' }}
+            onPress={() => router.push('/compare')}
+          />
+        </Reveal>
+      )}
+
       <Reveal index={1}>
         <Label>Gönderdiklerin</Label>
       </Reveal>
