@@ -41,7 +41,7 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: B
                   {options.tabBarIcon?.({ focused, color, size: 22 })}
                   {focused && (
                     <Animated.View entering={FadeIn.duration(220)}>
-                      <Text numberOfLines={1} style={[styles.label, { color }]}>
+                      <Text numberOfLines={1} maxFontSizeMultiplier={1} style={[styles.label, { color }]}>
                         {label}
                       </Text>
                     </Animated.View>

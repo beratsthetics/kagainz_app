@@ -54,8 +54,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Chat'te fotoğraf paylaşmak, öğün fotoğrafından makro hesaplamak ve form check videosu seçmek için galerine erişim gerekiyor.",
-          "cameraPermission": "Öğün fotoğrafı ve form check videosu çekmek için kameraya erişim gerekiyor.",
+          "photosPermission": "Chat'te fotoğraf paylaşmak ve form check fotoğrafı ya da videosu seçmek için galerine erişim gerekiyor.",
+          "cameraPermission": "Form check fotoğrafı ve videosu çekmek için kameraya erişim gerekiyor.",
           "microphonePermission": "Form check videosunu sesli kaydetmek için mikrofona erişim gerekiyor."
         }
       ],

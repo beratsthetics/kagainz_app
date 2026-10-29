@@ -1,9 +1,10 @@
 import { useAudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal, Platform, TextInput, View } from 'react-native';
-import { Text } from '@/components/T';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { MAX_FONT_SCALE, Text } from '@/components/T';
 
 import { ExerciseMediaView } from '@/components/ExerciseMediaView';
 import { MovementAnim } from '@/components/MovementAnim';
@@ -150,6 +151,9 @@ function ExerciseCard({ index }: { index: number }) {
     if (kg == null || reps == null) return setMissing(si);
     setMissing(null);
     w.updateSet(index, si, { kg, reps, done: true });
+    // Rekorda güçlü, normal sette hafif titreşim.
+    if (Platform.OS !== 'web')
+      rec && kg > rec.kg ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     w.startRest(w.restSeconds);
   }
 
@@ -204,7 +208,11 @@ function ExerciseCard({ index }: { index: number }) {
             <PressScale onPress={() => e.sets.length > 1 && !s.done && w.removeSet(index, si)} style={{ width: 26 }}>
               <Text style={styles.setIndex}>{si + 1}</Text>
             </PressScale>
-            <Text style={styles.prev}>{p ? `${p.kg}×${p.reps}` : '—'}</Text>
+            {s.done && rec && s.kg != null && s.kg > rec.kg ? (
+              <Text style={[styles.prev, { fontFamily: fonts.bodyBold, color: colors.accentBright }]}>Yeni rekor</Text>
+            ) : (
+              <Text style={styles.prev}>{p ? `${p.kg}×${p.reps}` : '—'}</Text>
+            )}
             <NumberCell
               value={s.kg}
               placeholder={p?.kg != null ? String(p.kg) : 'kg'}
@@ -218,9 +226,7 @@ function ExerciseCard({ index }: { index: number }) {
               width={60}
               onChange={(v) => w.updateSet(index, si, { reps: v })}
             />
-            <PressScale onPress={() => toggle(si, s)} style={[styles.check, s.done && styles.checkOn]}>
-              <Icon name={{ ios: 'checkmark', android: 'check', web: 'check' }} size={15} color={s.done ? colors.primaryText : colors.textDim} />
-            </PressScale>
+            <CheckButton done={s.done} onPress={() => toggle(si, s)} />
           </Row>
         );
       })}
@@ -230,6 +236,26 @@ function ExerciseCard({ index }: { index: number }) {
         <Text style={[styles.head, { color: colors.textMuted, fontSize: 13, letterSpacing: 0 }]}>Set ekle</Text>
       </PressScale>
     </Card>
+  );
+}
+
+// Set onay düğmesi: işaretlenince kısa bir büyüyüp oturma animasyonu.
+function CheckButton({ done, onPress }: { done: boolean; onPress: () => void }) {
+  const colors = useColors();
+  const styles = useStyles();
+  const scale = useSharedValue(1);
+  const was = useRef(done);
+  useEffect(() => {
+    if (done && !was.current) scale.value = withSequence(withTiming(1.22, { duration: 110 }), withSpring(1, { damping: 9, stiffness: 260 }));
+    was.current = done;
+  }, [done, scale]);
+  const pop = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <PressScale onPress={onPress}>
+      <Animated.View style={[styles.check, done && styles.checkOn, pop]}>
+        <Icon name={{ ios: 'checkmark', android: 'check', web: 'check' }} size={15} color={done ? colors.primaryText : colors.textDim} />
+      </Animated.View>
+    </PressScale>
   );
 }
 
@@ -253,6 +279,7 @@ function NumberCell({
   return (
     <TextInput
       value={text}
+      maxFontSizeMultiplier={MAX_FONT_SCALE}
       placeholder={placeholder}
       placeholderTextColor={colors.textDim}
       keyboardType={decimal ? 'decimal-pad' : 'number-pad'}
@@ -336,7 +363,7 @@ function RestBar() {
           <ProgressBar value={left / rest.total} color={colors.accent} height={4} />
         </>
       ) : (
-        <Row style={{ justifyContent: 'space-between' }}>
+        <Row style={{ justifyContent: 'space-between', flexWrap: 'wrap', rowGap: spacing.sm }}>
           <Label>Dinlenme süresi</Label>
           <Row gap={spacing.xs}>
             {[60, 90, 120, 180].map((s) => (

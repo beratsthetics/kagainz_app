@@ -33,7 +33,7 @@ export default function TodayScreen() {
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
             <Eyebrow>{tx('Bugün · {0}', [tx(WEEKDAYS[new Date().getDay()].day)])}</Eyebrow>
-            <Text style={styles.greet}>
+            <Text maxFontSizeMultiplier={1} style={styles.greet}>
               {tx(greeting()).toLocaleUpperCase(locale())}
               {profile?.username ? (
                 <Text style={{ color: colors.silver }}>{`, ${profile.username.toLocaleUpperCase(locale())}`}</Text>

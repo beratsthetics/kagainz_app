@@ -106,5 +106,5 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  popular: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: colors.accentBright },
+  popular: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.accentBright },
 }));

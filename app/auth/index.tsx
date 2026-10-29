@@ -225,7 +225,7 @@ const useStyles = makeStyles((colors) => ({
   error: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger },
   link: { fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.accentBright },
   rule: { flex: 1, height: 1, backgroundColor: colors.border },
-  or: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.6, color: colors.textDim },
+  or: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.textDim },
   social: {
     flexDirection: 'row',
     alignItems: 'center',

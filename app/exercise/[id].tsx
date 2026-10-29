@@ -225,7 +225,7 @@ function CoachCatalogControls({ exerciseId }: { exerciseId: string }) {
 
   return (
     <View style={styles.coach}>
-      <Text style={styles.coachLabel}>KOÇ · KÜTÜPHANE</Text>
+      <Text style={styles.coachLabel}>Koç · Kütüphane</Text>
       <Button title="Adını değiştir" variant="outline" onPress={openRename} />
       {hidden ? (
         <Button
@@ -290,7 +290,7 @@ function CoachMediaControls({ exerciseId, media }: { exerciseId: string; media: 
 
   return (
     <View style={styles.coach}>
-      <Text style={styles.coachLabel}>KOÇ · HAREKET ANİMASYONU</Text>
+      <Text style={styles.coachLabel}>Koç · Hareket animasyonu</Text>
       <Row gap={spacing.sm}>
         <View style={{ flex: 1 }}>
           <Button
@@ -311,7 +311,7 @@ function CoachMediaControls({ exerciseId, media }: { exerciseId: string; media: 
 const useStyles = makeStyles((colors) => ({
   link: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright, marginTop: spacing.sm, textAlign: 'center' },
   coach: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.accent, gap: spacing.sm },
-  coachLabel: { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 1.4, color: colors.accentBright },
+  coachLabel: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
   notice: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.textMuted },
   en: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted, alignSelf: 'center' },
   anim: {

@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, PanResponder, Platform, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type ColorValue, type DimensionValue, type StyleProp, type TextInputProps, type TextProps, type ViewStyle } from 'react-native';
-import { Text, translateChildren } from '@/components/T';
+import { MAX_FONT_SCALE, Text, translateChildren } from '@/components/T';
 import Animated, {
   Easing,
   FadeInDown,
@@ -143,6 +143,7 @@ export function Hero({ lines, size = 52, bar = true }: { lines: string[]; size?:
         {/* Satırlar birlikte çevrilir: İngilizcede kelime sırası değişebilir ("Kodu / gir" -> "Enter / the code"). */}
         {tx(lines.join('\n')).split('\n').map((l, i) => (
           <Text
+            maxFontSizeMultiplier={1}
             key={l}
             style={[
               styles.title,
@@ -175,7 +176,7 @@ export function ScreenHeader({ eyebrow, title, right }: { eyebrow?: string; titl
       }}>
       <View style={{ flex: 1 }}>
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-        <Text style={[styles.title, { fontSize: 38, lineHeight: 42 }]}>{upper(title)}</Text>
+        <Text maxFontSizeMultiplier={1} style={[styles.title, { fontSize: 38, lineHeight: 42 }]}>{upper(title)}</Text>
       </View>
       {right}
     </View>
@@ -185,7 +186,7 @@ export function ScreenHeader({ eyebrow, title, right }: { eyebrow?: string; titl
 export function Title({ children, style, ...rest }: TextProps & { children: ReactNode }) {
   const styles = useStyles();
   return (
-    <Text style={[styles.title, style]} {...rest}>
+    <Text maxFontSizeMultiplier={1} style={[styles.title, style]} {...rest}>
       {upper(children)}
     </Text>
   );
@@ -392,6 +393,7 @@ export function Input({ prefix, suffix, style, ...props }: TextInputProps & { pr
       {prefix}
       <TextInput
         placeholderTextColor={colors.textDim}
+        maxFontSizeMultiplier={MAX_FONT_SCALE}
         {...props}
         placeholder={props.placeholder == null ? undefined : translate(props.placeholder)}
         onFocus={(e) => {

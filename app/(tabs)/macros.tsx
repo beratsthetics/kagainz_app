@@ -119,7 +119,7 @@ function MacroCalculator() {
           right={
             <PressScale onPress={() => router.push('/goals')} style={styles.goalBtn}>
               <Icon name={{ ios: 'target', android: 'my_location', web: 'my_location' }} size={16} color={colors.accentBright} />
-              <Text style={styles.goalBtnText}>HEDEF</Text>
+              <Text style={styles.goalBtnText}>Hedef</Text>
             </PressScale>
           }
         />
@@ -380,7 +380,7 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: 999,
     backgroundColor: colors.accentSoft,
   },
-  goalBtnText: { fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, color: colors.accentBright },
+  goalBtnText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
   tool: {
     alignItems: 'center',
     gap: 8,

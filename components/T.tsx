@@ -5,8 +5,15 @@ import { translate } from '@/lib/i18n';
 
 // react-native Text'in yerine geçer: içindeki düz metinleri seçili dile çevirir.
 // raw: kullanıcının yazdığı içerik (mesaj, not) çevrilmesin.
+// Telefonda yazı boyutu büyütülse de en fazla 1,3 katına çıkar; kartlar ve düğmeler taşmaz.
+export const MAX_FONT_SCALE = 1.3;
+
 export function Text({ children, raw, ...props }: TextProps & { children?: ReactNode; raw?: boolean }) {
-  return <RNText {...props}>{raw ? children : translateChildren(children)}</RNText>;
+  return (
+    <RNText maxFontSizeMultiplier={MAX_FONT_SCALE} {...props}>
+      {raw ? children : translateChildren(children)}
+    </RNText>
+  );
 }
 
 export function translateChildren(children: ReactNode): ReactNode {
