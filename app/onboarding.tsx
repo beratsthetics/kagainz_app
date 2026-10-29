@@ -13,14 +13,14 @@ import { ACTIVITY, calculateGoals, GOALS, type Activity, type BodyProfile, type 
 import { dayKey, useStored } from '@/lib/store';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { makeStyles, useColors } from '@/lib/theme';
-import { tx } from '@/lib/i18n';
+import { locale, tx } from '@/lib/i18n';
 import { useWorkouts } from '@/lib/workouts';
 
-// Kayıttan hemen sonra 3 soru: hedef, boy ve kilo, haftada kaç gün antrenman.
-// Bitince hedefler, ilk kilo kaydı ve program gün sayısı yazılır; doğrudan Bugün ekranı açılır.
+// Kayıttan hemen sonra 3 soru: hedef, boy ve kilo, haftada kaç gün antrenman; sonra hesaplanan planın özeti.
+// Bitince hedefler, ilk kilo kaydı ve program gün sayısı yazılır; Bugün ya da (ücretsizde) paketler açılır.
 const GOAL_EMOJI: Record<GoalType, string> = { cut: '🔥', recomp: '⚡', maintain: '⚖️', bulk: '💪' };
 const GOAL_ORDER: GoalType[] = ['cut', 'recomp', 'maintain', 'bulk'];
-const STEPS = 3;
+const STEPS = 4;
 // Haftalık antrenman günü, kalori hesabındaki hareket düzeyini belirler.
 const DAYS: { days: number; label: string; activity: Activity }[] = [
   { days: 0, label: 'Henüz başlamadım', activity: 'sedentary' },
@@ -34,7 +34,7 @@ const DAYS: { days: number; label: string; activity: Activity }[] = [
 export default function Onboarding() {
   const styles = useStyles();
   const colors = useColors();
-  const { profile } = useAuth();
+  const { profile, tier } = useAuth();
   const { body, setBody } = useDaily();
   const [, setWeights] = useStored<WeightLog[]>('weights', []);
   const [, setOnboarded] = useStored<boolean>('onboarded', false);
@@ -45,13 +45,14 @@ export default function Onboarding() {
   const goals = useMemo(() => calculateGoals(p), [p]);
   const set = <K extends keyof BodyProfile>(k: K, v: BodyProfile[K]) => setP((prev) => ({ ...prev, [k]: v }));
 
-  function finish() {
+  function finish(plans = false) {
     setBody(p, goals);
     setWeights((prev) => [...prev.filter((w) => w.day !== dayKey()), { day: dayKey(), kg: p.weightKg }].slice(-365));
     // Koçun 3-6 günlük şablonlarından uyanı (Pro ve üstünde görünür).
     if (days >= 3) setTemplateDays(days);
     setOnboarded(true);
     router.dismissAll();
+    if (plans) router.push('/plans');
   }
 
   function skip() {
@@ -69,8 +70,15 @@ export default function Onboarding() {
           </PressScale>
         )}
       </View>
+    ) : tier === 'free' ? (
+      <View style={{ gap: spacing.sm }}>
+        <Button title="Pro'yu incele" arrow onPress={() => finish(true)} />
+        <PressScale onPress={() => finish()}>
+          <Text style={styles.skip}>Ücretsiz devam et</Text>
+        </PressScale>
+      </View>
     ) : (
-      <Button title="Başlayalım" arrow onPress={finish} />
+      <Button title="Başlayalım" arrow onPress={() => finish()} />
     );
 
   return (
@@ -152,6 +160,43 @@ export default function Onboarding() {
             {isSupabaseConfigured && <InviteCode />}
           </>
         )}
+
+        {step === 3 && (
+          <>
+            <Hero lines={['Planın', 'hazır']} size={48} />
+            <View style={styles.metrics}>
+              <Metric label="Günlük kalori">
+                <Text raw style={styles.value}>{`${goals.kcal.toLocaleString(locale())} kcal`}</Text>
+              </Metric>
+              <Metric label="Protein">
+                <Text raw style={styles.value}>{`${goals.protein} g`}</Text>
+              </Metric>
+              <Metric label="Karbonhidrat / yağ">
+                <Text raw style={styles.value}>{`${goals.carb} g / ${goals.fat} g`}</Text>
+              </Metric>
+              <Metric label="Antrenman" last>
+                <Text style={styles.value}>{days >= 3 ? tx('Haftada {0} gün', [days]) : 'Serbest'}</Text>
+              </Metric>
+            </View>
+            <Body muted>{tx('Hedef: {0}. {1}', [tx(GOALS[p.goal].label), tx(GOALS[p.goal].hint)])}</Body>
+            {tier === 'free' && (
+              <View style={styles.pitch}>
+                <Text style={styles.choiceTitle}>Pro ile bu plan seninle büyür</Text>
+                {[
+                  days >= 3 ? tx('Haftada {0} günlük hazır antrenman programı', [days]) : 'Hazır antrenman programları',
+                  'Kilona göre her hafta güncellenen kalori hedefi',
+                  'Hedefine göre haftalık yemek planı',
+                  'Her antrenmanda ağırlık önerisi',
+                ].map((t) => (
+                  <Row key={t} gap={8}>
+                    <Text style={{ color: colors.accentBright }}>✓</Text>
+                    <Body style={{ flex: 1, fontSize: 14 }}>{t}</Body>
+                  </Row>
+                ))}
+              </View>
+            )}
+          </>
+        )}
       </Animated.View>
     </AuthShell>
   );
@@ -230,4 +275,6 @@ const useStyles = makeStyles((colors) => ({
   choiceTitle: { fontFamily: fonts.bodyBold, fontSize: 15.5, color: colors.text },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
   radioDot: { width: 11, height: 11, borderRadius: 6, backgroundColor: colors.accent },
+  value: { fontFamily: fonts.mono, fontSize: 15, color: colors.text },
+  pitch: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.accent, backgroundColor: colors.accentSoft },
 }));
