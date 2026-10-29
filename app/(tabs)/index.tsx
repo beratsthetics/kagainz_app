@@ -77,6 +77,6 @@ export default function TodayScreen() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  greet: { fontFamily: fonts.display, fontSize: 30, lineHeight: 34, color: colors.text },
+  greet: { fontFamily: fonts.display, fontSize: 30, lineHeight: 39, color: colors.text },
   link: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.accentBright },
 }));

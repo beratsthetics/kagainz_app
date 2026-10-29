@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/T';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FoodSheet } from '@/components/FoodSheet';
 import { Body, Button, Icon, Input, PressScale, Row, TierBadge } from '@/components/ui';
@@ -19,6 +19,8 @@ import { tx } from '@/lib/i18n';
 
 export default function ScanScreen() {
   const colors = useColors();
+  // Tam ekran modalda SafeAreaView üst boşluğu 0 veriyor; kökün boşlukları kullanılır.
+  const insets = useSafeAreaInsets();
   const { tier } = useAuth();
   const { bump } = useProgress();
   const { meal } = useLocalSearchParams<{ meal?: MealSlot }>();
@@ -61,7 +63,7 @@ export default function ScanScreen() {
           onBarcodeScanned={food ? undefined : ({ data }) => handle(data)}
         />
       )}
-      <SafeAreaView style={{ flex: 1, justifyContent: 'space-between' }}>
+      <View style={{ flex: 1, justifyContent: 'space-between', paddingTop: insets.top, paddingBottom: insets.bottom }}>
         <Row style={{ justifyContent: 'space-between', padding: spacing.md }}>
           <PressScale onPress={() => router.back()} style={styles.round}>
             <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={18} color="#fff" />
@@ -127,7 +129,7 @@ export default function ScanScreen() {
             />
           )}
         </View>
-      </SafeAreaView>
+      </View>
 
       <FoodSheet
         food={food}

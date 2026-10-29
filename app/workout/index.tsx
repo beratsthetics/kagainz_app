@@ -38,7 +38,7 @@ export default function WorkoutScreen() {
 
   if (!active) {
     return (
-      <Screen edges={['top', 'bottom']}>
+      <Screen full edges={['top', 'bottom']}>
         <EmptyState icon={{ ios: 'dumbbell.fill', android: 'fitness_center', web: 'fitness_center' }} title="Aktif antrenman yok" />
         <Button title="Antrenman sekmesine dön" onPress={() => router.back()} />
       </Screen>
@@ -58,6 +58,7 @@ export default function WorkoutScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <Screen
+        full
         edges={['top']}
         header={
           <Row style={{ justifyContent: 'space-between' }}>
@@ -123,7 +124,7 @@ function Mini({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.mini}>
       <Label>{label}</Label>
-      <Mono style={{ fontSize: 16, marginTop: 4 }}>{value}</Mono>
+      <Mono fit style={{ fontSize: 16, marginTop: 4 }}>{value}</Mono>
     </View>
   );
 }

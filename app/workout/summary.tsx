@@ -27,7 +27,7 @@ export default function SummaryScreen() {
 
   if (!s) {
     return (
-      <Screen edges={['top', 'bottom']}>
+      <Screen full edges={['top', 'bottom']}>
         <EmptyState icon={{ ios: 'figure.strengthtraining.traditional', android: 'fitness_center', web: 'fitness_center' }} title="Antrenman bulunamadı" body="Bu antrenman kaydı bu telefonda yok." />
         <Button title="Kapat" onPress={() => router.back()} />
       </Screen>
@@ -52,7 +52,7 @@ export default function SummaryScreen() {
   }
 
   return (
-    <Screen edges={['top', 'bottom']}>
+    <Screen full edges={['top', 'bottom']}>
       <Reveal index={0}>
         <Text style={{ fontSize: 56 }}>{meta.prs.length ? '🏆' : '💪'}</Text>
         <Hero lines={['Antrenman', 'tamam']} size={48} />

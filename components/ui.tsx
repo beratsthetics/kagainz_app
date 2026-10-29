@@ -81,19 +81,25 @@ export function Screen({
   edges = ['top'],
   header,
   glow,
+  full,
 }: {
   children: ReactNode;
   scroll?: boolean;
   glow?: boolean;
+  // Tam ekran modal (antrenman, özet): iOS'un SafeAreaView'ı orada üst boşluğu 0 verir, kökün boşlukları kullanılır.
+  full?: boolean;
   edges?: ('top' | 'bottom')[];
   // Kaymayan üst satır (ör. kapat düğmesi): içerik kaydırılınca da yerinde kalır, hep basılabilir.
   header?: ReactNode;
 }) {
   const styles = useStyles();
+  const insets = useSafeAreaInsets();
+  const Safe = full ? View : SafeAreaView;
+  const pad = full ? { paddingTop: edges.includes('top') ? insets.top : 0, paddingBottom: edges.includes('bottom') ? insets.bottom : 0 } : null;
   return (
     <View style={styles.screen}>
       <GridBackground glow={glow} />
-      <SafeAreaView style={{ flex: 1 }} edges={edges}>
+      <Safe style={[{ flex: 1 }, pad]} edges={edges}>
         {header && <View style={styles.screenHeader}>{header}</View>}
         {scroll ? (
           <ScrollView
@@ -105,7 +111,7 @@ export function Screen({
         ) : (
           <View style={[styles.screenContent, { flex: 1 }]}>{children}</View>
         )}
-      </SafeAreaView>
+      </Safe>
     </View>
   );
 }
@@ -133,21 +139,33 @@ export function Reveal({
 }
 
 // Sitedeki "ONLINE / FITNESS" başlığı: ilk satır beyaz, sonrakiler gümüş.
+// Oswald'ın üst boşluğu yüksek: satır yüksekliği 1,3'ten azsa Android'de harflerin üstü (İ'nin noktası) kesilir.
+// Satırlar arası boşluk negatif üst boşlukla sıkı tutulur.
+export const DISPLAY_LINE = 1.3;
+
 export function Hero({ lines, size = 52, bar = true }: { lines: string[]; size?: number; bar?: boolean }) {
   const colors = useColors();
   const styles = useStyles();
+  const [width, setWidth] = useState(0);
+  // Satırlar birlikte çevrilir: İngilizcede kelime sırası değişebilir ("Kodu / gir" -> "Enter / the code").
+  const shown = tx(lines.join('\n')).split('\n');
+  // Küçük telefonlarda en uzun satır sığsın diye yazı küçülür (Oswald büyük harf ≈ 0,5 em genişlik).
+  const longest = Math.max(...shown.map((l) => l.length));
+  const fit = width ? Math.min(size, Math.floor(width / (longest * 0.5))) : size;
   return (
     <View style={[{ flexDirection: 'row', gap: spacing.md }]}>
       {bar && <View style={{ width: 2, backgroundColor: colors.text, borderRadius: 1 }} />}
-      <View>
-        {/* Satırlar birlikte çevrilir: İngilizcede kelime sırası değişebilir ("Kodu / gir" -> "Enter / the code"). */}
-        {tx(lines.join('\n')).split('\n').map((l, i) => (
+      <View style={{ flex: 1 }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+        {shown.map((l, i) => (
           <Text
             maxFontSizeMultiplier={1}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
             key={l}
             style={[
               styles.title,
-              { fontSize: size, lineHeight: size * 1.05, color: i === 0 ? colors.text : colors.silver },
+              { fontSize: fit, lineHeight: fit * DISPLAY_LINE, marginTop: i ? -fit * 0.22 : 0, color: i === 0 ? colors.text : colors.silver },
             ]}>
             {upper(l)}
           </Text>
@@ -176,7 +194,9 @@ export function ScreenHeader({ eyebrow, title, right }: { eyebrow?: string; titl
       }}>
       <View style={{ flex: 1 }}>
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-        <Text maxFontSizeMultiplier={1} style={[styles.title, { fontSize: 38, lineHeight: 42 }]}>{upper(title)}</Text>
+        <Text maxFontSizeMultiplier={1} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} style={[styles.title, { fontSize: 38, lineHeight: 38 * DISPLAY_LINE }]}>
+          {upper(title)}
+        </Text>
       </View>
       {right}
     </View>
@@ -216,9 +236,14 @@ export function Label({ children, style }: { children: ReactNode; style?: TextPr
   return <Text style={[styles.label, style]}>{children}</Text>;
 }
 
-export function Mono({ children, style }: { children: ReactNode; style?: TextProps['style'] }) {
+// fit: tek satıra sığmazsa yazı küçülür (dar kutulardaki sayılar için).
+export function Mono({ children, style, fit }: { children: ReactNode; style?: TextProps['style']; fit?: boolean }) {
   const styles = useStyles();
-  return <Text style={[styles.mono, style]}>{children}</Text>;
+  return (
+    <Text style={[styles.mono, style]} {...(fit && { numberOfLines: 1, adjustsFontSizeToFit: true, minimumFontScale: 0.7 })}>
+      {children}
+    </Text>
+  );
 }
 
 // Üst kenarında hafif ışık yansıması olan kart.
@@ -419,7 +444,7 @@ export function Stat({ label, value, color }: { label: string; value: string; co
         {color && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />}
         <Label>{label}</Label>
       </View>
-      <Mono style={{ fontSize: 17, marginTop: 8 }}>{value}</Mono>
+      <Mono fit style={{ fontSize: 17, marginTop: 8 }}>{value}</Mono>
     </View>
   );
 }
@@ -844,15 +869,15 @@ const useStyles = makeStyles((colors) => ({
   screenHeader: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, width: '100%', maxWidth: 720, alignSelf: 'center' },
   screenContent: {
     padding: spacing.md,
-    paddingBottom: spacing.xl * 2,
+    paddingBottom: spacing.xl * 4,
     gap: spacing.md,
     width: '100%',
     maxWidth: 720,
     alignSelf: 'center',
   },
-  title: { fontFamily: fonts.display, fontSize: 40, lineHeight: 44, color: colors.text, letterSpacing: 0.3 },
+  title: { fontFamily: fonts.display, fontSize: 40, lineHeight: 40 * DISPLAY_LINE, color: colors.text, letterSpacing: 0.3 },
   eyebrow: { fontFamily: fonts.bodyBold, fontSize: 13, marginBottom: 4 },
-  heading: { fontFamily: fonts.bodyBold, fontSize: 18, lineHeight: 24, color: colors.text },
+  heading: { fontFamily: fonts.bodyBold, fontSize: 18, color: colors.text },
   body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 22, color: colors.text },
   label: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textMuted },
   mono: { fontFamily: fonts.mono, fontSize: 13, color: colors.text },

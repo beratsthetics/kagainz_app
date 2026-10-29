@@ -57,7 +57,7 @@ export default function ExerciseScreen() {
       <Stack.Screen options={{ title: '' }} />
       <Reveal index={0}>
         {/* Adlar İngilizce: büyük harfe İngilizce kuralıyla çevir ("LYING", "LYİNG" değil). */}
-        <Title style={{ fontSize: 34, lineHeight: 38 }}>{ex.trName.toLocaleUpperCase('en-US')}</Title>
+        <Title style={{ fontSize: 34, lineHeight: 44 }}>{ex.trName.toLocaleUpperCase('en-US')}</Title>
         <Row gap={8} style={{ marginTop: spacing.xs, flexWrap: 'wrap' }}>
           <Tag>{MUSCLES[ex.primary[0]].group}</Tag>
           <Tag color={colors.textMuted} bg={colors.surfaceAlt}>

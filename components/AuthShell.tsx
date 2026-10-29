@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GridBackground, Icon, PressScale, Row } from '@/components/ui';
 import { spacing } from '@/constants/theme';
@@ -35,10 +35,13 @@ export function AuthShell({
 }) {
   const colors = useColors();
   const styles = useStyles();
+  // Tam ekran modalda iOS'un SafeAreaView'ı üst boşluğu 0 veriyor (geri düğmesi saatin üstüne biniyordu);
+  // boşluklar uygulama kökünden ölçülür.
+  const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <GridBackground />
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.top}>
             <PressScale onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))} style={styles.back}>
@@ -58,7 +61,7 @@ export function AuthShell({
           </ScrollView>
           {footer && <View style={styles.footer}>{footer}</View>}
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
