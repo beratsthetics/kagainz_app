@@ -9,6 +9,7 @@ import { MacroBar, WaterTracker } from '@/components/bits';
 import { Body, Card, Icon, Label, PressScale, Row, type IconName } from '@/components/ui';
 import { fonts, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { useHealth } from '@/lib/health';
 import { useCelebrate } from '@/lib/celebrate';
 import { useDaily } from '@/lib/daily';
 import { GLASS_ML } from '@/lib/goals';
@@ -32,6 +33,7 @@ export function TodayRings() {
   const colors = useColors();
   const celebrate = useCelebrate();
   const { session } = useAuth();
+  const health = useHealth();
   const { totals, goals, water, waterGoal, hasCustomGoals } = useDaily();
   const [open, setOpen] = useState<string | null>(null);
   const { history, active, program } = useWorkouts();
@@ -123,7 +125,11 @@ export function TodayRings() {
         })}
       </Row>
       {open === null && (
-        <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textDim, textAlign: 'center' }}>Ayrıntı için bir halkaya dokun</Text>
+        <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textDim, textAlign: 'center' }}>
+          {health.connected && health.steps != null
+            ? tx('{0} adım · ayrıntı için bir halkaya dokun', [health.steps.toLocaleString(locale())])
+            : tx('Ayrıntı için bir halkaya dokun')}
+        </Text>
       )}
       {(open === 'kcal' || open === 'protein') && (
         <View style={{ gap: spacing.sm, paddingTop: spacing.xs }}>

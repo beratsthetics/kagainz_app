@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "xyz.tanvogue.kagainz"
+      "package": "xyz.tanvogue.kagainz",
+      "permissions": ["android.permission.health.READ_STEPS", "android.permission.health.READ_WEIGHT"]
     },
     "web": {
       "bundler": "metro",
@@ -91,6 +92,23 @@
         "expo-audio",
         {
           "microphonePermission": "Chat'te sesli mesaj gönderebilmen için mikrofona erişim gerekiyor."
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Adımlarını ve kilonu Kagainz'da göstermek için Sağlık verilerini okuyoruz.",
+          "NSHealthUpdateUsageDescription": false,
+          "background": false
+        }
+      ],
+      "react-native-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
         }
       ]
     ],

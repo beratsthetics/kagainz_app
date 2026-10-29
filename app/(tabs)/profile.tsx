@@ -28,6 +28,7 @@ import {
 } from '@/components/ui';
 import { fonts, spacing, tierColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { HEALTH_NAME, useHealth } from '@/lib/health';
 import { useDaily } from '@/lib/daily';
 import { useLeaderboardVisible } from '@/lib/leaderboard';
 import { pickImage, removeAvatar, uploadAvatar } from '@/lib/media';
@@ -177,6 +178,7 @@ export default function ProfileScreen() {
 
       <Reveal index={5}>
         <Group title="Ayarlar">
+          <HealthRow />
           <LinkRow icon={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }} label="Hatırlatmalar" href="/reminders" last />
           <Settings />
         </Group>
@@ -328,6 +330,28 @@ function LinkRow({ icon, label, href, last, sub, locked }: { icon: IconName; lab
       </View>
       {locked && <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={13} color={colors.textDim} />}
       <Icon name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={14} color={colors.textDim} />
+    </PressScale>
+  );
+}
+
+// Apple Sağlık / Health Connect bağlantısı: adım ve tartı okunur. Yerel modül yoksa (Expo Go, web) görünmez.
+function HealthRow() {
+  const colors = useColors();
+  const styles = useStyles();
+  const { available, connected, steps, connect, disconnect } = useHealth();
+  if (!available) return null;
+  return (
+    <PressScale onPress={() => (connected ? disconnect() : connect())} style={[styles.linkRow, styles.linkBorder]}>
+      <Icon name={{ ios: 'heart.fill', android: 'favorite', web: 'favorite' }} size={18} color={colors.accentBright} />
+      <View style={{ flex: 1 }}>
+        <Text raw style={styles.linkText}>
+          {HEALTH_NAME}
+        </Text>
+        <Text raw style={styles.linkSub}>
+          {connected ? tx('Bağlı · bugün {0} adım', [(steps ?? 0).toLocaleString(locale())]) : tx('Adımların ve tartın otomatik gelsin')}
+        </Text>
+      </View>
+      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: connected ? colors.textMuted : colors.accentBright }}>{connected ? 'Kes' : 'Bağlan'}</Text>
     </PressScale>
   );
 }
