@@ -162,7 +162,7 @@ function ExerciseCard({ index }: { index: number }) {
     // Rekorda güçlü, normal sette hafif titreşim.
     if (Platform.OS !== 'web')
       rec && kg > rec.kg && isWorking(set) ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (!linkedNext) w.startRest(w.restSeconds);
+    if (!linkedNext) w.startRest(w.restSeconds, ex?.trName);
   }
 
   // Isınma setleri numara almaz (I); çalışma setleri 1'den sayılır.

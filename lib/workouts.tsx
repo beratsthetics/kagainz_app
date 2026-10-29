@@ -5,6 +5,7 @@ import { useCelebrate } from './celebrate';
 import { loadCatalog } from './exerciseCatalog';
 import { exerciseById, MUSCLES, type Equipment, type Muscle } from './exercises';
 import { cancelNotification, scheduleRestDone } from './notifications';
+import { endRestActivity, startRestActivity } from './restActivity';
 import { DEFAULT_PROGRAM, type Program, type ProgramDay } from './program';
 import { useProgress } from './progress';
 import { daysAgo, useStored } from './store';
@@ -80,7 +81,7 @@ export function workoutMeta(s: Session): WorkoutMeta {
   };
 }
 
-type Rest = { endsAt: number; total: number; notificationId: string | null };
+type Rest = { endsAt: number; total: number; notificationId: string | null; exercise?: string };
 
 type WorkoutState = {
   program: Program;
@@ -108,7 +109,7 @@ type WorkoutState = {
   discard: () => void;
   lastSetsFor: (exerciseId: string) => SetLog[] | null;
   weeklySets: () => Record<Muscle, number>;
-  startRest: (seconds: number) => void;
+  startRest: (seconds: number, exercise?: string) => void;
   stopRest: () => void;
   restSeconds: number;
   setRestSeconds: (n: number) => void;
@@ -233,16 +234,20 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
   const stopRest = useCallback(() => {
     cancelNotification(restRef.current?.notificationId);
+    endRestActivity();
     setRest(null);
   }, [setRest]);
 
   const startRest = useCallback(
-    async (seconds: number) => {
+    async (seconds: number, name?: string) => {
       cancelNotification(restRef.current?.notificationId);
+      // Süre ±15 sn değişince hareket adı önceki dinlenmeden kalır.
+      const exercise = name ?? restRef.current?.exercise;
       const endsAt = Date.now() + seconds * 1000;
-      setRest({ endsAt, total: seconds, notificationId: null });
+      setRest({ endsAt, total: seconds, notificationId: null, exercise });
+      startRestActivity({ startedAt: Date.now(), endsAt, exercise: exercise ?? '', label: tx('Dinlenme') });
       const notificationId = await scheduleRestDone(seconds);
-      if (notificationId) setRest({ endsAt, total: seconds, notificationId });
+      if (notificationId) setRest({ endsAt, total: seconds, notificationId, exercise });
     },
     [setRest],
   );
