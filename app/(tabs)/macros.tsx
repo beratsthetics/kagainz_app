@@ -33,7 +33,8 @@ import { searchLocal, type FoodResult } from '@/lib/foodsearch';
 import { parseMeal, sumMacros } from '@/lib/macros';
 import { makeStyles, useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
-import { tx } from '@/lib/i18n';
+import { locale, tx } from '@/lib/i18n';
+import { useAdaptiveTarget, type Proposal } from '@/lib/adaptive';
 
 const QUICK = ['2 yumurta', '100g yulaf', '150g tavuk göğsü', '200g pilav', '1 muz', '1 ölçek whey', '1 kase mercimek çorbası', '1 lahmacun'];
 
@@ -98,6 +99,7 @@ function MacroCalculator() {
   const [picked, setPicked] = useState<FoodResult | null>(null);
   const { entries, totals: dayTotals, goals, add, remove, favorites, recent, isFavorite, toggleFavorite } = useDaily();
   const over = Math.round(dayTotals.kcal - goals.kcal);
+  const adaptive = useAdaptiveTarget();
   const lines = useMemo(() => parseMeal(text), [text]);
   const total = useMemo(() => sumMacros(lines), [lines]);
   const known = lines.filter((l) => l.food);
@@ -125,6 +127,12 @@ function MacroCalculator() {
           }
         />
       </Reveal>
+
+      {adaptive.proposal && (
+        <Reveal index={1}>
+          <TargetUpdate {...adaptive} proposal={adaptive.proposal} />
+        </Reveal>
+      )}
 
       {/* Günün özeti */}
       <Reveal index={1}>
@@ -372,6 +380,38 @@ function MacroCalculator() {
       </Reveal>
       <FoodSheet food={picked} meal={meal} source="search" onClose={() => setPicked(null)} onAdded={() => setText('')} />
     </Screen>
+  );
+}
+
+// Haftalık hedef güncellemesi: son 2 haftanın kalorisi ve kilo trendinden yeni hedef önerisi.
+function TargetUpdate({ proposal, apply, skip }: { proposal: Proposal; apply: () => void; skip: () => void }) {
+  const colors = useColors();
+  const n = (v: number) => v.toLocaleString(locale(), { maximumFractionDigits: 1 });
+  const change =
+    Math.abs(proposal.rate) < 0.1
+      ? tx('kilon sabit kaldı')
+      : tx(proposal.rate < 0 ? 'haftada {0} kg verdin' : 'haftada {0} kg aldın', [n(Math.abs(proposal.rate))]);
+  return (
+    <Card style={{ borderColor: colors.accent }}>
+      <Row gap={spacing.sm}>
+        <Icon name={{ ios: 'arrow.triangle.2.circlepath', android: 'autorenew', web: 'autorenew' }} size={18} color={colors.accentBright} />
+        <Heading style={{ fontSize: 17, flex: 1 }}>Haftalık hedef güncellemesi</Heading>
+      </Row>
+      <Body muted style={{ fontSize: 14 }}>
+        {tx('Son 2 haftada günde ortalama {0} kcal yedin ve {1}.', [n(proposal.avgKcal), change])}
+      </Body>
+      <Text raw style={{ fontFamily: fonts.mono, fontSize: 20, color: colors.text }}>
+        {`${n(proposal.from)} → ${n(proposal.to)} kcal`}
+      </Text>
+      <Row gap={spacing.sm}>
+        <View style={{ flex: 1 }}>
+          <Button title="Güncelle" onPress={apply} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button title="Bu hafta değil" variant="outline" onPress={skip} />
+        </View>
+      </Row>
+    </Card>
   );
 }
 

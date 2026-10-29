@@ -15,7 +15,10 @@ export type Feature =
   | 'full_history'
   | 'unlimited_scans'
   | 'all_badges'
-  | 'coach_dm';
+  | 'coach_dm'
+  | 'adaptive_kcal'
+  | 'before_after'
+  | 'habits';
 
 // Her özelliğin açıldığı en düşük üyelik.
 const FEATURE_MIN_TIER: Record<Feature, Tier> = {
@@ -32,6 +35,9 @@ const FEATURE_MIN_TIER: Record<Feature, Tier> = {
   form_check: 'max',
   max_chat: 'max',
   coach_dm: 'max',
+  adaptive_kcal: 'pro',
+  before_after: 'max',
+  habits: 'max',
 };
 
 export function hasFeature(tier: Tier, feature: Feature): boolean {
@@ -69,6 +75,7 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
     perks: [
       'Kişiye özel antrenman programı',
       'Haftalık yemek planı ve alışveriş listesi',
+      'Kilo trendine göre her hafta güncellenen kalori hedefi',
       'Sınırsız barkod tarama',
       'Tüm hareket kütüphanesi',
       'Tüm antrenman geçmişi, rekorlar ve grafikler',
@@ -91,6 +98,8 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
       'Koçla birebir mesajlaşma',
       'Haftalık check-in (kilo, ölçü, fotoğraf) ve koç yorumu',
       'Ayda bir form check (ön, yan, arka fotoğraf) ve koç yorumu',
+      'Önce ve sonra fotoğraf karşılaştırması',
+      'Koçun verdiği günlük alışkanlık görevleri',
       'Koç onaylı yemek planı',
       'Max chat ve özel rozetler',
       "Chat'te sesli mesaj",
