@@ -1139,6 +1139,7 @@ export const EN: Record<string, string> = {
   "Hesabın oluşturuldu. Şimdi giriş yap.": "Account created. Now sign in.",
   "Pro üyesi ol": "Become a Pro member",
   "Yeni rozet": "New badge",
+  "Bu bölüm için ücretsiz hesap oluştur. 30 saniye sürer.": "Create a free account for this section. It takes 30 seconds.",
   "Hedef": "Target",
   "Koç · Kütüphane": "Coach · Library",
   "Koç · Hareket animasyonu": "Coach · Exercise animation",

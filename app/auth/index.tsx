@@ -16,6 +16,12 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const MIN_PASSWORD = 6;
 
 // Giriş/kayıt ekranı: e-posta + şifre formu, altında Google ve telefon seçenekleri.
+const REASONS: Record<string, string> = {
+  macros: 'Makro hesaplamayı kullanmak için ücretsiz hesap oluştur.',
+  workout: 'Antrenmanını kaydetmek için ücretsiz hesap oluştur.',
+  account: 'Bu bölüm için ücretsiz hesap oluştur. 30 saniye sürer.',
+};
+
 export default function EmailScreen() {
   const colors = useColors();
   const styles = useStyles();
@@ -101,12 +107,10 @@ export default function EmailScreen() {
         <Body muted style={{ marginTop: spacing.sm }}>
           {signup ? 'E-posta ve şifrenle saniyeler içinde kayıt ol.' : 'E-posta ve şifrenle hesabına gir.'}
         </Body>
-        {(params.reason === 'macros' || params.reason === 'workout') && (
+        {params.reason && REASONS[params.reason] && (
           <Row gap={spacing.sm} style={styles.reason}>
             <Icon name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={16} color={colors.accentBright} />
-            <Body style={{ flex: 1, fontSize: 14 }}>
-              {params.reason === 'macros' ? 'Makro hesaplamayı kullanmak için ücretsiz hesap oluştur.' : 'Antrenmanını kaydetmek için ücretsiz hesap oluştur.'}
-            </Body>
+            <Body style={{ flex: 1, fontSize: 14 }}>{REASONS[params.reason]}</Body>
           </Row>
         )}
       </Reveal>

@@ -2,7 +2,7 @@ import { Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
 import { Oswald_600SemiBold, Oswald_700Bold } from '@expo-google-fonts/oswald';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider, type Href } from 'expo-router';
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider, useSegments, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
@@ -33,6 +33,12 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+
+// Hesap gerektiren ekranlar. Misafir buralara hangi butondan gelirse gelsin kayıt ekranına döner.
+const MEMBERS_ONLY = new Set([
+  'badges', 'challenges', 'checkin', 'coach', 'dm', 'food', 'form-check', 'friends', 'goals', 'invite',
+  'meal-plan', 'my-program', 'progress', 'reminders', 'share', 'u', 'week', 'workout',
+]);
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -72,13 +78,18 @@ export default function RootLayout() {
 
 function Navigation() {
   const { mode, colors } = useTheme();
-  const { loading } = useAuth();
+  const { loading, session } = useAuth();
+  const segments = useSegments();
   const [lang, , langLoaded] = useLangPref();
   applyLang(lang);
   useLeaderboardSync();
   useWidgetSync();
   useReminderSync();
   useNotificationRouting((route) => router.push(route as Href));
+  const guestBlocked = !loading && !session && MEMBERS_ONLY.has(segments[0] ?? '');
+  useEffect(() => {
+    if (guestBlocked) router.replace('/auth?reason=account');
+  }, [guestBlocked]);
   const navTheme = useMemo(() => {
     const base = mode === 'dark' ? DarkTheme : DefaultTheme;
     return {
