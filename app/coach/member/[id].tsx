@@ -10,7 +10,8 @@ import { useAuth } from '@/lib/auth';
 import { DEFAULT_PROGRAM, type Program } from '@/lib/program';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
-import { TIER_INFO, type Tier } from '@/lib/tiers';
+import { hasFeature, TIER_INFO, type Tier } from '@/lib/tiers';
+import { useHabits } from '@/lib/habits';
 import { locale, tx } from '@/lib/i18n';
 
 type Member = { id: string; username: string | null; tier: Tier; role: string | null; created_at: string; avatar_url?: string | null };
@@ -123,6 +124,10 @@ export default function CoachMember() {
         <NutritionEditor memberId={member.id} />
       </Reveal>
 
+      <Reveal index={2}>
+        <HabitsEditor memberId={member.id} tier={member.tier} />
+      </Reveal>
+
       {notice && (
         <PressScale onPress={() => setNotice(null)}>
           <Card style={{ borderColor: colors.accent }}>
@@ -155,6 +160,54 @@ export default function CoachMember() {
 }
 
 // Koçun atadığı günlük makro hedefi; üyenin kendi hesapladığı hedefin yerine geçer (0008).
+// Günlük alışkanlıklar (Max): koç görev ekler ya da kaldırır, son 7 günde kaç gün yapıldığını görür.
+function HabitsEditor({ memberId, tier }: { memberId: string; tier: Tier }) {
+  const colors = useColors();
+  const { habits, weekCount, reload } = useHabits(memberId);
+  const [title, setTitle] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function add() {
+    const t = title.trim();
+    if (!t) return;
+    const { error: err } = await supabase.from('habits').insert({ user_id: memberId, title: t });
+    if (err) return setError(/habits|schema cache/.test(err.message) ? "Sunucu güncel değil: 0019 SQL dosyasını Supabase'de çalıştır." : err.message);
+    setError(null);
+    setTitle('');
+    reload();
+  }
+
+  async function remove(id: string) {
+    await supabase.from('habits').delete().eq('id', id);
+    reload();
+  }
+
+  return (
+    <Card>
+      <Label>Günlük alışkanlıklar</Label>
+      {!hasFeature(tier, 'habits') && (
+        <Body muted style={{ fontSize: 13 }}>
+          Üye bu görevleri Max pakete geçince görür.
+        </Body>
+      )}
+      {habits?.map((h) => (
+        <Row key={h.id} style={{ justifyContent: 'space-between' }}>
+          <Text raw style={{ flex: 1, fontFamily: fonts.body, fontSize: 14.5, color: colors.text }}>
+            {h.title}
+          </Text>
+          <Mono style={{ color: colors.textMuted, fontSize: 12 }}>{tx('{0}/7 gün', [weekCount(h.id)])}</Mono>
+          <PressScale onPress={() => remove(h.id)} style={{ paddingLeft: spacing.sm }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.danger }}>Kaldır</Text>
+          </PressScale>
+        </Row>
+      ))}
+      <Input value={title} onChangeText={setTitle} placeholder="ör. 10 bin adım, 3 litre su" maxLength={60} />
+      {error && <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.danger }}>{error}</Text>}
+      <Button title="Görev ekle" variant="outline" disabled={!title.trim()} onPress={add} />
+    </Card>
+  );
+}
+
 function NutritionEditor({ memberId }: { memberId: string }) {
   const colors = useColors();
   const [form, setForm] = useState({ kcal: '', protein: '', carbs: '', fat: '', note: '' });

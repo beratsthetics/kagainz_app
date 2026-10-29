@@ -4,6 +4,7 @@ import { Text } from '@/components/T';
 
 import { StreakPill, ThemeToggle } from '@/components/bits';
 import { AvatarRing } from '@/components/BadgeMedal';
+import { HabitsCard } from '@/components/HabitsCard';
 import { NextUp } from '@/components/NextUp';
 import { TodayRings } from '@/components/TodayRings';
 import { WeekStrip } from '@/components/WeekStrip';
@@ -67,6 +68,8 @@ export default function TodayScreen() {
       <Reveal index={2}>
         <TodayRings />
       </Reveal>
+
+      <HabitsCard />
 
       <Reveal index={3}>
         <WeekStrip />

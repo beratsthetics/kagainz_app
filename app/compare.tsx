@@ -14,7 +14,8 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useColors } from '@/lib/theme';
 import { hasFeature } from '@/lib/tiers';
 
-const date = (iso: string) => new Date(iso).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: '2-digit' });
+const date = (iso: string) =>
+  new Date(iso).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: '2-digit' });
 
 // Önce / sonra: iki form check'in aynı pozdaki fotoğrafları üst üste; ortadaki çizgi sürüklenince
 // soldan "önce", sağdan "sonra" görünür.
@@ -48,7 +49,11 @@ export default function CompareScreen() {
           tier="max"
           title="Önce / sonra"
           body="Form check fotoğraflarını yan yana kaydırarak karşılaştır, değişimini gör."
-          preview={[['Önden', '✓'], ['Yandan', '✓'], ['Arkadan', '✓']]}
+          preview={[
+            ['Önden', '✓'],
+            ['Yandan', '✓'],
+            ['Arkadan', '✓'],
+          ]}
           onPress={() => router.push('/plans')}
         />
       </Screen>
@@ -100,7 +105,17 @@ export default function CompareScreen() {
   );
 }
 
-function Picker({ label, checks, value, onChange }: { label: string; checks: FormCheck[]; value: number; onChange: (i: number) => void }) {
+function Picker({
+  label,
+  checks,
+  value,
+  onChange,
+}: {
+  label: string;
+  checks: FormCheck[];
+  value: number;
+  onChange: (i: number) => void;
+}) {
   return (
     <View style={{ gap: spacing.xs }}>
       <Label>{label}</Label>
@@ -143,7 +158,13 @@ function Slider({ before, after }: { before: string; after: string }) {
   return (
     <View
       onLayout={(e) => setWidth(Math.round(e.nativeEvent.layout.width))}
-      style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.surfaceHigh }}
+      style={{
+        width: '100%',
+        aspectRatio: 3 / 4,
+        borderRadius: radius.md,
+        overflow: 'hidden',
+        backgroundColor: colors.surfaceHigh,
+      }}
       {...pan.panHandlers}>
       {before_ && after_ && width > 0 ? (
         <>
@@ -151,7 +172,17 @@ function Slider({ before, after }: { before: string; after: string }) {
           <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: width * pos, overflow: 'hidden' }}>
             <Image source={{ uri: before_ }} style={{ width, height }} contentFit="cover" />
           </View>
-          <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, left: width * pos - 1, width: 2, backgroundColor: '#fff' }} />
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: width * pos - 1,
+              width: 2,
+              backgroundColor: '#fff',
+            }}
+          />
           <View
             pointerEvents="none"
             style={{
