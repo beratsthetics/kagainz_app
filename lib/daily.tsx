@@ -20,6 +20,8 @@ export type LogEntry = {
 };
 
 export type SavedMeal = { id: string; text: string; macros: Macros };
+// Kaydedilen öğün: birkaç yiyecek tek isim altında, tek dokunuşla hepsi eklenir (ör. "Her sabahki kahvaltım").
+export type MyMeal = { id: string; name: string; items: SavedMeal[] };
 
 export const MEALS: Record<MealSlot, { label: string; icon: { ios: string; android: string; web: string } }> = {
   breakfast: { label: 'Kahvaltı', icon: { ios: 'sunrise.fill', android: 'wb_twilight', web: 'wb_twilight' } },
@@ -45,7 +47,7 @@ export const DEFAULT_GOALS: Goals = { kcal: 2200, protein: 150, carb: 240, fat: 
 const ZERO: Macros = { kcal: 0, protein: 0, carb: 0, fat: 0 };
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
-export function totalOf(entries: LogEntry[]): Macros {
+export function totalOf(entries: { macros: Macros }[]): Macros {
   return entries.reduce<Macros>(
     (a, e) => ({
       kcal: a.kcal + e.macros.kcal,
@@ -76,6 +78,10 @@ type DailyState = {
   isFavorite: (text: string) => boolean;
   toggleFavorite: (text: string, macros: Macros) => void;
   recent: SavedMeal[];
+  myMeals: MyMeal[];
+  saveMeal: (name: string, items: SavedMeal[]) => void;
+  removeMeal: (id: string) => void;
+  addMeal: (m: MyMeal, slot: MealSlot) => void;
 };
 
 export type CoachGoals = Goals & { note: string | null };
@@ -90,6 +96,7 @@ export function DailyProvider({ children }: { children: ReactNode }) {
   const [body, setBodyState] = useStored<BodyProfile | null>('body', null);
   const [favorites, setFavorites] = useStored<SavedMeal[]>('favorites', []);
   const [recent, setRecent] = useStored<SavedMeal[]>('recent', []);
+  const [myMeals, setMyMeals] = useStored<MyMeal[]>('my-meals', []);
   const [coachGoals, setCoachGoals] = useStored<CoachGoals | null>('nutrition:assigned', null);
   const { session } = useAuth();
 
@@ -110,7 +117,7 @@ export function DailyProvider({ children }: { children: ReactNode }) {
   const add = useCallback<DailyState['add']>(
     (text, macros, opts) => {
       const entry: LogEntry = {
-        id: `${Date.now()}`,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         text,
         macros,
         at: new Date().toISOString(),
@@ -151,8 +158,12 @@ export function DailyProvider({ children }: { children: ReactNode }) {
             : [{ id: `${Date.now()}`, text, macros }, ...prev],
         ),
       recent,
+      myMeals,
+      saveMeal: (name, items) => setMyMeals((prev) => [{ id: `${Date.now()}`, name, items }, ...prev].slice(0, 30)),
+      removeMeal: (id) => setMyMeals((prev) => prev.filter((m) => m.id !== id)),
+      addMeal: (m, slot) => m.items.forEach((i) => add(i.text, i.macros, { meal: slot, source: 'favorite' })),
     }),
-    [day, entries, goals, coachGoals, body, add, water, favorites, recent, setBodyState, setGoals, setEntries, setWaterState, setFavorites],
+    [day, entries, goals, coachGoals, body, add, water, favorites, recent, myMeals, setBodyState, setGoals, setEntries, setWaterState, setFavorites, setMyMeals],
   );
 
   return <DailyContext.Provider value={value}>{children}</DailyContext.Provider>;

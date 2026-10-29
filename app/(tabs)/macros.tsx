@@ -23,6 +23,7 @@ import {
   Screen,
   ScreenHeader,
   Segmented,
+  Sheet,
   Stat,
   type IconName,
 } from '@/components/ui';
@@ -95,9 +96,10 @@ function MacroCalculator() {
   useEffect(() => {
     if (params.meal) setMeal(params.meal);
   }, [params.meal]);
-  const [shelf, setShelf] = useState<'recent' | 'favorites'>('recent');
+  const [shelf, setShelf] = useState<'recent' | 'favorites' | 'meals'>('recent');
+  const [saving, setSaving] = useState<MealSlot | null>(null);
   const [picked, setPicked] = useState<FoodResult | null>(null);
-  const { entries, totals: dayTotals, goals, add, remove, favorites, recent, isFavorite, toggleFavorite } = useDaily();
+  const { entries, totals: dayTotals, goals, add, remove, favorites, recent, isFavorite, toggleFavorite, myMeals, saveMeal, removeMeal, addMeal } = useDaily();
   const over = Math.round(dayTotals.kcal - goals.kcal);
   const adaptive = useAdaptiveTarget();
   const lines = useMemo(() => parseMeal(text), [text]);
@@ -107,7 +109,7 @@ function MacroCalculator() {
   const fragment = text.split(/\n|,(?!\d)|\+|\bve\b/i).pop()?.trim() ?? '';
   const query = fragment.replace(/^[\d.,]+\s*(g|gr|gram|ml|kg|adet)?\s*/i, '');
   const suggestions = useMemo(() => (query.length >= 2 ? searchLocal(query, 4) : []), [query]);
-  const shelfItems = shelf === 'recent' ? recent : favorites;
+  const shelfItems = shelf === 'recent' ? recent : shelf === 'favorites' ? favorites : [];
 
   function addQuick(q: string) {
     setText((t) => (t.trim() ? `${t.trim().replace(/,$/, '')}, ${q}` : q));
@@ -266,7 +268,7 @@ function MacroCalculator() {
       )}
 
       {/* Favoriler ve son yenenler: tek dokunuşla tekrar ekle */}
-      {(recent.length > 0 || favorites.length > 0) && (
+      {(recent.length > 0 || favorites.length > 0 || myMeals.length > 0) && (
         <Reveal index={6}>
           <Card>
             <Row style={{ justifyContent: 'space-between' }}>
@@ -277,9 +279,36 @@ function MacroCalculator() {
                   active={shelf === 'favorites'}
                   onPress={() => setShelf('favorites')}
                 />
+                <Chip label="Öğünlerim" active={shelf === 'meals'} onPress={() => setShelf('meals')} />
               </Row>
             </Row>
-            {shelfItems.length === 0 ? (
+            {shelf === 'meals' ? (
+              myMeals.length === 0 ? (
+                <Body muted style={{ fontSize: 13 }}>
+                  Günlükte iki ya da daha fazla yiyeceği olan bir öğünün altındaki "Öğünü kaydet"e dokun, burada tek dokunuşla eklensin.
+                </Body>
+              ) : (
+                myMeals.slice(0, 8).map((m) => {
+                  const t = totalOf(m.items);
+                  return (
+                    <Row key={m.id} style={styles.shelfRow}>
+                      <PressScale onPress={() => removeMeal(m.id)} style={{ padding: 4 }}>
+                        <Icon name={{ ios: 'xmark', android: 'close', web: 'close' }} size={14} color={colors.textDim} />
+                      </PressScale>
+                      <View style={{ flex: 1 }}>
+                        <Body numberOfLines={1} style={{ fontSize: 14 }}>
+                          {m.name}
+                        </Body>
+                        <MacroLine kcal={t.kcal} p={t.protein} c={t.carb} f={t.fat} />
+                      </View>
+                      <PressScale onPress={() => addMeal(m, meal)} style={styles.addBtn}>
+                        <Icon name={{ ios: 'plus', android: 'add', web: 'add' }} size={16} color={colors.primaryText} />
+                      </PressScale>
+                    </Row>
+                  );
+                })
+              )
+            ) : shelfItems.length === 0 ? (
               <Body muted style={{ fontSize: 13 }}>
                 Günlükteki bir öğünün yanındaki yıldıza dokun, burada dursun.
               </Body>
@@ -348,11 +377,29 @@ function MacroCalculator() {
                     </PressScale>
                   </Row>
                 ))}
+                {items.length >= 2 && (
+                  <PressScale onPress={() => setSaving(slot)} style={{ alignSelf: 'flex-start' }}>
+                    <Text style={styles.link}>Öğünü kaydet</Text>
+                  </PressScale>
+                )}
               </Card>
             );
           })}
         </View>
       </Reveal>
+      <SaveMealSheet
+        slot={saving}
+        onClose={() => setSaving(null)}
+        onSave={(name) => {
+          if (!saving) return;
+          saveMeal(
+            name,
+            entries.filter((e) => (e.meal ?? 'snack') === saving).map((e) => ({ id: e.id, text: e.text, macros: e.macros })),
+          );
+          setSaving(null);
+          setShelf('meals');
+        }}
+      />
 
       <Reveal index={8}>
         <Card>
@@ -380,6 +427,24 @@ function MacroCalculator() {
       </Reveal>
       <FoodSheet food={picked} meal={meal} source="search" onClose={() => setPicked(null)} onAdded={() => setText('')} />
     </Screen>
+  );
+}
+
+const MEAL_NAME: Record<MealSlot, string> = { breakfast: 'Kahvaltım', lunch: 'Öğle yemeğim', dinner: 'Akşam yemeğim', snack: 'Ara öğünüm' };
+
+function SaveMealSheet({ slot, onClose, onSave }: { slot: MealSlot | null; onClose: () => void; onSave: (name: string) => void }) {
+  const [name, setName] = useState('');
+  useEffect(() => {
+    if (slot) setName(tx(MEAL_NAME[slot]));
+  }, [slot]);
+  return (
+    <Sheet visible={slot != null} onClose={onClose} title="Öğünü kaydet">
+      <Body muted style={{ fontSize: 14 }}>
+        Bu öğündeki yiyecekler tek isim altında kaydedilir. Sonra tek dokunuşla hepsini eklersin.
+      </Body>
+      <Input value={name} onChangeText={setName} placeholder="ör. Antrenman sonrası" maxLength={40} />
+      <Button title="Kaydet" disabled={!name.trim()} onPress={() => onSave(name.trim())} />
+    </Sheet>
   );
 }
 
