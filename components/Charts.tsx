@@ -5,7 +5,7 @@ import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
 import { fonts } from '@/constants/theme';
 import { useColors } from '@/lib/theme';
-import { locale } from '@/lib/i18n';
+import { locale, tx } from '@/lib/i18n';
 
 // Tek serili, sade grafikler: ince işaretler, silik ızgara, dokununca değer. Tek seri olduğu için
 // lejant yok; başlığı ekran söyler.
@@ -103,6 +103,7 @@ export function LineChart({
   values,
   labels,
   color,
+  trend,
   height = 150,
   unit = '',
   format = (v: number) => v.toLocaleString(locale(), { maximumFractionDigits: 1 }),
@@ -110,6 +111,8 @@ export function LineChart({
   values: number[];
   labels: string[];
   color?: string;
+  // Verilirse kalın çizgi trendi çizer, ham değerler soluk nokta olarak kalır.
+  trend?: number[];
   height?: number;
   unit?: string;
   format?: (v: number) => string;
@@ -118,8 +121,9 @@ export function LineChart({
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const lineColor = color ?? c.accentBright;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const all = trend ? [...values, ...trend] : values;
+  const min = Math.min(...all);
+  const max = Math.max(...all);
   const pad = Math.max(0.5, (max - min) * 0.2);
   const lo = min - pad;
   const hi = max + pad;
@@ -128,15 +132,21 @@ export function LineChart({
   const x = (i: number) => px + (values.length < 2 ? (width - 2 * px) / 2 : (i * (width - 2 * px)) / (values.length - 1));
   const y = (v: number) => 6 + (1 - (v - lo) / (hi - lo)) * (plotH - 12);
   const active = selected ?? values.length - 1;
-  const d = values.map((v, i) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join(' ');
+  const line = trend ?? values;
+  const d = line.map((v, i) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join(' ');
 
   return (
     <View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 8, minHeight: 22 }}>
         <Text style={{ fontFamily: fonts.mono, fontSize: 15, color: c.text }}>
-          {values.length ? `${format(values[active])}${unit ? ` ${unit}` : ''}` : '—'}
+          {values.length ? `${format(line[active])}${unit ? ` ${unit}` : ''}` : '—'}
         </Text>
         <Text style={{ fontFamily: fonts.body, fontSize: 12, color: c.textMuted }}>{labels[active]}</Text>
+        {trend && values.length > 0 && (
+          <Text style={{ fontFamily: fonts.body, fontSize: 12, color: c.textDim }}>
+            {tx('trend · tartı {0}', [format(values[active])])}
+          </Text>
+        )}
       </View>
       <View style={{ height }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {width > 0 && values.length > 0 && (
@@ -146,9 +156,14 @@ export function LineChart({
             ))}
             <Line x1={x(active)} x2={x(active)} y1={0} y2={plotH} stroke={c.borderStrong} strokeWidth={1} />
             <Path d={d} stroke={lineColor} strokeWidth={2} fill="none" strokeLinejoin="round" strokeLinecap="round" />
-            {values.map((v, i) => (
-              <Circle key={i} cx={x(i)} cy={y(v)} r={i === active ? 5 : 3} fill={lineColor} stroke={c.surface} strokeWidth={2} />
-            ))}
+            {values.map((v, i) =>
+              trend ? (
+                <Circle key={i} cx={x(i)} cy={y(v)} r={i === active ? 4 : 2.5} fill={c.textDim} opacity={0.6} />
+              ) : (
+                <Circle key={i} cx={x(i)} cy={y(v)} r={i === active ? 5 : 3} fill={lineColor} stroke={c.surface} strokeWidth={2} />
+              ),
+            )}
+            {trend && <Circle cx={x(active)} cy={y(trend[active])} r={5} fill={lineColor} stroke={c.surface} strokeWidth={2} />}
             <Rect x={0} y={plotH} width={width} height={1} fill={c.borderStrong} />
           </Svg>
         )}

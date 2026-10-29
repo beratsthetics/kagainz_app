@@ -132,11 +132,14 @@ export function NextUp() {
         onPress: () => router.push({ pathname: '/macros', params: { meal: slot } }),
       };
 
+    const over = totals.kcal > goals.kcal * 1.1;
     return {
       icon: { ios: 'checkmark.seal.fill', android: 'verified', web: 'verified' },
       label: 'Bugün',
-      title: 'Hedefe ulaştın',
-      body: 'Bugünkü makroların tamam. Yarın için su ve uyku planla.',
+      title: over ? 'Bugünü kapattın' : 'Hedefe ulaştın',
+      body: over
+        ? 'Hedefin biraz üstündesin, sorun değil. Yarın planına devam et, önemli olan haftalık ortalama.'
+        : 'Bugünkü makroların tamam. Yarın için su ve uyku planla.',
       cta: 'Günü hikâyede paylaş',
       onPress: () => router.push({ pathname: '/share', params: { kind: 'day' } }),
     };

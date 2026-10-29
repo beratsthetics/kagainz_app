@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/auth';
 import { loadHistory, useDaily, type DaySummary } from '@/lib/daily';
 import { GROUPS, MUSCLES, type Muscle, type MuscleGroup } from '@/lib/exercises';
 import type { WeightLog } from '@/lib/goals';
+import { weeklyRate, weightTrend } from '@/lib/weight';
 import { useProgress } from '@/lib/progress';
 import { dayKey, daysAgo, useStored } from '@/lib/store';
 import { useColors } from '@/lib/theme';
@@ -62,6 +63,7 @@ export default function ProgressScreen() {
   }));
   const maxGroup = Math.max(10, ...byGroup.map((x) => x.sets));
   const shownWeights = weights.slice(-(full ? 30 : 7));
+  const rate = weeklyRate(weights);
 
   return (
     <Screen edges={[]}>
@@ -116,11 +118,21 @@ export default function ProgressScreen() {
         <Card>
           <Label>Kilo</Label>
           {shownWeights.length > 1 ? (
-            <LineChart
-              values={shownWeights.map((w) => w.kg)}
-              labels={shownWeights.map((w) => new Date(`${w.day}T12:00:00`).toLocaleDateString(locale(), { day: 'numeric', month: 'short' }))}
-              unit="kg"
-            />
+            <>
+              <LineChart
+                values={shownWeights.map((w) => w.kg)}
+                trend={weightTrend(weights).slice(-shownWeights.length)}
+                labels={shownWeights.map((w) => new Date(`${w.day}T12:00:00`).toLocaleDateString(locale(), { day: 'numeric', month: 'short' }))}
+                unit="kg"
+              />
+              {rate != null && (
+                <Body muted style={{ fontSize: 13 }}>
+                  {Math.abs(rate) < 0.1
+                    ? tx('Kilon son 3 haftada sabit.')
+                    : tx(rate < 0 ? 'Son 3 haftada haftada {0} kg veriyorsun.' : 'Son 3 haftada haftada {0} kg alıyorsun.', [Math.abs(rate).toLocaleString(locale(), { maximumFractionDigits: 1 })])}
+                </Body>
+              )}
+            </>
           ) : (
             <Body muted style={{ fontSize: 13 }}>
               En az iki gün kilo girince değişim çizgisi çıkar.

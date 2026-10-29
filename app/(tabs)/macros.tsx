@@ -97,6 +97,7 @@ function MacroCalculator() {
   const [shelf, setShelf] = useState<'recent' | 'favorites'>('recent');
   const [picked, setPicked] = useState<FoodResult | null>(null);
   const { entries, totals: dayTotals, goals, add, remove, favorites, recent, isFavorite, toggleFavorite } = useDaily();
+  const over = Math.round(dayTotals.kcal - goals.kcal);
   const lines = useMemo(() => parseMeal(text), [text]);
   const total = useMemo(() => sumMacros(lines), [lines]);
   const known = lines.filter((l) => l.food);
@@ -129,9 +130,10 @@ function MacroCalculator() {
       <Reveal index={1}>
         <Card glow>
           <Row gap={spacing.lg}>
-            <Ring value={dayTotals.kcal / goals.kcal} size={96} stroke={9} color={dayTotals.kcal > goals.kcal ? colors.fat : colors.accent}>
-              <Text style={styles.ringKcal}>{Math.max(0, goals.kcal - dayTotals.kcal)}</Text>
-              <Label>kaldı</Label>
+            {/* Hedef aşılınca uyarı rengi yok: bir günlük fazla haftalık ortalamada kaybolur. */}
+            <Ring value={dayTotals.kcal / goals.kcal} size={96} stroke={9} color={colors.accent}>
+              <Text style={styles.ringKcal}>{over > 0 ? `+${over}` : goals.kcal - dayTotals.kcal}</Text>
+              <Label>{over > 0 ? 'hedefin üstü' : 'kaldı'}</Label>
             </Ring>
             <View style={{ flex: 1, gap: spacing.sm }}>
               <MacroBar label="Protein" value={dayTotals.protein} goal={goals.protein} color={colors.protein} />
@@ -139,6 +141,11 @@ function MacroCalculator() {
               <MacroBar label="Yağ" value={dayTotals.fat} goal={goals.fat} color={colors.fat} />
             </View>
           </Row>
+          {over > 0 && (
+            <Body muted style={{ fontSize: 13 }}>
+              Bir gün fazla olması sorun değil. Önemli olan haftalık ortalaman.
+            </Body>
+          )}
         </Card>
       </Reveal>
 
