@@ -63,7 +63,7 @@ export default function FormCheckList() {
     return (
       <Screen edges={[]}>
         <LockedCard
-          tier="plus"
+          tier="max"
           title="Form check"
           body="Önden, yandan ve arkadan fotoğrafını gönder, koçun formuna bakıp yorum yazsın."
           preview={[['Önden', '✓'], ['Yandan', '✓'], ['Arkadan', '✓']]}
@@ -225,7 +225,7 @@ export default function FormCheckList() {
           ))}
         </Row>
         <Label>Not (isteğe bağlı)</Label>
-        <Input value={note} onChangeText={setNote} placeholder="ör. Son 2 haftada 1 kg verdim, karın bölgesi zor iniyor" multiline maxLength={500} />
+        <Input value={note} onChangeText={setNote} placeholder="ör. Son bir ayda 2 kg verdim, karın bölgesi zor iniyor" multiline maxLength={500} />
         <Label>Poz videosu (isteğe bağlı)</Label>
         <Row gap={spacing.sm}>
           <View style={{ flex: 1 }}>

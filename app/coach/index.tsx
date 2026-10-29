@@ -44,7 +44,7 @@ export default function CoachPanel() {
       .order('created_at', { ascending: false })
       .limit(100)
       .then(({ data }) => setForms((data ?? []) as unknown as FormCheck[]));
-    // Koç Plus ve Max üyelerin check-in'lerine yorum yazar.
+    // Koç Max üyelerin check-in'lerine yorum yazar.
     supabase
       .from('checkins')
       .select(CHECKIN_SELECT)
@@ -217,7 +217,7 @@ export default function CoachPanel() {
         (checkins == null ? (
           <SkeletonList />
         ) : checkins.length === 0 ? (
-          <EmptyState icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} title="Check-in yok" body="Plus ve Max üyeler haftalık check-in gönderince burada görünür." />
+          <EmptyState icon={{ ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' }} title="Check-in yok" body="Max üyeler haftalık check-in gönderince burada görünür." />
         ) : (
           [...checkins.filter((c) => !c.coach_note), ...checkins.filter((c) => c.coach_note)].map((c) => (
             <PressScale key={c.id} onPress={() => router.push({ pathname: '/checkin/[id]', params: { id: c.id } })}>

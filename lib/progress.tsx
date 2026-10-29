@@ -51,7 +51,7 @@ export const BADGES: Badge[] = [
   { id: 'first_checkin', title: 'İlk check-in', description: 'İlk haftalık check-in\'ini gönder', emoji: '📏', tier: 'max', earned: (s) => (s.checkins ?? 0) >= 1 },
   { id: 'checkins_4', title: 'Bir ay takip', description: '4 haftalık check-in gönder', emoji: '📸', tier: 'max', earned: (s) => (s.checkins ?? 0) >= 4 },
   { id: 'plus_member', title: 'Plus', description: 'Plus üyesi ol', emoji: '💎', tier: 'plus', earned: (_s, t) => TIER_RANK[t] >= TIER_RANK.plus },
-  { id: 'first_form_check', title: 'Form kontrol', description: 'İlk form check fotoğraflarını gönder', emoji: '📸', tier: 'plus', earned: (s) => s.formChecks >= 1 },
+  { id: 'first_form_check', title: 'Form kontrol', description: 'İlk form check fotoğraflarını gönder', emoji: '📸', tier: 'max', earned: (s) => s.formChecks >= 1 },
   { id: 'max_member', title: 'Max', description: 'Max üyesi ol', emoji: '👑', tier: 'max', earned: (_s, t) => t === 'max' },
   { id: 'iron_100', title: 'Demir irade', description: '100 antrenman bitir', emoji: '🛡️', tier: 'max', earned: (s) => s.workouts >= 100 },
   { id: 'streak_100', title: '100 gün', description: '100 gün üst üste kayıt', emoji: '🌋', tier: 'max', earned: (s) => s.bestStreak >= 100 },

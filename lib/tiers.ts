@@ -29,7 +29,7 @@ const FEATURE_MIN_TIER: Record<Feature, Tier> = {
   unlimited_scans: 'pro',
   all_badges: 'pro',
   plus_chat: 'plus',
-  form_check: 'plus',
+  form_check: 'max',
   max_chat: 'max',
   coach_dm: 'max',
 };
@@ -47,8 +47,7 @@ export const LIMITS = {
   freeScansPerDay: 3,
   freeLibrarySize: 10,
   freeHistoryDays: 7,
-  formCheckDays: { plus: 14, max: 7 } as Partial<Record<Tier, number>>,
-  photoMacrosPerMonth: { plus: 30, max: Infinity } as Partial<Record<Tier, number>>,
+  formCheckDays: { max: 30 } as Partial<Record<Tier, number>>,
 };
 
 export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: string[] }> = {
@@ -81,7 +80,6 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
     tagline: 'Koç gözüyle gelişim',
     perks: [
       "Pro'daki her şey",
-      '2 haftada bir form check (ön, yan, arka fotoğraf) ve koç yorumu',
       'Plus üyelere özel chat',
     ],
   },
@@ -92,7 +90,7 @@ export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: str
       "Plus'taki her şey",
       'Koçla birebir mesajlaşma',
       'Haftalık check-in (kilo, ölçü, fotoğraf) ve koç yorumu',
-      'Haftada bir form check',
+      'Ayda bir form check (ön, yan, arka fotoğraf) ve koç yorumu',
       'Koç onaylı yemek planı',
       'Max chat ve özel rozetler',
       "Chat'te sesli mesaj",

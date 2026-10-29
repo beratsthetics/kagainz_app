@@ -40,7 +40,7 @@ export function formCheckTitle(f: Pick<FormCheck, 'exercise_id'>) {
   return exerciseById(f.exercise_id)?.trName ?? f.exercise_id;
 }
 
-// Bir sonraki form check ne zaman gönderilebilir? Plus 14, Max 7 günde bir. Sunucu da aynı kuralı uygular.
+// Bir sonraki form check ne zaman gönderilebilir? Sadece Max, 30 günde bir. Sunucu da aynı kuralı uygular.
 export function nextAllowedAt(tier: Tier, last: FormCheck | undefined): Date | null {
   const days = LIMITS.formCheckDays[tier];
   if (!days) return null;
