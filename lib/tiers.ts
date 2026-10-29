@@ -56,6 +56,11 @@ export const LIMITS = {
   formCheckDays: { max: 30 } as Partial<Record<Tier, number>>,
 };
 
+// Aylık fiyat (TL). Mağaza ürünleri açılınca fiyatlar RevenueCat'ten gelecek; null = henüz belli değil.
+// Yıllıkta 12 yerine 10 ay ödenir (2 ay bedava).
+export const PRICES: Record<Exclude<Tier, 'free'>, number | null> = { pro: 150, plus: null, max: null };
+export const YEARLY_MONTHS = 10;
+
 export const TIER_INFO: Record<Tier, { name: string; tagline: string; perks: string[] }> = {
   free: {
     name: 'Ücretsiz',
